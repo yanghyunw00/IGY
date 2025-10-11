@@ -76,16 +76,12 @@ int main()
         map.IsometricDrawMap(index);
         human.Draw(currentView, &map);
 
-
-		std::cout << "Test for GitKraken" << std::endl;
-		std::cout << "Test for GitKraken Again!!"  << std::endl;
-
-
         DrawText(TextFormat("View: %d", (index % 4) + 1), 10, 10, 20, BLACK);
         DrawText("R: Find Path | C: Clear Path | SPACE: New Map | Arrow Keys: Rotate View", 10, 40, 20, DARKGRAY);
 
         EndDrawing();
     }
+	std::cout << "HI";
 
     CloseWindow();
     return 0;
