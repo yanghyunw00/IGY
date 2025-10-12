@@ -117,10 +117,15 @@ int main()
             std::cout << "path clear" << std::endl;
         }
 
+
+
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
         DrawFPS(1800, 10);
+
+		std::cout << "hi" << std::endl;
+
 
         map.IsometricDrawMap(index);
 		road.drawRoads(map, currentView);
