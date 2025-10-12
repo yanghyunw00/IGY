@@ -124,7 +124,7 @@ int main()
 
         DrawFPS(1800, 10);
 
-		std::cout << "hi" << std::endl;
+		std::cout << "hi agai!!!!" << std::endl;
 
 
         map.IsometricDrawMap(index);
