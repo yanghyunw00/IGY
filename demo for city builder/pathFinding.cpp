@@ -1,6 +1,8 @@
 #include "PathFinding.h"
+#include "GridCell.h" 
 #include <algorithm>
 #include <iostream>
+#include <limits>
 
 PathFinding::PathFinding(int sizeX, int sizeY, float maxClimb)
 	: gridSizeX(sizeX), gridSizeY(sizeY), maxClimbHeight(maxClimb)
@@ -27,6 +29,21 @@ void PathFinding::SetHeightMap(const std::vector<double>& heights)
 			{
 				heightMap[y][x] = static_cast<float>(heights[y * gridSizeX + x]);
 			}
+		}
+	}
+}
+
+void PathFinding::UpdateMapFromGrid(const std::vector<std::vector<GridCell>>& grid)
+{
+	if(costMap.empty()) {
+		costMap.resize(gridSizeY, std::vector<float>(gridSizeX, 1.0f));
+	}
+
+	for(int y = 0; y < gridSizeY; ++y) {
+		for(int x = 0; x < gridSizeX; ++x) {
+			walkableMap[y][x] = grid[y][x].isWalkable();
+			costMap[y][x] = grid[y][x].getMovementCost();
+			heightMap[y][x] = static_cast<float>(grid[y][x].getHeight());
 		}
 	}
 }
@@ -127,13 +144,14 @@ std::vector<Vector2> PathFinding::FindPath(int startX, int startY, int endX, int
 {
 	const float UPHILL_COST_MULTIPLIER = 2.0f;
 	const float DOWNHILL_COST_MULTIPLIER = 0.3f;
+	const float INF = std::numeric_limits<float>::infinity(); 
 
 	for(int y = 0; y < gridSizeY; y++)
 	{
 		for(int x = 0; x < gridSizeX; x++)
 		{
 			Node& node = allNodes[y][x];
-			node.gCost = 0;
+			node.gCost = INF;
 			node.hCost = 0;
 			node.parent = nullptr;
 		}
@@ -159,12 +177,20 @@ std::vector<Vector2> PathFinding::FindPath(int startX, int startY, int endX, int
 	Node* startNode = &allNodes[startY][startX];
 	Node* targetNode = &allNodes[endY][endX];
 
+	startNode->gCost = 0;
+	startNode->hCost = GetManhattanDistance(startNode, targetNode);
+	startNode->CalculateFCost();
 	openSet.push(startNode);
 
 	while(!openSet.empty())
 	{
 		Node* currentNode = openSet.top();
 		openSet.pop();
+
+		if(closedSet[currentNode->y][currentNode->x])
+		{
+			continue;
+		}
 
 		closedSet[currentNode->y][currentNode->x] = true;
 
@@ -176,10 +202,6 @@ std::vector<Vector2> PathFinding::FindPath(int startX, int startY, int endX, int
 
 		for(Node* neighbor : GetNeighbors(currentNode))
 		{
-			if(closedSet[neighbor->y][neighbor->x])
-			{
-				continue;
-			}
 
 			float newMovementCostToNeighbor = currentNode->gCost;
 			newMovementCostToNeighbor += GetManhattanDistance(currentNode, neighbor); 
@@ -196,7 +218,7 @@ std::vector<Vector2> PathFinding::FindPath(int startX, int startY, int endX, int
 				newMovementCostToNeighbor += std::abs(heightDiff) * DOWNHILL_COST_MULTIPLIER;
 			}
 
-			if(newMovementCostToNeighbor < neighbor->gCost || neighbor->gCost == 0) 
+			if(newMovementCostToNeighbor < neighbor->gCost) 
 			{
 				neighbor->gCost = newMovementCostToNeighbor;
 				neighbor->hCost = GetManhattanDistance(neighbor, targetNode);
@@ -209,3 +231,70 @@ std::vector<Vector2> PathFinding::FindPath(int startX, int startY, int endX, int
 	}
 	return path;
 }
+
+
+//BFS 탐색
+//Vector2 FindNearestGround(const Map& map, Vector2 inputPos) 
+//{
+//    int startX = (int)(inputPos.x / TILE_SIZE_W);
+//    int startY = (int)(inputPos.y / TILE_SIZE_H);
+//
+//    if (map.IsWalkable(startY, startX))
+//    {
+//        return { startX * (float)TILE_SIZE_W, startY * (float)TILE_SIZE_H };
+//    }
+//
+//
+//    //BFS 알고리즘
+//    std::queue<std::pair<int, int>> q;
+//    std::unordered_map<int, bool> visited; //방문한 곳을 기록
+//
+//    //2차원을 1차원으로 나열
+//    auto key = [&](int x, int y) { return y * MAP_WIDTH + x; };
+//
+//    q.push({ startX, startY });
+//    visited[key(startX, startY)] = true;
+//
+//    //8방향의 타일을 확인
+//    int dir[8][2] = {
+//    {1, 0},   //  오른쪽
+//    {-1, 0},  //  왼쪽
+//    {0, 1},   //  아래
+//    {0, -1},  //  위
+//    {1, 1},   //  오른쪽 아래
+//    {1, -1},  //  오른쪽 위
+//    {-1, 1},  //  왼쪽 아래
+//    {-1, -1}  //  왼쪽 위
+//    };
+//
+//    while (!q.empty()) {
+//        //젤 앞에를 꺼내서 확인
+//        auto [cx, cy] = q.front();
+//        q.pop();
+//
+//        for (auto& d : dir) 
+//        {
+//            //4방향 순회
+//            int nx = cx + d[0];
+//            int ny = cy + d[1];
+//
+//            //맵 범위 밖, 방문한 노드 continue;
+//            if (nx < 0 || nx >= MAP_WIDTH || ny < 0 || ny >= MAP_HEIGHT) continue;
+//            if (visited[key(nx, ny)]) continue;
+//
+//            visited[key(nx, ny)] = true;
+//
+//            if (map.IsWalkable(ny, nx))
+//            {
+//                return { nx * (float)TILE_SIZE_W, ny * (float)TILE_SIZE_H };
+//            }
+//
+//            q.push({ nx, ny });
+//        }
+//    }
+//
+//    //없다면 그냥 반환(4방향이 막혔을 경우
+//    return { startX * (float)TILE_SIZE_W, startY * (float)TILE_SIZE_H };
+//}
+//
+

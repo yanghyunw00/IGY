@@ -109,13 +109,19 @@ int main()
 		}
 
         //Draw Human
-        human.Update(GetFrameTime());
+		human.Update(GetFrameTime(), &map);
 
         if (IsKeyPressed(KEY_C))
         {
             map.ClearPath();
             std::cout << "path clear" << std::endl;
         }
+
+		if(IsKeyPressed(KEY_F))
+		{
+			human.ToggleDebug();
+			std::cout << "Debug: " << (human.IsDebugMode() ? "ON" : "OFF") << std::endl;
+		}
 
 
 
@@ -124,15 +130,13 @@ int main()
 
         DrawFPS(1800, 10);
 
-		std::cout << "hi agai!!!!" << std::endl;
-
 
         map.IsometricDrawMap(index);
 		road.drawRoads(map, currentView);
         human.Draw(currentView, &map);
 
         DrawText(TextFormat("View: %d", (index % 4) + 1), 10, 10, 20, BLACK);
-        DrawText("R: Find Path | C: Clear Path | SPACE: New Map | Arrow Keys: Rotate View", 10, 40, 20, DARKGRAY);
+        DrawText("P: Find Path | C: Clear Path | F: Debug | SPACE: New Map | Arrow Keys: Rotate View", 10, 40, 20, DARKGRAY);
 		DrawText("W: Place single Road | E: Place roads | D: Clear All Roads", 10, 70, 20, DARKGRAY);
         EndDrawing();
     }

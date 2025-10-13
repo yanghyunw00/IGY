@@ -45,6 +45,8 @@ public:
     std::vector<Vector2> FindPath(Vector2 start, Vector2 end);
     std::vector<Vector2> FindPath(int startX, int startY, int endX, int endY);
 
+	void UpdateMapFromGrid(const std::vector<std::vector<GridCell>>& grid);
+
 private:
     float GetManhattanDistance(Node* nodeA, Node* nodeB);
     bool CanClimb(int fromX, int fromY, int toX, int toY);
