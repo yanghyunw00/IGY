@@ -131,6 +131,7 @@
     <ClCompile Include="Mode7.cpp" />
     <ClCompile Include="MouseInput.cpp" />
     <ClCompile Include="pathFinding.cpp" />
+    <ClCompile Include="Road.cpp" />
     <ClCompile Include="Vec2.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -143,6 +144,7 @@
     <ClInclude Include="Mode7.h" />
     <ClInclude Include="MouseInput.h" />
     <ClInclude Include="pathFinding.h" />
+    <ClInclude Include="Road.h" />
     <ClInclude Include="rotate.h" />
     <ClInclude Include="Vec2.h" />
   </ItemGroup>
