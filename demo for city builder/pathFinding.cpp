@@ -33,20 +33,6 @@ void PathFinding::SetHeightMap(const std::vector<double>& heights)
 	}
 }
 
-void PathFinding::UpdateMapFromGrid(const std::vector<std::vector<GridCell>>& grid)
-{
-	if(costMap.empty()) {
-		costMap.resize(gridSizeY, std::vector<float>(gridSizeX, 1.0f));
-	}
-
-	for(int y = 0; y < gridSizeY; ++y) {
-		for(int x = 0; x < gridSizeX; ++x) {
-			walkableMap[y][x] = grid[y][x].isWalkable();
-			costMap[y][x] = grid[y][x].getMovementCost();
-			heightMap[y][x] = static_cast<float>(grid[y][x].getHeight());
-		}
-	}
-}
 
 void PathFinding::SetWalkable(int x, int y, bool walkable)
 {
