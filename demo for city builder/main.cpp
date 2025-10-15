@@ -130,6 +130,8 @@ int main()
 
         DrawFPS(1800, 10);
 
+		///hihiihi
+
 
         map.IsometricDrawMap(index);
 		road.drawRoads(map, currentView);
