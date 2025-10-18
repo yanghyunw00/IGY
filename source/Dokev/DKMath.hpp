@@ -50,13 +50,13 @@ namespace Dokev
         static int   fastFloor(float f);
         static float fade(float t);
 
-        static float vec2Length(vec2 v);
-        static float vec2LengthSqr(vec2 v);
-        static float vec2DotProduct(vec2 v1, vec2 v2);
-        static float fvec3DotProduct(float x, float y, float z, float first, float second, float third);
-        static float vec2CrossProduct(vec2 v1, vec2 v2);
-        static float vec2Distance(vec2 v1, vec2 v2);
-        static float vec2DistanceSqr(vec2 v1, vec2 v2);
+        static float Length(vec2 v);
+        static float LengthSquared(vec2 v);
+        static float DotProduct(vec2 v1, vec2 v2);
+        static float DotProduct(float x, float y, float z, float first, float second, float third);
+        static float CrossProduct(vec2 v1, vec2 v2);
+        static float Distance(vec2 v1, vec2 v2);
+        static float DistanceSquared(vec2 v1, vec2 v2);
 
         static float gradiant(int hash, float x, float y, float z);
         static float PerlinNoise(float x, float y, float z, int wrapX = 256, int wrapY = 256, int wrapZ = 256, int seed = 0);

@@ -35,37 +35,37 @@ float Dokev::DKMath::fade(float t)
     return t * t * t * (t * (t * 6 - 15) + 10);
 }
 
-float Dokev::DKMath::vec2Length(vec2 v)
+float Dokev::DKMath::Length(vec2 v)
 {
     return sqrtf((v.x * v.x) + (v.y * v.y));
 }
 
-float Dokev::DKMath::vec2LengthSqr(vec2 v)
+float Dokev::DKMath::LengthSquared(vec2 v)
 {
     return (v.x * v.x) + (v.y * v.y);
 }
 
-float Dokev::DKMath::vec2DotProduct(vec2 v1, vec2 v2)
+float Dokev::DKMath::DotProduct(vec2 v1, vec2 v2)
 {
     return (v1.x * v2.x + v1.y * v2.y);
 }
 
-float Dokev::DKMath::fvec3DotProduct(float x, float y, float z, float first, float second, float third)
+float Dokev::DKMath::DotProduct(float x, float y, float z, float first, float second, float third)
 {
     return first * x + second * y + third * z;
 }
 
-float Dokev::DKMath::vec2CrossProduct(vec2 v1, vec2 v2)
+float Dokev::DKMath::CrossProduct(vec2 v1, vec2 v2)
 {
     return (v1.x * v2.y - v1.y * v2.x);
 }
 
-float Dokev::DKMath::vec2Distance(vec2 v1, vec2 v2)
+float Dokev::DKMath::Distance(vec2 v1, vec2 v2)
 {
     return sqrtf((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y));
 }
 
-float Dokev::DKMath::vec2DistanceSqr(vec2 v1, vec2 v2)
+float Dokev::DKMath::DistanceSquared(vec2 v1, vec2 v2)
 {
     return ((v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y));
 }
