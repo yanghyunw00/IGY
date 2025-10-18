@@ -1,6 +1,6 @@
 ﻿/**
  * \file GridMap.cpp
- * \brief 
+ * \brief
  * \author Junseok Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -8,22 +8,25 @@
 
 
 #include "GridMap.hpp"
+#include "Dokev/DKUtility.hpp"
 #include "Engine/Engine.hpp"
-#include "Engine/Window.hpp"
 #include "Engine/Logger.hpp"
+#include "Engine/Window.hpp"
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
 
-void GridMap::IsometricExportOriginalMap()
-{
-    // No export needed - just set up for direct drawing
-}
 
-void GridMap::IsometricExportMap([[maybe_unused]] int view)
+void GridMap::ReGenerateMap()
 {
-    // No export needed - just set up for direct drawing
+    ResetPerlinTexture();
+    ResetIsoGridMapArray();
+    InitializeIsoView();
+    IsometricDrawMap(1);
+    IsometricDrawMap(2);
+    IsometricDrawMap(3);
+    IsometricDrawMap(4);
 }
 
 void GridMap::ResetIsoGridMapArray()
@@ -71,7 +74,6 @@ void GridMap::InitializeIsoView()
             int rotIndex270 = static_cast<int>(new_y) * GRID_SIZE_X + static_cast<int>(new_x);
             if (rotIndex270 >= 0 && rotIndex270 < GRID_SIZE_X * GRID_SIZE_Y)
                 view4[rotIndex270] = &m_gridCells[y][x];
-
         }
     }
 }
@@ -109,11 +111,11 @@ void GridMap::IsometricDrawMap(int index) const
 
             if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
             {
-                int screenX = originX + (x - y) * TILE_WIDTH_HALF;
-                int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
-                int count   = y * GRID_SIZE_X + x;
-                double height = selectedView[count]->getHeight();
-                int topY    = static_cast<int>(height) - screenY;
+                int    screenX = originX + (x - y) * TILE_WIDTH_HALF;
+                int    screenY = originY + (x + y) * TILE_HEIGHT_HALF;
+                int    count   = y * GRID_SIZE_X + x;
+                double height  = selectedView[count]->getHeight();
+                int    topY    = static_cast<int>(height) - screenY;
 
                 int current_texture = 3;
                 if (height < 205)
@@ -133,8 +135,8 @@ void GridMap::IsometricDrawMap(int index) const
 
 void GridMap::ResetPerlinTexture()
 {
-    int seedX          = 555;
-    int seedY          = 777;
+    int seedX          = Dokev::GetRandomValue(1, 10000);
+    int seedY          = Dokev::GetRandomValue(1, 10000);
     PerlinNoiseImage   = Dokev::GenImagePerlinNoise(GRID_SIZE_X, GRID_SIZE_Y, seedX, seedY, 0.1f);
     PerlinNoiseTexture = LoadTextureFromImage(PerlinNoiseImage);
 

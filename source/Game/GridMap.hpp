@@ -17,11 +17,11 @@
 //#include "PathFinding.h"
 
 
-#define GRID_SIZE_Y 35
-#define GRID_SIZE_X 35
+#define GRID_SIZE_Y 31
+#define GRID_SIZE_X 31
 
-#define GRID_SIZE_Y_HALF (17)
-#define GRID_SIZE_X_HALF (17)
+#define GRID_SIZE_Y_HALF (15)
+#define GRID_SIZE_X_HALF (15)
 
 #define TILE_WIDTH 64
 #define TILE_HEIGHT 32
@@ -58,14 +58,8 @@ public:
 			std::cout << "isoOrigin set: X=" << isoOriginX << ", Y=" << isoOriginY << std::endl;
 		}
 
-		IsometricExportOriginalMap();
 
 		InitializeIsoView();
-
-		IsometricExportMap(1);
-		IsometricExportMap(2);
-		IsometricExportMap(3);
-		IsometricExportMap(4);
 
 		//InitializePathFinding();
 
@@ -81,16 +75,11 @@ public:
 
 		UnloadImage(PerlinNoiseImage);
 	};
-
-	void IsometricExportOriginalMap();
-	void IsometricExportMap(int view);
-
+	
+	void ReGenerateMap();
 	void ResetIsoGridMapArray();
 	void InitializeIsoView();
-
 	void IsometricDrawMap(int index) const;
-
-
 	void ResetPerlinTexture();
 	const Dokev::Texture2D* GetPerlinTexture() const;
 	GridCell** GetViewArray(int viewIndex);

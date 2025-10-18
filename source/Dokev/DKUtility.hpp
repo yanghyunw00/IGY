@@ -1,4 +1,4 @@
-#include "DKMath.hpp"
+#include "Dokev/DKMath.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
 #include <cmath>
@@ -12,7 +12,7 @@ namespace Dokev
         if (min < 0 || max == 0 || max > 999999)
         {
             Engine::GetLogger().LogError("Invalid Input: min < 0, max == 0, max > 999999");
-            return;
+            return 0; // For now, just terminate program.
         }
 
         std::random_device                 rd;

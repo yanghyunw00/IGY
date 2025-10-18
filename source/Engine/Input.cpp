@@ -89,6 +89,7 @@ namespace CS230
             case Keys::Enter: return SDL_SCANCODE_RETURN;
             case Keys::Left: return SDL_SCANCODE_LEFT;
             case Keys::Right: return SDL_SCANCODE_RIGHT;
+            case Keys::Space: return SDL_SCANCODE_SPACE;
             case Keys::Up: return SDL_SCANCODE_UP;
             case Keys::Down: return SDL_SCANCODE_DOWN;
             case Keys::Escape: return SDL_SCANCODE_ESCAPE;

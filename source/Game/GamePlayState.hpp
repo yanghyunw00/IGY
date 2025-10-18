@@ -13,7 +13,6 @@
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
 #include <array>
-#include <gsl/gsl>
 
 class GamePlayState : public CS230::GameState
 {
@@ -32,12 +31,16 @@ private:
 
     GridMap map;
 
+    //Iso grid
+    int index = 1;
+
+
     // Camera 
     Math::vec2 cameraPosition{0, 0};
     float cameraZoom = 1.0f;
 
+
 private:
     void                       updateInput();
-    void                       draw() const;
 
 };
