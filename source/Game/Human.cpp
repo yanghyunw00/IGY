@@ -9,7 +9,7 @@
 
 #include "Human.hpp"
 #include "GridMap.hpp" 
-#include "Dokev/DKShapes.hpp"
+#include "Dokev/DKColor.hpp"
 #include <iostream>
 
 Human::Human(Math::fvec2 startGridPos)

@@ -49,7 +49,10 @@ set(SOURCE_CODE
     Dokev/DKTexture.hpp Dokev/DKTexture.cpp
     Dokev/DKImage.hpp Dokev/DKImage.cpp
     Dokev/DKMath.hpp Dokev/DKMath.cpp
-    Dokev/DKUtility.hpp
+    Dokev/DKUtility.hpp Dokev/DKUtility.cpp
+    Dokev/DKColor.hpp Dokev/DKColor.cpp
+    Dokev/DKGrid.hpp Dokev/DKGrid.cpp
+
 
     Game/GamePlayState.hpp Game/GamePlayState.cpp
     Game/GridCell.hpp

@@ -12,6 +12,7 @@
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKShapes.hpp"
+#include "Game/pathFinding.hpp"
 //#include "MouseInput.h"
 //#include "Human.h"
 //#include "PathFinding.h"
@@ -32,38 +33,8 @@
 class GridMap
 {
 public:
-	GridMap() :  currentView(1) // pathFinder(nullptr), showPath(false),
-	{
-
-		//resize the grid because the grid might change in later itereations of the code. current there is no need for this
-		PlainsTexture = Dokev::LoadTexture("Assets/images/textures/IsoPlains.png");
-		WaterTexture = Dokev::LoadTexture("Assets/images/textures/IsoWater.png");
-		MountainTexture = Dokev::LoadTexture("Assets/images/textures/IsoMountains.png");
-		SnowTexture = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
-		Max_Height = Dokev::LoadTexture("Assets/images/textures/Max_Height.png");  // Use IsoPeak as placeholder for Max_Height
-		IsoGridTexture[0] = WaterTexture;
-		IsoGridTexture[1] = PlainsTexture;
-		IsoGridTexture[2] = MountainTexture;
-		IsoGridTexture[3] = SnowTexture;
-
-
-		ResetPerlinTexture();
-
-		ResetIsoGridMapArray();
-
-		if (!IsoGridMapArray.empty())
-		{
-			isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
-			isoOriginY = static_cast<int>(IsoGridMapArray[0].getHeight());
-			std::cout << "isoOrigin set: X=" << isoOriginX << ", Y=" << isoOriginY << std::endl;
-		}
-
-
-		InitializeIsoView();
-
-		//InitializePathFinding();
-
-	};
+	
+	GridMap();
 
 	~GridMap()
 	{
@@ -85,25 +56,21 @@ public:
 	GridCell** GetViewArray(int viewIndex);
 
 
-	// void InitializePathFinding();
-	// void HandlePathFindingInput();
-	// void FindPath(Vector2 start, Vector2 end);
-	// void FindPath(int startX, int startY, int endX, int endY);
-	// void ClearPath();
-	// void DrawCurrentPathIsometric(Color color, int viewIndex);
-	// void SetWalkable(int x, int y, bool walkable);
-	// bool IsWalkable(int x, int y);
-
-
-	// Vector2 ScreenToGridIsometric(Vector2 screenPos);
-	// Vector2 GridToScreenIsometric(Vector2 gridPos);
-	// Vector2 WorldToIsometric(float gridX, float gridY, float height) const;
+	//Path Finding
+	void InitializePathFinding();
+	void HandlePathFindingInput();
+	void FindPath(Math::fvec2 start, Math::fvec2 end);
+	void FindPath(int startX, int startY, int endX, int endY);
+	void ClearPath();
+	void DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex);
+	void SetWalkable(int x, int y, bool walkable);
+	bool IsWalkable(int x, int y);
 
 	// //For Human ai
-	// std::vector<Vector2> GetCurrentPath() const { return currentPath; }
-	// int GetIsoOriginX() const { return isoOriginX; }
-	// int GetIsoOriginY() const { return isoOriginY; }
-	// Vector2 TransformPathPointForView(Vector2 point, int viewIndex);
+	std::vector<Math::fvec2> GetCurrentPath() const { return currentPath; }
+	int GetIsoOriginX() const { return isoOriginX; }
+	int GetIsoOriginY() const { return isoOriginY; }
+	Math::fvec2 TransformPathPointForView(Math::fvec2 point, int viewIndex);
 
 private:
 	void rotatePoint90(int x, int y,
@@ -147,8 +114,8 @@ private:
 
 	mutable int currentView;
 
-	// PathFinding* pathFinder;
-	// std::vector<Vector2> currentPath;
-	// bool showPath;
+	PathFinding* pathFinder;
+	std::vector<Math::fvec2> currentPath;
+	bool showPath;
 
 };
