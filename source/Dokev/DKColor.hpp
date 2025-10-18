@@ -1,6 +1,6 @@
 /**
  * \file DKColor.hpp
- * \brief Color palette definitions
+ * \brief 
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -71,10 +71,6 @@ namespace Dokev
     CS200::RGBA ColorLerp(CS200::RGBA color1, CS200::RGBA color2, float t);
 
     CS200::RGBA ColorAdd(CS200::RGBA color1, CS200::RGBA color2);
-
-    CS200::RGBA ColorMultiply(CS200::RGBA color1, CS200::RGBA color2);
-
-    CS200::RGBA ColorBrightness(CS200::RGBA color, float factor);
 
     CS200::RGBA ColorAlpha(CS200::RGBA color, float alpha);
 

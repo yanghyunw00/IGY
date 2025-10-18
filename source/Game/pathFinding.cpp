@@ -211,6 +211,8 @@ std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX,
 				neighbor->CalculateFCost();
 
 				openSet.push(neighbor);
+        		std::cout << "Find the path " << std::endl;
+
 			}
 		}
 	}

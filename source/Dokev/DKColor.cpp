@@ -1,7 +1,7 @@
 /**
  * \file DKColor.cpp
- * \brief Color palette and color manipulation functions implementation
- * \author Hyunwoo Yang
+ * \brief 
+ * \author Young woo Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
@@ -38,34 +38,6 @@ namespace Dokev
         {
             result[i] = std::min(c1[i] + c2[i], 1.0f);
         }
-
-        return CS200::pack_color(result);
-    }
-
-    CS200::RGBA ColorMultiply(CS200::RGBA color1, CS200::RGBA color2)
-    {
-        auto c1 = CS200::unpack_color(color1);
-        auto c2 = CS200::unpack_color(color2);
-
-        std::array<float, 4> result;
-        for (int i = 0; i < 4; ++i)
-        {
-            result[i] = c1[i] * c2[i];
-        }
-
-        return CS200::pack_color(result);
-    }
-
-    CS200::RGBA ColorBrightness(CS200::RGBA color, float factor)
-    {
-        auto c = CS200::unpack_color(color);
-
-        std::array<float, 4> result;
-        for (int i = 0; i < 3; ++i)
-        {
-            result[i] = std::clamp(c[i] * factor, 0.0f, 1.0f);
-        }
-        result[3] = c[3];
 
         return CS200::pack_color(result);
     }

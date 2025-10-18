@@ -35,7 +35,6 @@ vec2DistanceSqr(vec2 v1, vec2 v2): Calculate squared distance between two 2D poi
 
 
 #define PI 3.14159265358979323f
-
 #define EPSILON 0.000001f
 
 using vec2 = Math::fvec2;

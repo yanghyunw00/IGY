@@ -9,6 +9,8 @@
 #include <vector>
 #include "Road.hpp"
 #include "GridMap.hpp"
+#include "Engine/Vec2.hpp"
+#include "Dokev/DKColor.hpp"
 
 void Road::addRoad(int x, int y)
 {
@@ -46,41 +48,41 @@ void Road::drawRoads([[maybe_unused]]  GridMap& map,[[maybe_unused]]  int curren
 	{
 		for ([[maybe_unused]]  auto& roadPos : roadPositions)
 		{
-			//Math::fvec2 transformedPos = map.TransformPathPointForView(roadPos, currentview);
+			Math::fvec2 transformedPos = map.TransformPathPointForView(roadPos, currentview);
 
-			//int gridX = static_cast<int>(transformedPos.x);
-			//int gridY = static_cast<int>(transformedPos.y);
+			int gridX = static_cast<int>(transformedPos.x);
+			int gridY = static_cast<int>(transformedPos.y);
 
-			// Get height from the grid cell
-			//GridCell** viewArray = map.GetViewArray(currentview);
-			//float height = viewArray[gridY * GRID_SIZE_X + gridX]->getHeight();
+			//Get height from the grid cell
+			GridCell** viewArray = map.GetViewArray(currentview);
+			float height = static_cast<float>(viewArray[gridY * GRID_SIZE_X + gridX]->getHeight());
 
-			// Get origin
-			//int originX = map.GetIsoOriginX();
-			//int originY = map.GetIsoOriginY();
+			//Get origin
+			int originX = map.GetIsoOriginX();
+			int originY = map.GetIsoOriginY();
 
-			// Manual isometric calculation
-			//int isoX = originX + (transformedPos.x - transformedPos.y) * TILE_WIDTH_HALF;
-			//int isoY = originY + (transformedPos.x + transformedPos.y) * TILE_HEIGHT_HALF - static_cast<int>(height);
+			//Manual isometric calculation
+			int isoX = static_cast<int>(originX + (transformedPos.x - transformedPos.y) * TILE_WIDTH_HALF);
+			int isoY = static_cast<int>(originY + (transformedPos.x + transformedPos.y) * TILE_HEIGHT_HALF - static_cast<int>(height));
 
-			//DrawTexture(roadTexture, isoX, isoY, WHITE);
+			DrawTexture(roadTexture, isoX, isoY, Dokev::ColorPalette::WHITE);
 		}
 	}
 }
 
 void Road::buildRoadPath([[maybe_unused]]  GridMap& map, [[maybe_unused]] int startX,[[maybe_unused]]  int startY, [[maybe_unused]] int endX,[[maybe_unused]]  int endY)
 {
-	// Use pathfinding
-	// map.FindPath(startX, startY, endX, endY);
+	//Use pathfinding
+	map.FindPath(startX, startY, endX, endY);
 
-	// std::vector<Vector2> path = map.GetCurrentPath();
+	std::vector<Math::fvec2> path = map.GetCurrentPath();
 
-	// for (const auto& pos : path)
-	// {
-	// 	addRoad(static_cast<int>(pos.x), static_cast<int>(pos.y));
-	// }
+	for (const auto& pos : path)
+	{
+		addRoad(static_cast<int>(pos.x), static_cast<int>(pos.y));
+	}
 
-	// map.ClearPath();
+	map.ClearPath();
 }
 
 void Road::removeAllRoad()

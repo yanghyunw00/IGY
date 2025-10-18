@@ -1,32 +1,18 @@
 #include "DKGrid.hpp"
-#include <cmath>
 #include <algorithm>
+#include <cmath>
 
 namespace Dokev
 {
     namespace Grid
     {
-        Math::fvec2 GridToScreenIsometric(Math::fvec2 gridPos, float tileWidth, float tileHeight)
-        {
-            float screenX = (gridPos.x - gridPos.y) * tileWidth * 0.5f;
-            float screenY = (gridPos.x + gridPos.y) * tileHeight * 0.5f;
-            return Math::fvec2{screenX, screenY};
-        }
-
-        Math::fvec2 ScreenToGridIsometric(Math::fvec2 screenPos, float tileWidth, float tileHeight)
-        {
-            float gridX = (screenPos.x / (tileWidth * 0.5f) + screenPos.y / (tileHeight * 0.5f)) * 0.5f;
-            float gridY = (screenPos.y / (tileHeight * 0.5f) - screenPos.x / (tileWidth * 0.5f)) * 0.5f;
-            return Math::fvec2{gridX, gridY};
-        }
-
 
         bool IsValidGridPosition(Math::fvec2 gridPos, int gridWidth, int gridHeight)
         {
-            return IsWithinBounds(static_cast<int>(gridPos.x), static_cast<int>(gridPos.y), gridWidth, gridHeight);
-        } 
+            return IsInsideBounds(static_cast<int>(gridPos.x), static_cast<int>(gridPos.y), gridWidth, gridHeight);
+        }
 
-        bool IsWithinBounds(int x, int y, int gridWidth, int gridHeight)
+        bool IsInsideBounds(int x, int y, int gridWidth, int gridHeight)
         {
             return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight;
         }
@@ -36,10 +22,10 @@ namespace Dokev
             std::vector<Math::fvec2> neighbors;
             neighbors.reserve(4);
 
-            neighbors.push_back(Math::fvec2{gridPos.x + 1, gridPos.y});
-            neighbors.push_back(Math::fvec2{gridPos.x - 1, gridPos.y});
-            neighbors.push_back(Math::fvec2{gridPos.x, gridPos.y + 1});
-            neighbors.push_back(Math::fvec2{gridPos.x, gridPos.y - 1});
+            neighbors.push_back(Math::fvec2{ gridPos.x + 1, gridPos.y });
+            neighbors.push_back(Math::fvec2{ gridPos.x - 1, gridPos.y });
+            neighbors.push_back(Math::fvec2{ gridPos.x, gridPos.y + 1 });
+            neighbors.push_back(Math::fvec2{ gridPos.x, gridPos.y - 1 });
 
             return neighbors;
         }
@@ -74,13 +60,13 @@ namespace Dokev
         {
             int x = index % gridWidth;
             int y = index / gridWidth;
-            return Math::fvec2{static_cast<float>(x), static_cast<float>(y)};
+            return Math::fvec2{ static_cast<float>(x), static_cast<float>(y) };
         }
 
-        bool AreNeighbors(Math::fvec2 cell1, Math::fvec2 cell2, bool diagonal)
+        bool IsNeighbor(Math::fvec2 grid1, Math::fvec2 grid2, bool diagonal)
         {
-            float dx = std::abs(cell1.x - cell2.x);
-            float dy = std::abs(cell1.y - cell2.y);
+            float dx = std::abs(grid1.x - grid2.x);
+            float dy = std::abs(grid1.y - grid2.y);
 
             if (diagonal)
             {
@@ -90,18 +76,6 @@ namespace Dokev
             {
                 return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
             }
-        }
-
-        Math::fvec2 GetDirection(Math::fvec2 from, Math::fvec2 to)
-        {
-            float dx = to.x - from.x;
-            float dy = to.y - from.y;
-
-            if (dx == 0 && dy == 0)
-                return Math::fvec2{0, 0};
-
-            float length = std::sqrt(dx * dx + dy * dy);
-            return Math::fvec2{dx / length, dy / length};
         }
 
         Math::fvec2 ScreenToGridIsometricWithHeight(Math::fvec2 screenPos, int originX, int originY, int tileWidthHalf, int tileHeightHalf, const std::vector<double>& heightMap, int gridWidth, int gridHeight)
@@ -125,9 +99,9 @@ namespace Dokev
                     if (tx < 0 || tx >= gridWidth || ty < 0 || ty >= gridHeight)
                         continue;
 
-                    double tileHeight = heightMap[ty * gridWidth + tx];
-                    int tileScreenX = originX + (tx - ty) * tileWidthHalf;
-                    int tileScreenY = originY + (tx + ty) * tileHeightHalf - static_cast<int>(tileHeight);
+                    double tileHeight  = heightMap[ty * gridWidth + tx];
+                    int    tileScreenX = originX + (tx - ty) * tileWidthHalf;
+                    int    tileScreenY = originY + (tx + ty) * tileHeightHalf - static_cast<int>(tileHeight);
 
                     float relX = screenPos.x - static_cast<float>(tileScreenX);
                     float relY = screenPos.y - static_cast<float>(tileScreenY);
@@ -137,15 +111,15 @@ namespace Dokev
 
                     if (nx + ny <= 1.0f)
                     {
-                        return Math::fvec2{static_cast<float>(tx), static_cast<float>(ty)};
+                        return Math::fvec2{ static_cast<float>(tx), static_cast<float>(ty) };
                     }
                 }
             }
 
             if (cx >= 0 && cx < gridWidth && cy >= 0 && cy < gridHeight)
-                return Math::fvec2{static_cast<float>(cx), static_cast<float>(cy)};
+                return Math::fvec2{ static_cast<float>(cx), static_cast<float>(cy) };
 
-            return Math::fvec2{-1.0f, -1.0f};
+            return Math::fvec2{ -1.0f, -1.0f };
         }
 
         Math::fvec2 WorldToIsometric(float gridX, float gridY, float height, int originX, int originY, int tileWidthHalf, int tileHeightHalf)
@@ -156,7 +130,22 @@ namespace Dokev
             float centerX = static_cast<float>(isoX + tileWidthHalf);
             float centerY = static_cast<float>(isoY + tileHeightHalf);
 
-            return Math::fvec2{centerX, centerY};
+            return Math::fvec2{ centerX, centerY };
         }
+
+        Math::fvec2 GridToScreenIsometric(Math::fvec2 gridPos, float tileWidth, float tileHeight)
+        {
+            float screenX = (gridPos.x - gridPos.y) * tileWidth * 0.5f;
+            float screenY = (gridPos.x + gridPos.y) * tileHeight * 0.5f;
+            return Math::fvec2{ screenX, screenY };
+        }
+
+        Math::fvec2 ScreenToGridIsometric(Math::fvec2 screenPos, float tileWidth, float tileHeight)
+        {
+            float gridX = (screenPos.x / (tileWidth * 0.5f) + screenPos.y / (tileHeight * 0.5f)) * 0.5f;
+            float gridY = (screenPos.y / (tileHeight * 0.5f) - screenPos.x / (tileWidth * 0.5f)) * 0.5f;
+            return Math::fvec2{ gridX, gridY };
+        }
+
     }
 }

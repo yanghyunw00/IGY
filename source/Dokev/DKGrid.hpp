@@ -14,7 +14,7 @@ namespace Dokev
 
 
         bool IsValidGridPosition(Math::fvec2 gridPos, int gridWidth, int gridHeight);
-        bool IsWithinBounds(int x, int y, int gridWidth, int gridHeight);
+        bool IsInsideBounds(int x, int y, int gridWidth, int gridHeight);
 
         std::vector<Math::fvec2> GetNeighbors4Way(Math::fvec2 gridPos);
         std::vector<Math::fvec2> GetValidNeighbors4Way(Math::fvec2 gridPos, int gridWidth, int gridHeight);
@@ -23,7 +23,6 @@ namespace Dokev
         int GridPosToIndex(int x, int y, int gridWidth);
         Math::fvec2 IndexToGridPos(int index, int gridWidth);
 
-        bool AreNeighbors(Math::fvec2 cell1, Math::fvec2 cell2, bool diagonal = false);
-        Math::fvec2 GetDirection(Math::fvec2 from, Math::fvec2 to);
+        bool IsNeighbor(Math::fvec2 grid1, Math::fvec2 grid2, bool diagonal = false);
     }
 }

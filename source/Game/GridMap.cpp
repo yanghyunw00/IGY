@@ -8,9 +8,9 @@
 
 
 #include "GridMap.hpp"
-#include "Dokev/DKUtility.hpp"
-#include "Dokev/DKGrid.hpp"
 #include "Dokev/DKColor.hpp"
+#include "Dokev/DKGrid.hpp"
+#include "Dokev/DKUtility.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
 #include "Engine/Window.hpp"
@@ -19,38 +19,36 @@
 #include <string>
 #include <vector>
 
-GridMap::GridMap() :  currentView(1) , pathFinder(nullptr), showPath(false),
-	{
-
-		//resize the grid because the grid might change in later itereations of the code. current there is no need for this
-		PlainsTexture = Dokev::LoadTexture("Assets/images/textures/IsoPlains.png");
-		WaterTexture = Dokev::LoadTexture("Assets/images/textures/IsoWater.png");
-		MountainTexture = Dokev::LoadTexture("Assets/images/textures/IsoMountains.png");
-		SnowTexture = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
-		Max_Height = Dokev::LoadTexture("Assets/images/textures/Max_Height.png");  // Use IsoPeak as placeholder for Max_Height
-		IsoGridTexture[0] = WaterTexture;
-		IsoGridTexture[1] = PlainsTexture;
-		IsoGridTexture[2] = MountainTexture;
-		IsoGridTexture[3] = SnowTexture;
-
-
-		ResetPerlinTexture();
-
-		ResetIsoGridMapArray();
-
-		if (!IsoGridMapArray.empty())
-		{
-			isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
-			isoOriginY = static_cast<int>(IsoGridMapArray[0].getHeight());
-			std::cout << "isoOrigin set: X=" << isoOriginX << ", Y=" << isoOriginY << std::endl;
-		}
+GridMap::GridMap() : currentView(1), pathFinder(nullptr), showPath(false)
+{
+    // resize the grid because the grid might change in later itereations of the code. current there is no need for this
+    PlainsTexture     = Dokev::LoadTexture("Assets/images/textures/IsoPlains.png");
+    WaterTexture      = Dokev::LoadTexture("Assets/images/textures/IsoWater.png");
+    MountainTexture   = Dokev::LoadTexture("Assets/images/textures/IsoMountains.png");
+    SnowTexture       = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
+    Max_Height        = Dokev::LoadTexture("Assets/images/textures/Max_Height.png"); // Use IsoPeak as placeholder for Max_Height
+    IsoGridTexture[0] = WaterTexture;
+    IsoGridTexture[1] = PlainsTexture;
+    IsoGridTexture[2] = MountainTexture;
+    IsoGridTexture[3] = SnowTexture;
 
 
-		InitializeIsoView();
+    ResetPerlinTexture();
 
-		//InitializePathFinding();
+    ResetIsoGridMapArray();
 
-	};
+    if (!IsoGridMapArray.empty())
+    {
+        isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+        isoOriginY = static_cast<int>(IsoGridMapArray[0].getHeight());
+        std::cout << "isoOrigin set: X=" << isoOriginX << ", Y=" << isoOriginY << std::endl;
+    }
+
+
+    InitializeIsoView();
+
+    // InitializePathFinding();
+};
 
 void GridMap::ReGenerateMap()
 {
@@ -164,7 +162,7 @@ void GridMap::IsometricDrawMap(int index) const
             }
         }
     }
-    //DrawCurrentPathIsometric(Dokev::ColorPalette::RED, currentView);
+    // DrawCurrentPathIsometric(Dokev::ColorPalette::RED, currentView);
 }
 
 void GridMap::ResetPerlinTexture()
@@ -234,6 +232,7 @@ void GridMap::InitializePathFinding()
     {
         delete pathFinder;
         pathFinder = nullptr;
+        std::cout << "clear the pathfind" << std::endl;
     }
 
     pathFinder = new PathFinding(GRID_SIZE_X, GRID_SIZE_Y, 50.0f);
@@ -262,7 +261,9 @@ void GridMap::InitializePathFinding()
             bool        walkable    = currentCell.isWalkable();
             pathFinder->SetWalkable(x, y, walkable);
             if (walkable)
+            {
                 walkableCount++;
+            }
         }
     }
 }
@@ -295,7 +296,6 @@ void GridMap::ClearPath()
     std::cout << "Path cleared" << std::endl;
 }
 
-
 void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
 {
     if (!pathFinder || currentPath.empty() || !showPath)
@@ -317,7 +317,6 @@ void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
         transformedPath.push_back(transformedPoint);
     }
 
-   // const int offset = 0;
 
     for (size_t i = 0; i < transformedPath.size(); i++)
     {
@@ -325,9 +324,10 @@ void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
         int y = static_cast<int>(transformedPath[i].y);
 
         if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
+        {
             continue;
-
-        float   currentHeight = static_cast<float>(selectedView[y * GRID_SIZE_X + x]->getHeight());
+        }
+        float       currentHeight = static_cast<float>(selectedView[y * GRID_SIZE_X + x]->getHeight());
         Math::fvec2 worPos        = Dokev::Grid::WorldToIsometric(static_cast<float>(x), static_cast<float>(y), currentHeight, originX, originY, TILE_WIDTH_HALF, TILE_HEIGHT_HALF);
         Dokev::DrawCircle(static_cast<int>(worPos.x), static_cast<int>(worPos.y), 5, color);
 
@@ -337,7 +337,9 @@ void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
             int nextY = static_cast<int>(transformedPath[i + 1].y);
 
             if (nextX < 0 || nextX >= GRID_SIZE_X || nextY < 0 || nextY >= GRID_SIZE_Y)
+            {
                 continue;
+            }
 
             float nextHeight = static_cast<float>(selectedView[nextY * GRID_SIZE_X + nextX]->getHeight());
 
@@ -369,18 +371,23 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
 {
     int x = (int)point.x;
     int y = (int)point.y;
-    
+
     float newX, newY;
 
     switch (viewIndex)
     {
-        case 1: return point;
-        case 2: rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, newX, newY); return { newX, newY };
-
-        case 3: rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY); return { newX, newY };
-
-        case 4: rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY); return { newX, newY };
-
-        default: return point;
+        case 1: 
+            return point;
+        case 2:
+            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, newX, newY);
+            return { newX, newY };
+        case 3: 
+            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY); 
+            return { newX, newY };
+        case 4:
+            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY);
+            return { newX, newY };
+        default:
+            return point;
     }
 }

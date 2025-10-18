@@ -50,7 +50,7 @@ const CustomCell::CustomCell_Infra_Data& CustomCell::Get_CustomCell_Infra_Data(i
 int CustomCell::Delete_CustomCell_Infra_Data([[maybe_unused]] int index)
 {
 	//delete the texture and 2d array at the index given as parameter
-	return 0;//
+	return 0;
 }
 
 void CustomCell::testDrawPixel_stuff()
