@@ -1,10 +1,3 @@
-/**
- * \file
- * \author Rudy Castan
- * \date 2024 Fall
- * \copyright DigiPen Institute of Technology
- */
-
 /*
            _____                    _____                _____          
          /\    \                  /\    \              |\    \         

@@ -6,52 +6,6 @@
  * \copyright DigiPen Institute of Technology
  */
 
-/*
-Image(): Default constructor for Image class.
-
-Image(int width, int height): Create image with given width and height.
-
-Image(const std::string& fileName): Load image from file.
-
-GetWidth(): Get image width.
-
-GetHeight(): Get image height.
-
-GetPixels(): Get pixel colors (const and non-const versions).
-
-IsValid(): Check if image is valid (has size and pixels).
-
-GetPixel(int x, int y): Get pixel color at position.
-
-SetPixel(int x, int y, CS200::RGBA color): Set pixel color at position.
-
-GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale): Generate Perlin noise image.
-
-GenImageColor(int width, int height, CS200::RGBA color): Generate solid color image.
-
-LoadImage(const std::string& fileName): Load image from file.
-
-UnloadImage(Image& image): Free image resources.
-
-ExportImage(const Image& image, const std::string& fileName): Save image to file.
-
-LoadImageColors(const Image& image): Get pointer to image pixel colors.
-
-UnloadImageColors(CS200::RGBA* colors): Free pixel color pointer.
-
-GetImageColor(const Image& image, int x, int y): Get pixel color at position.
-
-ImageVerticalFlip(Image& image): Flip image vertically.
-
-ImageHorizontalFlip(Image& image): Flip image horizontally.
-
-ImageRotateCW(Image& image): Rotate image clockwise.
-
-ImageRotateCCW(Image& image): Rotate image counter-clockwise.
-
-ImageColorTint(Image& image, CS200::RGBA color): Apply color tint to image.
-*/
-
 #pragma once
 
 #include "CS200/RGBA.hpp"

@@ -52,6 +52,13 @@ set(SOURCE_CODE
     Dokev/DKUtility.hpp Dokev/DKUtility.cpp
     Dokev/DKColor.hpp Dokev/DKColor.cpp
     Dokev/DKGrid.hpp Dokev/DKGrid.cpp
+    Dokev/DKParticle.hpp Dokev/DKParticle.cpp
+    Dokev/DKCamera.hpp Dokev/DKCamera.cpp
+    Dokev/DKAnimation.hpp Dokev/DKAnimation.cpp
+    Dokev/DKAnimationSprite.hpp Dokev/DKAnimationSprite.cpp
+    Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp  
+    
+
 
 
     Game/GamePlayState.hpp Game/GamePlayState.cpp
@@ -62,6 +69,11 @@ set(SOURCE_CODE
     Game/pathFinding.hpp Game/pathFinding.cpp
     Game/Human.hpp Game/Human.cpp
     Game/GameObject.hpp
+
+   # Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
+   # Game/Building.hpp Game/Building.cpp
+   # Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
+    
 
 
 

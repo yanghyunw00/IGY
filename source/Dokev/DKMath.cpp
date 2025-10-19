@@ -1,7 +1,7 @@
 /**
  * \file DKMath.cpp
  * \brief implementation math functions
- * \author Hyunwoo Yang
+ * \author Dongyun Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */

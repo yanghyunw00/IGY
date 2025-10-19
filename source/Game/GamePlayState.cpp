@@ -39,13 +39,13 @@ void GamePlayState::Load()
     map.ResetPerlinTexture();
     map.ResetIsoGridMapArray();
 
-    // To see the whole map
-    cameraZoom *= 0.3f;
+    camera.SetZoom(0.3f);
 }
 
 void GamePlayState::Update()
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
+    mouse.Update();  // Add this to update mouse state each frame
     updateInput();
 }
 
@@ -57,12 +57,13 @@ void GamePlayState::Draw() const
     auto windowSize = Engine::GetWindow().GetSize();
     auto ndcMatrix  = CS200::build_ndc_matrix(windowSize);
 
-    auto cameraTransform = Math::TranslationMatrix(cameraPosition) * Math::ScaleMatrix({ cameraZoom, cameraZoom });
+    auto cameraTransform = camera.GetViewMatrix();
 
     renderer2d.BeginScene(cameraTransform * ndcMatrix);
 
 
     map.IsometricDrawMap(index);
+
 
     // How to draw on window, not camera view?? -> shouldnt appply the matrix translation hmmmmmmm
     // 1. make override function withouth translation
@@ -70,6 +71,9 @@ void GamePlayState::Draw() const
     // 3. make camera component well
 
     // Dokev::DrawRectangle(0,0,100,100, Dokev::ColorPalette::RED); // issue!  when we change the camera view
+
+    testTexture.DrawEx(0, 0, 90.0f, 1.0f);
+
     renderer2d.EndScene();
 }
 
@@ -77,20 +81,24 @@ void GamePlayState::DrawImGui()
 {
     if (ImGui::Begin("Controller"))
     {
-        ImGui::SliderFloat("Zoom", &cameraZoom, 0.1f, 1.0f);
+        float zoom = camera.GetZoom();
+        if (ImGui::SliderFloat("Zoom", &zoom, 0.1f, 1.0f))
+        {
+            camera.SetZoom(zoom);
+        }
 
         ImGui::Separator();
-        
+
         if (ImGui::Button("Rotate to Map right"))
         {
             index = (index - 1 + 4) % 4;
         }
 
-        if(ImGui::Button("Roatate Map to Left"))
+        if (ImGui::Button("Roatate Map to Left"))
         {
             index = (index + 1) % 4;
         }
-        
+
         ImGui::Text("Rotate Index: %d", index);
     }
     ImGui::End();
@@ -114,29 +122,43 @@ void GamePlayState::updateInput()
 
     // Map zoomin zoom out
     if (input.KeyDown(CS230::Input::Keys::Q))
-        cameraZoom *= 0.9f;
+        camera.AdjustZoom(0.9f);
     if (input.KeyDown(CS230::Input::Keys::E))
-        cameraZoom *= 1.1f;
+        camera.AdjustZoom(1.1f);
 
-    //Limit
-    if (cameraZoom < 0.1f)
-        cameraZoom = 0.1f;
-    if (cameraZoom > 5.0f)
-        cameraZoom = 5.0f;
+    // Limit
+    camera.ClampZoom(0.1f, 5.0f);
 
     if (input.KeyDown(CS230::Input::Keys::A))
-        cameraPosition.x += 1 * environment.DeltaTime;
+    {
+        camera.Move({ 1 * environment.DeltaTime, 0 });
+    }
     if (input.KeyDown(CS230::Input::Keys::D))
-        cameraPosition.x -= 1 * environment.DeltaTime;
+    {
+        camera.Move({ -1 * environment.DeltaTime, 0 });
+    }
     if (input.KeyDown(CS230::Input::Keys::W))
-        cameraPosition.y -= 1 * environment.DeltaTime;
+    {
+        camera.Move({ 0, -1 * environment.DeltaTime });
+    }
     if (input.KeyDown(CS230::Input::Keys::S))
-        cameraPosition.y += 1 * environment.DeltaTime;
-
+    {
+        camera.Move({ 0, 1 * environment.DeltaTime });
+    }
+    // reset
     if (input.KeyDown(CS230::Input::Keys::R))
     {
-        cameraPosition = { 0, 0 };
-        cameraZoom     = 1.0f;
+        camera.Reset();
+    }
+
+
+    if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))
+    {
+        index = (index - 1 + 4) % 4;
+    }
+    else if (mouse.MouseJustPressed(Dokev::Mouse::Button::Right))
+    {
+        index = (index + 1) % 4;
     }
 }
 

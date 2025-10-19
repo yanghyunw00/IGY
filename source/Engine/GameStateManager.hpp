@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include "Dokev/DKUtility.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
 #include "GameState.hpp"

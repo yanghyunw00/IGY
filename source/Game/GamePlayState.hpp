@@ -10,6 +10,8 @@
 #include "Engine/GameState.hpp"
 #include "Engine/Matrix.hpp"
 #include "Dokev/DKTexture.hpp"
+#include "Dokev/DKCamera.hpp"
+#include "Dokev/DKMouseInput.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
 #include <array>
@@ -34,10 +36,9 @@ private:
     //Iso grid
     int index = 1;
 
+    Dokev::Camera camera;
+    Dokev::Mouse mouse;
 
-    // Camera 
-    Math::vec2 cameraPosition{0, 0};
-    float cameraZoom = 1.0f;
 
 
 private:

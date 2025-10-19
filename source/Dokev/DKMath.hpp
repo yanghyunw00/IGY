@@ -1,32 +1,11 @@
 ﻿/**
  * \file DKMath.hpp
  * \brief math manipulation functions
- * \author Hyunwoo Yang
+ * \author Dongyun Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
 
-/*
-Normalize(float value, float start, float end): Normalize float value to range.​
-
-Normalize(double value, double start, double end): Normalize double value to range.​
-
-Lerp(float start, float end, float amount): Linearly interpolate float between start and end by amount.
-
-Lerp(double start, double end, double amount): Linearly interpolate double between start and end by amount.
-
-vec2Length(vec2 v): Calculate length of 2D vector.
-
-vec2LengthSqr(vec2 v): Calculate squared length of 2D vector.
-
-vec2DotProduct(vec2 v1, vec2 v2): Calculate dot product of two 2D vectors.
-
-vec2CrossProduct(vec2 v1, vec2 v2): Calculate scalar cross product of two 2D vectors.
-
-vec2Distance(vec2 v1, vec2 v2): Calculate distance between two 2D points.
-
-vec2DistanceSqr(vec2 v1, vec2 v2): Calculate squared distance between two 2D points.
-*/
 #pragma once
 
 #include "Engine/Matrix.hpp"

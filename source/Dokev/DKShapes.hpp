@@ -6,31 +6,6 @@
  * \copyright DigiPen Institute of Technology
  */
 
-/*
--
-DrawPixel: Draw a single 1x1 pixel at integer coordinates
-
-DrawPixelV: Draw a single 1x1 pixel at a 2D vector position
-
-DrawLine: Draw a 1-pixel thick line between two integer coordinates
-
-DrawLineEx: Draw a line between two vector points with custom thickness
-
-DrawCircle: Draw a filled circle at given integer center and radius
-
-DrawCircleV: Draw a filled circle at a vector center with given radius
-
-DrawRectangle: Draw a filled rectangle at integer position and size
-
-DrawRectangleV: Draw a filled rectangle at a vector position and size
-
-DrawRectangleLines: Draw a 1-pixel thick rectangle outline at integer position and size
-
-DrawRectangleLinesEx: Draw a rectangle outline at integer position and size with custom thickness
-
-DrawCircleLines: Draw a circle outline at integer center and radius
-
-*/
 
 #pragma once
 

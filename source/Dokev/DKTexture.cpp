@@ -15,9 +15,9 @@
 #include "Engine/Texture.hpp"
 #include "Engine/TextureManager.hpp"
 
-#include "OpenGL/Texture.hpp"
-#include "OpenGL/GLTypes.hpp"
 #include "OpenGL/GL.hpp"
+#include "OpenGL/GLTypes.hpp"
+#include "OpenGL/Texture.hpp"
 #include <numbers>
 
 namespace Dokev
@@ -32,38 +32,39 @@ namespace Dokev
     int Texture2D::GetWidth() const
     {
         if (!texture)
-            return 0;
+        {
+            return 1;
+        }
         return texture->GetSize().x;
     }
 
     int Texture2D::GetHeight() const
     {
         if (!texture)
-            return 0;
+        {
+            return 1;
+        }
         return texture->GetSize().y;
     }
 
-    void Texture2D:: Draw(int posX, int posY, CS200::RGBA tint) const
+    void Texture2D::Draw(int posX, int posY, CS200::RGBA tint) const
     {
         if (!texture)
+        {
             return;
+        }
 
         const auto size = texture->GetSize();
 
-    //    Math::vec2 center{
-    //        static_cast<double>(posX),
-    //        static_cast<double>(posY)};
-    //    auto transform = Math::TranslationMatrix(center);
+        //    Math::vec2 center{
+        //        static_cast<double>(posX),
+        //        static_cast<double>(posY)};
+        //    auto transform = Math::TranslationMatrix(center);
 
-            
-             Math::vec2 adjustedPosition{
-        static_cast<double>(posX),
-        static_cast<double>(posY) - static_cast<double>(size.y)};
+
+        Math::vec2 adjustedPosition{ static_cast<double>(posX), static_cast<double>(posY) - static_cast<double>(size.y) };
 
         auto transform = Math::TranslationMatrix(adjustedPosition);
-
-            
-
 
         texture->Draw(transform, tint);
     }
@@ -76,24 +77,19 @@ namespace Dokev
     void Texture2D::DrawEx(int posX, int posY, float rotation, float scale, CS200::RGBA tint) const
     {
         if (!texture)
+        {
             return;
+        }
 
         const auto size = texture->GetSize();
 
-        // Convert top-left position to center position
-        Math::vec2 center{
-            static_cast<double>(posX) + static_cast<double>(size.x) * 0.5 * scale,
-            static_cast<double>(posY) + static_cast<double>(size.y) * 0.5 * scale};
+        Math::vec2 center{ static_cast<double>(posX) + static_cast<double>(size.x) * 0.5 * scale, static_cast<double>(posY) + static_cast<double>(size.y) * 0.5 * scale };
 
-        double rotationRad = static_cast<double>(rotation) * PI / 180.0;
+        double rad = static_cast<double>(rotation) * PI / 180.0;
 
-        Math::vec2 scaleVec{
-            static_cast<double>(size.x) * scale,
-            static_cast<double>(size.y) * scale};
+        Math::vec2 scaleVec{ 1.0, 1.0 };
 
-        auto transform = Math::TranslationMatrix(center) *
-                         Math::RotationMatrix(rotationRad) *
-                         Math::ScaleMatrix(scaleVec);
+        auto transform = Math::TranslationMatrix(center) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scaleVec);
 
         texture->Draw(transform, tint);
     }
@@ -101,76 +97,61 @@ namespace Dokev
     void Texture2D::DrawEx(Math::vec2 position, float rotation, Math::vec2 scale, CS200::RGBA tint) const
     {
         if (!texture)
+        {
             return;
+        }
 
         const auto size = texture->GetSize();
 
-        // Convert top-left position to center position with scale
-        Math::vec2 center{
-            position.x + static_cast<double>(size.x) * 0.5 * scale.x,
-            position.y + static_cast<double>(size.y) * 0.5 * scale.y};
+        Math::vec2 center{ position.x + static_cast<double>(size.x) * 0.5 * scale.x, position.y + static_cast<double>(size.y) * 0.5 * scale.y };
 
-        double rotationRad = static_cast<double>(rotation) * PI / 180.0;
+        double rad = static_cast<double>(rotation) * PI / 180.0;
 
-        Math::vec2 scaleVec{
-            static_cast<double>(size.x) * scale.x,
-            static_cast<double>(size.y) * scale.y};
+        Math::vec2 scaleVec{ 1.0, 1.0 };
 
-        auto transform = Math::TranslationMatrix(center) *
-                         Math::RotationMatrix(rotationRad) *
-                         Math::ScaleMatrix(scaleVec);
+        auto transform = Math::TranslationMatrix(center) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scaleVec);
 
         texture->Draw(transform, tint);
     }
 
-    void Texture2D::DrawPro(int sourceX, int sourceY, int sourceWidth, int sourceHeight,
-                            int destX, int destY, CS200::RGBA tint) const
+    void Texture2D::DrawPro(int sourceX, int sourceY, int sourceWidth, int sourceHeight, int destX, int destY, CS200::RGBA tint) const
     {
         if (!texture)
+        {
             return;
+        }
 
-        // Convert top-left position to center position
-        Math::vec2 center{
-            static_cast<double>(destX) + static_cast<double>(sourceWidth) * 0.5,
-            static_cast<double>(destY) + static_cast<double>(sourceHeight) * 0.5};
+        Math::vec2 center{ static_cast<double>(destX) + static_cast<double>(sourceWidth) * 0.5, static_cast<double>(destY) + static_cast<double>(sourceHeight) * 0.5 };
 
-        Math::vec2 scale{static_cast<double>(sourceWidth), static_cast<double>(sourceHeight)};
+        Math::vec2 scale{ 1.0, 1.0 };
 
         auto transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
 
-        // Draw using sprite sheet functionality
-        Math::ivec2 texelPos{sourceX, sourceY};
-        Math::ivec2 frameSize{sourceWidth, sourceHeight};
+        Math::ivec2 texelPos{ sourceX, sourceY };
+        Math::ivec2 frameSize{ sourceWidth, sourceHeight };
 
         texture->Draw(transform, texelPos, frameSize, tint);
     }
 
-    void Texture2D::DrawPro(Math::vec2 position, float rotation, Math::vec2 scale,
-                            Math::vec2 origin, CS200::RGBA tint) const
+    void Texture2D::DrawPro(Math::vec2 position, float rotation, Math::vec2 scale, Math::vec2 origin, CS200::RGBA tint) const
     {
         if (!texture)
+        {
             return;
+        }
 
         const auto size = texture->GetSize();
 
-        double rotationRad = static_cast<double>(rotation) * PI / 180.0;
+        double rad = static_cast<double>(rotation) * PI / 180.0;
 
-        Math::vec2 finalScale{
-            static_cast<double>(size.x) * scale.x,
-            static_cast<double>(size.y) * scale.y};
+        Math::vec2 finalScale{ static_cast<double>(size.x) * scale.x, static_cast<double>(size.y) * scale.y };
 
-        Math::vec2 center{
-            position.x + static_cast<double>(size.x) * 0.5 * scale.x,
-            position.y + static_cast<double>(size.y) * 0.5 * scale.y};
+        Math::vec2 center{ position.x + static_cast<double>(size.x) * 0.5 * scale.x, position.y + static_cast<double>(size.y) * 0.5 * scale.y };
 
-        auto transform = Math::TranslationMatrix(center) *
-                         Math::RotationMatrix(rotationRad) *
-                         Math::TranslationMatrix(-origin) *
-                         Math::ScaleMatrix(finalScale);
+        auto transform = Math::TranslationMatrix(center) * Math::RotationMatrix(rad) * Math::TranslationMatrix(-origin) * Math::ScaleMatrix(finalScale);
 
         texture->Draw(transform, tint);
     }
-
 
     Texture2D LoadTexture(const std::string& fileName)
     {
@@ -179,7 +160,7 @@ namespace Dokev
 
     void UnLoadTexture([[maybe_unused]] Texture2D texture)
     {
-        //dont need to implement -> sharedptr!
+        // dont need to implement -> sharedptr!
     }
 
     void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint)
@@ -194,23 +175,23 @@ namespace Dokev
 
     void DrawTextureEx(const Texture2D& texture, Math::vec2 position, float rotation, float scale, CS200::RGBA tint)
     {
-        texture.DrawEx(position, rotation, Math::vec2{scale, scale}, tint);
+        texture.DrawEx(position, rotation, Math::vec2{ scale, scale }, tint);
     }
 
-    void DrawTextureRec(const Texture2D& texture, int sourceX, int sourceY, int sourceWidth, int sourceHeight,
-                        Math::vec2 position, CS200::RGBA tint)
+    void DrawTextureRec(const Texture2D& texture, int sourceX, int sourceY, int sourceWidth, int sourceHeight, Math::vec2 position, CS200::RGBA tint)
     {
-        texture.DrawPro(sourceX, sourceY, sourceWidth, sourceHeight,
-                        static_cast<int>(position.x), static_cast<int>(position.y), tint);
+        texture.DrawPro(sourceX, sourceY, sourceWidth, sourceHeight, static_cast<int>(position.x), static_cast<int>(position.y), tint);
     }
 
     Texture2D LoadTextureFromImage(const Image& image)
     {
         if (!image.IsValid())
+        {
             return Texture2D();
+        }
 
-        Math::ivec2 size{image.GetWidth(), image.GetHeight()};
-        auto engineTexture = Engine::GetTextureManager().CreateFromPixels(size, image.GetPixels());
+        Math::ivec2 size{ image.GetWidth(), image.GetHeight() };
+        auto        engineTexture = Engine::GetTextureManager().CreateFromPixels(size, image.GetPixels());
 
         Texture2D result;
         result.texture = engineTexture;
@@ -220,10 +201,12 @@ namespace Dokev
     Texture2D LoadImageFromTextrue(const Texture2D& texture)
     {
         if (!texture.IsValid())
+        {
             return Texture2D();
+        }
 
-        int width = texture.GetWidth();
-        int height = texture.GetHeight();
+        int   width  = texture.GetWidth();
+        int   height = texture.GetHeight();
         Image img(width, height);
 
         // to read the texture pixel
