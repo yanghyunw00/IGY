@@ -5,6 +5,14 @@
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
+/**
+ * \file DKGrid.cpp
+ * \brief Isometric grid utility functions for coordinate conversion and grid management
+ * \author Dongyun Lee
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "DKGrid.hpp"
 #include <algorithm>
 #include <cmath>
