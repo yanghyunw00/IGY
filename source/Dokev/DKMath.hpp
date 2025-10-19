@@ -1,7 +1,7 @@
 ﻿/**
  * \file DKMath.hpp
  * \brief math manipulation functions
- * \author Hyunwoo Yang
+ * \author Dongyun Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
