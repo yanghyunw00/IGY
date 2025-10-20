@@ -1,3 +1,10 @@
+/**
+ * \file gl_texture.cpp
+ * \brief 
+ * \author Hyunseok Choi 
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #include "gl_texture.hpp"
 
 bool gltex_from_image(const Image& img, GLTexture& out){

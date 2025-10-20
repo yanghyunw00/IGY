@@ -1,11 +1,10 @@
 /**
- * \file DKMath.hpp
- * \brief shape functions
- * \author Hyunwoo Yang
+ * \file DKShapes.hpp
+ * \brief s
+ * \author Younwoo Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
-
 
 #pragma once
 

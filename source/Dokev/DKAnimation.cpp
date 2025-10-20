@@ -1,3 +1,10 @@
+/**
+ * \file DKAnimation.cpp
+ * \brief 
+ * \author Hyunwoo Yang
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #include "DKAnimation.hpp"
 #include <algorithm>
 

@@ -1,3 +1,10 @@
+/**
+ * \file gl_image.hpp
+ * \brief 
+ * \author Hyunseok Choi 
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 #include <cstdint>
 #include <vector>

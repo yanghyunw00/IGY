@@ -1,7 +1,7 @@
 /**
  * \file DKColor.hpp
  * \brief 
- * \author Hyunwoo Yang
+ * \author Youngwoo Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */

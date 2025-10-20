@@ -1,3 +1,10 @@
+/**
+ * \file gl_texture.hpp
+ * \brief 
+ * \author Hyunseok Choi 
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 #include <glad/glad.h>
 #include "gl_image.h"

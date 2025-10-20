@@ -1,8 +1,8 @@
 /**
  * \file DKCamera.hpp
- * \author Hyunwoo Yang
+ * \brief 
+ * \author Youngwoo Lee
  * \date 2025 Fall
- * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
 

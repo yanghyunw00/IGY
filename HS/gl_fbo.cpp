@@ -1,3 +1,10 @@
+/**
+ * \file gl_fbo.cpp
+ * \brief 
+ * \author Hyunseok Choi 
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #include "gl_fbo.hpp"
 
 bool glfbo_create(GLFBO& rt, int w, int h){

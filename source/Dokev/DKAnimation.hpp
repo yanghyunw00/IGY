@@ -1,3 +1,10 @@
+/**
+ * \file DKAnimation.hpp
+ * \brief 
+ * \author Hyunwoo Yang
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 
 #include "Engine/Vec2.hpp"

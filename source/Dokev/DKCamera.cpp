@@ -1,3 +1,10 @@
+/**
+ * \file DKCamera.cpp
+ * \brief 
+ * \author Youngwoo Lee
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #include "DKCamera.hpp"
 #include <algorithm>
 

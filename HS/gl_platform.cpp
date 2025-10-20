@@ -1,3 +1,10 @@
+/**
+ * \file gl_platform.cpp
+ * \brief 
+ * \author Hyunseok Choi 
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #include "gl_platform.hpp"
 #include <cstdio>
 

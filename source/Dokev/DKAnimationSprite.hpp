@@ -1,3 +1,10 @@
+/**
+ * \file DKAnimationSprite.hpp
+ * \brief 
+ * \author Hyunwoo Yang
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 #include "Dokev/DKTexture.hpp"
 #include "Engine/Vec2.hpp"

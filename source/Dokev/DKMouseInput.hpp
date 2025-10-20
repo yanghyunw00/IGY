@@ -1,3 +1,10 @@
+/**
+ * \file DKMouseInput.hpp
+ * \brief 
+ * \author Junseok Lee
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 
 #include "Engine/Vec2.hpp"

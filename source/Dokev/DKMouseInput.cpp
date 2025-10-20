@@ -1,3 +1,11 @@
+/**
+ * \file DKMouseInput.cpp
+ * \brief 
+ * \author Junseok Lee
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "DKMouseInput.hpp"
 
 namespace Dokev

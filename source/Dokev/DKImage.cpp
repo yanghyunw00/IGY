@@ -1,7 +1,7 @@
 /**
  * \file DKImage.cpp
- * \brief implementation image functions
- * \author Hyunwoo Yang
+ * \brief 
+ * \author Hyunseok Choi
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */

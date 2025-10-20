@@ -1,3 +1,10 @@
+/**
+ * \file DKParticle.cpp
+ * \brief 
+ * \author Hyeonseok Choi
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 
 #include "DKParticle.hpp"
 #include <algorithm>

@@ -1,3 +1,10 @@
+/**
+ * \file gl_image.cpp
+ * \brief 
+ * \author Hyunseok Choi 
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
