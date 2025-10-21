@@ -21,7 +21,7 @@
 namespace Dokev
 {
 
-    //==========Image class===============================
+
     Image::Image(int width, int height)
         : width(width), height(height)
     {
@@ -57,7 +57,7 @@ namespace Dokev
         pixels[y * width + x] = color;
     }
 
-    //=================image generation functions===================
+   
 
     Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale)
     {
@@ -94,7 +94,7 @@ namespace Dokev
     }
 
 
-    // ===== Image Loading/Unloading =====
+   
 
     Image LoadImage(const std::string& fileName)
     {
@@ -129,7 +129,7 @@ namespace Dokev
         return result != 0;
     }
 
-    // ===== Pixel Access Functions =====
+    
 
     CS200::RGBA* LoadImageColors(const Image& image)
     {
@@ -151,7 +151,7 @@ namespace Dokev
         return image.GetPixel(x, y);
     }
 
-    // ===== Image Manipulation =====
+    
 
     void ImageVerticalFlip(Image& image)
     {
