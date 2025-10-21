@@ -22,7 +22,7 @@
 
 namespace Dokev
 {
-    // ===== Texture2D Class Implementation =====
+    
 
     Texture2D::Texture2D(const std::filesystem::path& fileName)
     {
