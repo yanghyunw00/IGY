@@ -340,4 +340,39 @@ namespace Math
     // Stream operators
     std::ostream& operator<<(std::ostream& os, const fvec2& v);
     std::istream& operator>>(std::istream& is, fvec2& v);
+
+    //===================vec4========================================
+    struct [[nodiscard]] vec4
+    {
+        float x{ 0 };
+        float y{ 0 };
+        float z{ 0 };
+        float w{ 0 };
+
+        // Constructors
+        constexpr vec4() noexcept = default;
+
+        constexpr vec4(float x_, float y_, float z_, float w_) noexcept : x(x_), y(y_), z(z_), w(w_)
+        {
+        }
+
+        explicit constexpr vec4(float xyzw) noexcept : x(xyzw), y(xyzw), z(xyzw), w(xyzw)
+        {
+        }
+
+        // Comparison operators
+        constexpr bool operator==(const vec4& rhs) const noexcept
+        {
+            return x == rhs.x && y == rhs.y && z == rhs.z && w == rhs.w;
+        }
+
+        constexpr bool operator!=(const vec4& rhs) const noexcept
+        {
+            return !(*this == rhs);
+        }
+    };
+
+    // Stream operators
+    std::ostream& operator<<(std::ostream& os, const vec4& v);
+    std::istream& operator>>(std::istream& is, vec4& v);
 }

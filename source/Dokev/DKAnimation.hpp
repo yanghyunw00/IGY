@@ -5,56 +5,64 @@
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
+
 #pragma once
 
-#include "Engine/Vec2.hpp"
-#include <string>
+#include <iostream>
 #include <vector>
+#include <string>
+#include <filesystem>
+#include <functional>
 
 namespace Dokev
 {
-
     struct AnimationFrame
     {
-        int    frameIndex;  
-        double duration;  
+        int    frameIndex;
+        double duration;
     };
 
+    struct AnimationEvent
+    {
+        int frameIndex;  
+        std::function<void()> callback;  
+    };
 
     class Animation
     {
     public:
         Animation() = default;
-        Animation(std::string name, std::vector<AnimationFrame> frames, int loopFrame = 0);
+
+        Animation(std::string name,
+                  std::vector<AnimationFrame> frames,
+                  int loopFrame = 0);
+
+        Animation(const std::filesystem::path& animation_file);
 
         void Update(double delta_time);
-
         int GetCurrentSpriteFrame() const;
-
-        const AnimationFrame& GetCurrentFrame() const;
-
         void Reset();
-
         bool IsComplete() const;
 
-        double GetTotalDuration() const;
+        void AddEvent(int frameIndex, std::function<void()> callback);
 
-        double GetElapsedTime() const;
+        void SetLoopEnabled(bool enabled);
+        void SetLoopRange(int startFrame, int endFrame);
 
-        double GetProgress() const;
-
-        const std::string& GetName() const;
-
-        size_t GetFrameCount() const;
-
-        int GetCurrentFrameIndex() const;
+        void SetPlaybackSpeed(double speed);
 
     private:
         std::string                  name;
         std::vector<AnimationFrame>  frames;
-        int                          loopFrame{ 0 };
-        int                          currentFrameIndex{ 0 };
-        double                       timer{ 0.0 };
-        bool                         justCompleted{ false };
+        std::vector<AnimationEvent>  events;  
+        
+        int    loopStartFrame{ 0 };
+        int    loopEndFrame{ -1 }; 
+        bool   loopEnabled{ true };
+        double playbackSpeed{ 1.0 };
+        
+        int    currentFrameIndex{ 0 };
+        double timer{ 0.0 };
+        bool   justCompleted{ false };
     };
 }

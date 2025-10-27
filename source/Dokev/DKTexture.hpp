@@ -41,6 +41,8 @@ namespace Dokev
 
         int GetHeight() const;
 
+        Math::ivec2 GetSize() const;
+
         void Draw(int posX, int posY, CS200::RGBA tint = CS200::WHITE) const;
 
         void Draw(Math::vec2 position, CS200::RGBA tint = CS200::WHITE) const;

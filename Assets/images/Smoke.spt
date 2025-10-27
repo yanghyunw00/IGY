@@ -1,0 +1,9 @@
+Assets/images/Smoke.png       # 텍스처 경로
+HotSpot 36 32          # 중심점 (pivot point)
+FrameSize 73 64        # 각 프레임 크기 (width height)
+Frame 0 0              # 프레임 0의 위치 (x y)
+Frame 72 0             # 프레임 1의 위치 (x=72, y=0)
+Frame 144 0            # 프레임 2의 위치
+Frame 216 0            # 프레임 3의 위치
+Frame 288 0            # 프레임 4의 위치
+Anim Assets/images/Smoke.anm  # (선택사항) 애니메이션 파일 참조

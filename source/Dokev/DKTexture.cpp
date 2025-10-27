@@ -47,6 +47,15 @@ namespace Dokev
         return texture->GetSize().y;
     }
 
+    Math::ivec2 Texture2D::GetSize() const
+    {
+        if (!texture)
+        {
+            return { 1, 1 };
+        }
+        return texture->GetSize();
+    }
+
     void Texture2D::Draw(int posX, int posY, CS200::RGBA tint) const
     {
         if (!texture)

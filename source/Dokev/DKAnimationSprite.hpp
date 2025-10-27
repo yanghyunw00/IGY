@@ -5,20 +5,56 @@
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
+
 #pragma once
-#include "Dokev/DKTexture.hpp"
+
+#include "DKTexture.hpp"
+#include "DKAnimation.hpp"
+#include "DKSpriteSheet.hpp"
 #include "Engine/Vec2.hpp"
 #include "Engine/Matrix.hpp"
-#include "Dokev/DKAnimation.hpp"
+#include <map>
+#include <string>
 
-class AnimatedSprite
-  {
-  public:
-      Dokev::Texture2D texture;
-      Dokev::Animation currentAnimation;
-      Math::ivec2 frameSize;  
+namespace Dokev
+{
+    class AnimatedSprite
+    {
+    public:
+        AnimatedSprite() = default;
 
-      void Update(double dt);
+        explicit AnimatedSprite(const std::filesystem::path& spt_file);
 
-      void Draw(Math::TransformationMatrix transform);
-  };
+
+        AnimatedSprite(Texture2D texture, Math::ivec2 frameSize);
+
+
+        void AddAnimation(const std::string& name, Animation animation);
+
+        void AddAnimationFromFile(const std::string& name, 
+                                   const std::filesystem::path& anm_file);
+
+
+        void PlayAnimation(const std::string& name, bool reset = true);
+
+        void Update(double dt);
+        void Draw(Math::TransformationMatrix transform) const;
+
+        const std::string& GetCurrentAnimationName() const;
+        bool IsAnimationComplete() const;
+        
+        Animation& GetAnimation(const std::string& name);
+        const Animation& GetAnimation(const std::string& name) const;
+
+        const SpriteSheet& GetSpriteSheet() const { return spriteSheet; }
+        Math::vec2 GetHotSpot() const { return spriteSheet.GetHotSpot(); }
+
+    private:
+        Math::vec4 GetCurrentFrameUV() const;
+
+        SpriteSheet spriteSheet;
+        std::map<std::string, Animation> animations;
+        std::string currentAnimationName;
+        Animation* currentAnimation{ nullptr };
+    };
+}

@@ -12,9 +12,12 @@
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKCamera.hpp"
 #include "Dokev/DKMouseInput.hpp"
+#include "Dokev/DKAnimationSprite.hpp"
+#include "Dokev/DKParticleEmitter.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
 #include <array>
+#include <memory>
 
 class GamePlayState : public CS230::GameState
 {
@@ -39,7 +42,11 @@ private:
     Dokev::Camera camera;
     Dokev::Mouse mouse;
 
+    // Smoke animation demo
+    Dokev::AnimatedSprite smokeSprite;
 
+    // Particle emitter demo
+    std::unique_ptr<Dokev::ParticleEmitter> smokeEmitter;
 
 private:
     void                       updateInput();

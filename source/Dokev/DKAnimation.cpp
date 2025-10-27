@@ -1,117 +1,151 @@
 /**
  * \file DKAnimation.cpp
- * \brief 
+ * \brief
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
 #include "DKAnimation.hpp"
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 namespace Dokev
 {
-    Animation::Animation(std::string name, std::vector<AnimationFrame> frames, int loopFrame) : name(std::move(name)), frames(std::move(frames)), loopFrame(loopFrame)
+    // ===== Animation.cpp =====
+
+    Animation::Animation(std::string name, std::vector<AnimationFrame> frames, int loopFrame) : name(std::move(name)), frames(std::move(frames)), loopStartFrame(loopFrame), loopEndFrame(-1)
     {
+    }
+
+    Animation::Animation(const std::filesystem::path& animation_file)
+    {
+        std::ifstream file(animation_file);
+        if (!file.is_open())
+        {
+            throw std::runtime_error("Failed to load: " + animation_file.string());
+        }
+
+        std::string line;
+        while (std::getline(file, line))
+        {
+            if (line.empty() || line[0] == '#')
+                continue;
+
+            if (line.find("PlayFrame") != std::string::npos)
+            {
+                std::istringstream iss(line);
+                std::string command;
+                int    frameIndex;
+                double duration;
+                iss >> command >> frameIndex >> duration;
+                frames.push_back({ frameIndex, duration });
+            }
+            else if (line.find("Loop") != std::string::npos)
+            {
+                std::istringstream iss(line);
+                std::string command;
+                int loopIndex;
+                iss >> command >> loopIndex;
+                loopStartFrame = loopIndex;
+                loopEnabled    = true;
+            }
+            else if (line.find("End") != std::string::npos)
+            {
+                loopEnabled = false;
+            }
+        }
     }
 
     void Animation::Update(double delta_time)
     {
-        if (frames.empty())
+        if (justCompleted)
+        {
+            justCompleted = false;
+        }
+
+        if (frames.empty() || currentFrameIndex < 0 || currentFrameIndex >= static_cast<int>(frames.size()))
         {
             return;
         }
 
-        justCompleted = false;
-        timer += delta_time;
+        const auto& currentFrame = frames[currentFrameIndex];
 
-        const auto& currentFrame = frames[static_cast<size_t>(currentFrameIndex)];
+        if (timer == 0.0)
+        {
+            for (auto& event : events)
+            {
+                if (event.frameIndex == currentFrameIndex)
+                {
+                    event.callback();
+                }
+            }
+        }
+
+        timer += delta_time * playbackSpeed;
+
         if (timer >= currentFrame.duration)
         {
             timer = 0.0;
             currentFrameIndex++;
 
-            if (static_cast<size_t>(currentFrameIndex) >= frames.size())
+            int endFrame = (loopEndFrame == -1) ? static_cast<int>(frames.size()) : loopEndFrame;
+
+            if (currentFrameIndex >= endFrame)
             {
-                currentFrameIndex = loopFrame;
-                justCompleted     = true;
+                if (loopEnabled)
+                {
+                    currentFrameIndex = loopStartFrame;
+                }
+                else
+                {
+                    currentFrameIndex = static_cast<int>(frames.size()) - 1;
+                    justCompleted     = true;
+                }
             }
         }
     }
 
+    void Animation::AddEvent(int frameIndex, std::function<void()> callback)
+    {
+        events.push_back({ frameIndex, std::move(callback) });
+    }
+
+    void Animation::SetLoopEnabled(bool enabled)
+    {
+        loopEnabled = enabled;
+    }
+
+    void Animation::SetLoopRange(int startFrame, int endFrame)
+    {
+        loopStartFrame = startFrame;
+        loopEndFrame   = endFrame;
+    }
+
+    void Animation::SetPlaybackSpeed(double speed)
+    {
+        playbackSpeed = speed;
+    }
+
     int Animation::GetCurrentSpriteFrame() const
     {
-        if (frames.empty())
+        if (frames.empty() || currentFrameIndex < 0 || currentFrameIndex >= static_cast<int>(frames.size()))
         {
             return 0;
         }
-        return frames[static_cast<size_t>(currentFrameIndex)].frameIndex;
-    }
-
-    const AnimationFrame& Animation::GetCurrentFrame() const
-    {
-        static const AnimationFrame defaultFrame{ 0, 1.0 };
-        if (frames.empty())
-        {
-            return defaultFrame;
-        }
-        return frames[static_cast<size_t>(currentFrameIndex)];
+        return frames[currentFrameIndex].frameIndex;
     }
 
     void Animation::Reset()
     {
         currentFrameIndex = 0;
-        timer             = 0.0;
-        justCompleted     = false;
+        timer = 0.0;
+        justCompleted = false;
     }
 
     bool Animation::IsComplete() const
     {
         return justCompleted;
-    }
-
-    double Animation::GetTotalDuration() const
-    {
-        double totalDuration = 0.0;
-        for (const auto& frame : frames)
-        {
-            totalDuration += frame.duration;
-        }
-        return totalDuration;
-    }
-
-    double Animation::GetElapsedTime() const
-    {
-        double elapsedTime = 0.0;
-        for (int i = 0; i < currentFrameIndex && i < static_cast<int>(frames.size()); ++i)
-        {
-            elapsedTime += frames[static_cast<size_t>(i)].duration;
-        }
-        elapsedTime += timer;
-        return elapsedTime;
-    }
-
-    double Animation::GetProgress() const
-    {
-        const double totalDuration = GetTotalDuration();
-        if (totalDuration <= 0.0)
-        {
-            return 0.0;
-        }
-        return std::min(GetElapsedTime() / totalDuration, 1.0);
-    }
-
-    const std::string& Animation::GetName() const
-    {
-        return name;
-    }
-
-    size_t Animation::GetFrameCount() const
-    {
-        return frames.size();
-    }
-
-    int Animation::GetCurrentFrameIndex() const
-    {
-        return currentFrameIndex;
     }
 }

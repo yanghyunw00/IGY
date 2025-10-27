@@ -56,7 +56,10 @@ set(SOURCE_CODE
     Dokev/DKCamera.hpp Dokev/DKCamera.cpp
     Dokev/DKAnimation.hpp Dokev/DKAnimation.cpp
     Dokev/DKAnimationSprite.hpp Dokev/DKAnimationSprite.cpp
-    Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp  
+    Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp
+    Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
+    Dokev/DKParticleEmitter.hpp Dokev/DKParticleEmitter.cpp  
+
     
 
 
@@ -95,6 +98,15 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_CODE})
 
 target_link_libraries(cs200_fun PRIVATE project_options dependencies)
 target_include_directories(cs200_fun PRIVATE .)
+
+# Copy Assets folder to build directory automatically
+add_custom_command(
+    TARGET cs200_fun POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/Assets
+    $<TARGET_FILE_DIR:cs200_fun>/Assets
+    COMMENT "Copying Assets folder to build directory"
+)
 
 # Check the IS_DEVELOPER_VERSION cache variable
 # This is set by the cmake configure preset

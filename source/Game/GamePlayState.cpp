@@ -22,6 +22,7 @@
 #include "Engine/Matrix.hpp"
 #include "Engine/Window.hpp"
 #include <cmath>
+#include <filesystem>
 #include <imgui.h>
 #include <iomanip>
 #include <numbers>
@@ -40,13 +41,51 @@ void GamePlayState::Load()
     map.ResetIsoGridMapArray();
 
     camera.SetZoom(0.3f);
+
+    // Load smoke animation
+    try
+    {
+        smokeSprite = Dokev::AnimatedSprite("Assets/images/Smoke.spt");
+    }
+    catch (const std::exception& e)
+    {
+        printf("Failed to load smoke animation: %s\n", e.what());
+    }
+
+    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>("Assets/images/Smoke.spt", 20);
+    smokeEmitter->SetMaxLife(1.0); // Particles live for 3 seconds
 }
 
 void GamePlayState::Update()
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
-    mouse.Update();  // Add this to update mouse state each frame
+    mouse.Update(); 
     updateInput();
+    const auto& input       = Engine::GetInput();
+
+    // Update smoke animation
+    smokeSprite.Update(environment.DeltaTime);
+
+    // Update particles
+    if (smokeEmitter)
+    {
+        smokeEmitter->Update(environment.DeltaTime);
+    }
+
+    // Emit particles when pressing p
+    if (input.KeyJustPressed(CS230::Input::Keys::P))
+    {
+        if (smokeEmitter)
+        {
+            // Emit particles at camera center (world space)
+            Math::vec2 emit_pos = camera.GetPosition();
+            Math::vec2 emit_vel(0.0, 0.0);
+            Math::vec2 direction(0.0, 200.0);  // Upward (larger value because of camera zoom)
+            smokeEmitter->Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
+            printf("Emitted particles at (%.1f, %.1f)! Active: %d\n",
+                   emit_pos.x, emit_pos.y, smokeEmitter->GetActiveCount());
+        }
+    }
 }
 
 void GamePlayState::Draw() const
@@ -73,6 +112,17 @@ void GamePlayState::Draw() const
     // Dokev::DrawRectangle(0,0,100,100, Dokev::ColorPalette::RED); // issue!  when we change the camera view
 
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
+
+    // Draw smoke animation at position (200, 200)
+    Math::TransformationMatrix smokeTransform;
+    smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
+    //smokeSprite.Draw(smokeTransform);
+
+    // Draw particles
+    if (smokeEmitter)
+    {
+        smokeEmitter->Draw(cameraTransform * ndcMatrix);
+    }
 
     renderer2d.EndScene();
 }
