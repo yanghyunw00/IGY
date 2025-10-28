@@ -10,6 +10,7 @@
 
 #pragma once
 #include "CS200/RGBA.hpp"
+#include "Dokev/DKMouseInput.hpp"
 #include "Vec2.hpp"
 #include <functional>
 #include <gsl/gsl>
@@ -77,5 +78,7 @@ namespace CS230
         static float                   background_r;
         static float                   background_g;
         static float                   background_b;
+
+        Dokev::Mouse mouse;
     };
 }

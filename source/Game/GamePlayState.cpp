@@ -59,8 +59,8 @@ void GamePlayState::Load()
 void GamePlayState::Update()
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
-    mouse.Update(); 
     updateInput();
+    mouse.Update(); 
     const auto& input       = Engine::GetInput();
 
     // Update smoke animation
@@ -170,11 +170,27 @@ void GamePlayState::updateInput()
     // int currentView = (index % 4) + 1;
 
 
+
+
     // Map zoomin zoom out
     if (input.KeyDown(CS230::Input::Keys::Q))
         camera.AdjustZoom(0.9f);
     if (input.KeyDown(CS230::Input::Keys::E))
         camera.AdjustZoom(1.1f);
+
+    //mouse wheel zoom in zoom out 
+        
+    printf("%d", mouse.GetScrollDelta());
+
+    if (mouse.GetScrollDelta() > 0)
+    {
+        camera.AdjustZoom(0.9f);
+    }
+    else if (mouse.GetScrollDelta() < 0)
+    {
+        camera.AdjustZoom(1.1f);
+    }
+
 
     // Limit
     camera.ClampZoom(0.1f, 5.0f);

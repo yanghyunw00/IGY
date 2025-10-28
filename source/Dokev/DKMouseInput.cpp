@@ -26,7 +26,7 @@ namespace Dokev
         SetMouseDown(Button::Left, (mouseState & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0);
         SetMouseDown(Button::Middle, (mouseState & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0);
         SetMouseDown(Button::Right, (mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0);
-        scrollDelta = 0;
+       // scrollDelta = 0;
     }
 
     bool Mouse::MouseDown(Button button) const
