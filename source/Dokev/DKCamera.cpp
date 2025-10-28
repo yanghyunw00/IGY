@@ -18,6 +18,7 @@ namespace Dokev
     Math::TransformationMatrix Camera::GetViewMatrix() const
     {
         return Math::ScaleMatrix({ zoom, zoom }) * Math::TranslationMatrix(position);
+        //change 
     }
 
     void Camera::Move(Math::vec2 offset)
