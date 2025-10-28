@@ -157,10 +157,9 @@ void GridMap::IsometricDrawMap(int index) const
                 if (height < 75)
                     current_texture = 0;
 
-                
                 Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE);
                 Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE);
-            }
+           }
         }
     }
     // DrawCurrentPathIsometric(Dokev::ColorPalette::RED, currentView);
