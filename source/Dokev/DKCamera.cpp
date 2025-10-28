@@ -17,7 +17,7 @@ namespace Dokev
 
     Math::TransformationMatrix Camera::GetViewMatrix() const
     {
-        return Math::TranslationMatrix(position) * Math::ScaleMatrix({ zoom, zoom });
+        return Math::ScaleMatrix({ zoom, zoom }) * Math::TranslationMatrix(position);
     }
 
     void Camera::Move(Math::vec2 offset)
@@ -47,6 +47,7 @@ namespace Dokev
 
     void Camera::AdjustZoom(float factor)
     {
+        // should translate 
         zoom *= factor;
     }
 
