@@ -9,8 +9,8 @@
  */
 
 #include "Window.hpp"
-#include "CS200/RenderingAPI.hpp"
 #include "../OpenGL/GL.hpp"
+#include "CS200/RenderingAPI.hpp"
 #include "Engine.hpp"
 #include "Error.hpp"
 #include "Logger.hpp"
@@ -109,7 +109,7 @@ namespace CS230
         // Get actual drawable size for high-DPI displays
         SDL_GL_GetDrawableSize(sdl_window, &size.x, &size.y);
 
-        
+
         GL::Viewport(0, 0, size.x, size.y);
 
         // Set initial clear color through our rendering abstraction
@@ -121,24 +121,28 @@ namespace CS230
         SDL_GL_SwapWindow(sdl_window);
 
 
-       SDL_Event event{ 0 };
+        SDL_Event event{ 0 };
         while (SDL_PollEvent(&event) != 0)
         {
             eventCallback(event);
 
+            if (event.type == SDL_MOUSEWHEEL)
+            {
+                mouse.ProcessEvent(event);
+            }
+
             switch (event.window.event)
             {
                 case SDL_WINDOWEVENT_CLOSE: closed = true; break;
-                case SDL_WINDOWEVENT_RESIZED:  break;
+                case SDL_WINDOWEVENT_RESIZED: break;
                 case SDL_WINDOWEVENT_SIZE_CHANGED:
-                //SDL_GL_GetDrawableSize(sdl_window, &size.x, &size.y);
-                GL::Viewport(0, 0, size.x, size.y);
-                break;
+                    // SDL_GL_GetDrawableSize(sdl_window, &size.x, &size.y);
+                    GL::Viewport(0, 0, size.x, size.y);
+                    break;
                     break;
                 default: break;
             }
         }
-
     }
 
     bool Window::IsClosed() const
