@@ -9,12 +9,12 @@
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-
+#include "Engine/Path.hpp"
 namespace Dokev
 {
     SpriteSheet::SpriteSheet(const std::filesystem::path& spt_file)
     {
-        std::ifstream file(spt_file);
+        std::ifstream file(assets::locate_asset(spt_file));
         if (!file.is_open())
         {
             throw std::runtime_error("Failed to open .spt file: " + spt_file.string());

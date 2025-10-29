@@ -201,7 +201,6 @@ namespace CS200
          * - Use GL_TRIANGLES with 6 indices (2 triangles)
          */
         void DrawQuad(const Math::TransformationMatrix& transform, OpenGL::TextureHandle texture, Math::vec2 texture_coord_bl, Math::vec2 texture_coord_tr, CS200::RGBA tintColor) override;
-
         /**
          * \brief Draw a filled circle with optional outline using SDF rendering
          * \param transform World transformation matrix (position, rotation, scale)

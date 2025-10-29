@@ -6,7 +6,7 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
-
+#include <GL/glew.h>
 #include "GamePlayState.hpp"
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
@@ -27,9 +27,11 @@
 #include <iomanip>
 #include <numbers>
 #include <sstream>
-
+#include "OpenGL/GL.hpp" // added, might be aping the code.
 void GamePlayState::Load()
 {
+    GL::Enable(GL_STENCIL_TEST); //enable for mouse clicking.
+    GL::ClearStencil(0); // reset. might have leftover shit from other gamestates
     CS200::RenderingAPI::SetClearColor(0x252525FF);
     testTexture   = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
     auto perlin   = Dokev::GenImagePerlinNoise(256, 256, 0, 0, 0.01f);
@@ -58,6 +60,8 @@ void GamePlayState::Load()
 
 void GamePlayState::Update()
 {
+
+
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     mouse.Update(); 
     updateInput();
@@ -100,7 +104,8 @@ void GamePlayState::Draw() const
 
     renderer2d.BeginScene(cameraTransform * ndcMatrix);
 
-
+    GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    
     map.IsometricDrawMap(index);
 
 
@@ -150,6 +155,10 @@ void GamePlayState::DrawImGui()
         }
 
         ImGui::Text("Rotate Index: %d", index);
+         const auto &env = Engine::GetWindowEnvironment();
+        ImGui::Text("FPS: %d", env.FPS);
+        ImGui::Text("Frame time: %.2f ms", static_cast<float>(env.DeltaTime * 1000.0));
+
     }
     ImGui::End();
 }
@@ -201,12 +210,20 @@ void GamePlayState::updateInput()
         camera.Reset();
     }
 
+    // if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))
+    // {
+    //     //int x = stencil_value & 0xFF; int y = (stencil_value >> 8) & 0xFF;
+    //     int stencil_value;
+    //     glReadPixels(mouse.GetPosition().x,mouse.GetPosition().y, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &stencil_value);
+    //     int x = stencil_value & 0xFF; int y = (stencil_value >> 8) & 0xFF;
+    //     std::cout << "x : " << x << " y : " << y << std::endl;
+    // }
 
-    if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))
+    if (input.KeyDown(CS230::Input::Keys::Z))
     {
         index = (index - 1 + 4) % 4;
     }
-    else if (mouse.MouseJustPressed(Dokev::Mouse::Button::Right))
+    else if (input.KeyDown(CS230::Input::Keys::C))
     {
         index = (index + 1) % 4;
     }

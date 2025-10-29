@@ -196,7 +196,6 @@ namespace CS200
         GL::BindVertexArray(0);
         GL::UseProgram(0);
     }
-
     void ImmediateRenderer2D::DrawSDF(const Math::TransformationMatrix& transform, CS200::RGBA fill_color, CS200::RGBA line_color, double line_width, SDFShape sdf_shape)
     {
         if (sdf_vao == 0 || indicesCount == 0)

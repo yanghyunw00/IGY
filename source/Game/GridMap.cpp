@@ -6,7 +6,7 @@
  * \copyright DigiPen Institute of Technology
  */
 
-
+#include <GL/glew.h>
 #include "GridMap.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGrid.hpp"
@@ -18,6 +18,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "OpenGL/GL.hpp"
+
 
 GridMap::GridMap() : currentView(1), pathFinder(nullptr), showPath(false)
 {
@@ -157,9 +159,10 @@ void GridMap::IsometricDrawMap(int index) const
                 if (height < 75)
                     current_texture = 0;
 
-                
+ 
                 Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE);
                 Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE);
+
             }
         }
     }

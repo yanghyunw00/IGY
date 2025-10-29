@@ -60,13 +60,15 @@ namespace Dokev
     private:
         std::shared_ptr<CS230::Texture> texture;
     };
-
+    
 
     Texture2D LoadTexture(const std::string& fileName);
 
     void UnLoadTexture(Texture2D texture);
 
     void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint = CS200::WHITE);
+
+
 
     void DrawTextureV(const Texture2D& texture, Math::vec2 position, CS200::RGBA tint = CS200::WHITE);
 
