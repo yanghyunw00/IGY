@@ -12,6 +12,7 @@
 #include <gsl/gsl>
 #include <memory>
 #include <string_view>
+#include "Dokev/DKMouseInput.hpp"
 
 namespace CS230
 {
@@ -344,4 +345,6 @@ private:
     // Internal method for updating frame timing and window environment
     // Called each frame to maintain current runtime statistics
     void updateEnvironment();
+
+    Dokev::Mouse mouse;
 };

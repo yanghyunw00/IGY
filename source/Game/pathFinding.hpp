@@ -44,6 +44,8 @@ class PathFinding
 public:
 	PathFinding(int sizeX, int sizeY, float maxClimb = 50.0f);
 
+	void UpdateMapFromGrid(const std::vector<std::vector<GridCell>>& grid);
+
 	std::vector<Math::fvec2> FindPath(Math::fvec2 start, Math::fvec2 end);
 	std::vector<Math::fvec2> FindPath(int startX, int startY, int endX, int endY);
 

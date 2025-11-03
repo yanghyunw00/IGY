@@ -13,16 +13,12 @@
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Game/pathFinding.hpp"
-//#include "MouseInput.h"
-//#include "Human.h"
-//#include "PathFinding.h"
 
+#define GRID_SIZE_Y 91
+#define GRID_SIZE_X 91
 
-#define GRID_SIZE_Y 31
-#define GRID_SIZE_X 31
-
-#define GRID_SIZE_Y_HALF (15)
-#define GRID_SIZE_X_HALF (15)
+#define GRID_SIZE_Y_HALF (45)
+#define GRID_SIZE_X_HALF (45)
 
 #define TILE_WIDTH 64
 #define TILE_HEIGHT 32
@@ -53,7 +49,7 @@ public:
 	void IsometricDrawMap(int index) const;
 	void ResetPerlinTexture();
 	const Dokev::Texture2D* GetPerlinTexture() const;
-	GridCell** GetViewArray(int viewIndex);
+	GridCell** GetViewArray(int viewIndex) const;
 
 
 	//Path Finding
@@ -70,23 +66,23 @@ public:
 	std::vector<Math::fvec2> GetCurrentPath() const { return currentPath; }
 	int GetIsoOriginX() const { return isoOriginX; }
 	int GetIsoOriginY() const { return isoOriginY; }
-	Math::fvec2 TransformPathPointForView(Math::fvec2 point, int viewIndex);
+	Math::fvec2 TransformPathPointForView(Math::fvec2 point, int viewIndex) const;
 
 private:
 	void rotatePoint90(int x, int y,
 		float tx, float ty,
 		int angleDeg,
-		float& outX, float& outY);
+		float& outX, float& outY) const;
 
 	std::vector<GridCell> IsoGridMapArray;
 
 	std::vector<std::vector<GridCell>> m_gridCells;
 
 
-	GridCell* view1[GRID_SIZE_X * GRID_SIZE_Y];
-	GridCell* view2[GRID_SIZE_X * GRID_SIZE_Y];
-	GridCell* view3[GRID_SIZE_X * GRID_SIZE_Y];
-	GridCell* view4[GRID_SIZE_X * GRID_SIZE_Y];
+	mutable GridCell* view1[GRID_SIZE_X * GRID_SIZE_Y];
+	mutable GridCell* view2[GRID_SIZE_X * GRID_SIZE_Y];
+	mutable GridCell* view3[GRID_SIZE_X * GRID_SIZE_Y];
+	mutable GridCell* view4[GRID_SIZE_X * GRID_SIZE_Y];
 
 	Dokev::Texture2D IsoGridTexture[4];
 

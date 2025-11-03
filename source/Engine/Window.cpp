@@ -120,6 +120,8 @@ namespace CS230
     {
         SDL_GL_SwapWindow(sdl_window);
 
+        // Reset mouse state at the beginning of the frame (before processing new events)
+        mouse.Update();
 
         SDL_Event event{ 0 };
         while (SDL_PollEvent(&event) != 0)

@@ -16,6 +16,8 @@
 #include "Dokev/DKParticleEmitter.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
+#include "Human.hpp"
+#include "Road.hpp"
 #include <array>
 #include <memory>
 
@@ -47,6 +49,12 @@ private:
 
     // Particle emitter demo
     std::unique_ptr<Dokev::ParticleEmitter> smokeEmitter;
+
+    // Human pathfinding demo
+    std::unique_ptr<Human> human;
+
+    // Road system
+    std::unique_ptr<Road> road;
 
 private:
     void                       updateInput();

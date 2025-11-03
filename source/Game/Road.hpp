@@ -28,7 +28,7 @@ private:
 public:
 	Road()
 	{
-		roadTexture = LoadTexture("resources/textures/road.png");
+		roadTexture = LoadTexture("Assets/images/textures/road.png");
 	};
 
 	~Road()
@@ -39,6 +39,8 @@ public:
 	void removeRoad(int x, int y);
 	void removeAllRoad();
 	bool hasRoad(int x, int y);
-	void drawRoads(GridMap& map, int currentview);
+	void drawRoads(const GridMap& map, int currentview);
 	void buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY);
+
+	size_t getRoadCount() const { return roadPositions.size(); }
 };

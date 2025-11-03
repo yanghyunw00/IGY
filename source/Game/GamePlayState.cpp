@@ -14,6 +14,7 @@
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKShapes.hpp"
+#include "Dokev/DKColor.hpp"
 #include "Dokev/DKTexture.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
@@ -41,6 +42,7 @@ void GamePlayState::Load()
 
     map.ResetPerlinTexture();
     map.ResetIsoGridMapArray();
+    map.InitializePathFinding();
 
     camera.SetZoom(0.3f);
 
@@ -56,6 +58,11 @@ void GamePlayState::Load()
 
     smokeEmitter = std::make_unique<Dokev::ParticleEmitter>("Assets/images/Smoke.spt", 20);
     smokeEmitter->SetMaxLife(1.0); // Particles live for 3 seconds
+
+    human = std::make_unique<Human>(Math::fvec2(5.0f, 5.0f));
+
+    road = std::make_unique<Road>();
+    printf("Road system initialized\n");
 }
 
 void GamePlayState::Update()
@@ -64,8 +71,8 @@ void GamePlayState::Update()
 
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     updateInput();
-    mouse.Update(); 
     const auto& input       = Engine::GetInput();
+    // Don't call mouse.Update() here - it's handled by the engine/window before Update() is called
 
     // Update smoke animation
     smokeSprite.Update(environment.DeltaTime);
@@ -90,6 +97,40 @@ void GamePlayState::Update()
                    emit_pos.x, emit_pos.y, smokeEmitter->GetActiveCount());
         }
     }
+
+    // Update human movement
+    if (human)
+    {
+        human->Update(static_cast<float>(environment.DeltaTime), &map);
+    }
+
+    // Press H to find path for human (demo: from (5,5) to (50,50))
+    if (input.KeyJustPressed(CS230::Input::Keys::H))
+    {
+        if (human)
+        {
+            map.ClearPath();
+            map.FindPath(5, 5, 50, 50);
+            auto path = map.GetCurrentPath();
+            if (!path.empty())
+            {
+                human->FollowPath(path);
+            }
+            else
+            {
+                printf("No path found!\n");
+            }
+        }
+    }
+
+    // Press T to toggle human debug mode
+    if (input.KeyJustPressed(CS230::Input::Keys::T))
+    {
+        if (human)
+        {
+            human->ToggleDebug();
+        }
+    }
 }
 
 void GamePlayState::Draw() const
@@ -105,16 +146,8 @@ void GamePlayState::Draw() const
     renderer2d.BeginScene(cameraTransform * ndcMatrix);
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    
+
     map.IsometricDrawMap(index);
-
-
-    // How to draw on window, not camera view?? -> shouldnt appply the matrix translation hmmmmmmm
-    // 1. make override function withouth translation
-    // 2. make teammate to solve
-    // 3. make camera component well
-
-    // Dokev::DrawRectangle(0,0,100,100, Dokev::ColorPalette::RED); // issue!  when we change the camera view
 
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
@@ -127,6 +160,19 @@ void GamePlayState::Draw() const
     if (smokeEmitter)
     {
         smokeEmitter->Draw(cameraTransform * ndcMatrix);
+    }
+
+    // Draw roads
+    int currentView = (index % 4) + 1;
+    if (road)
+    {
+        road->drawRoads(map, currentView);
+    }
+
+    // Draw human
+    if (human)
+    {
+        human->Draw(currentView, &map);
     }
 
     renderer2d.EndScene();
@@ -159,6 +205,121 @@ void GamePlayState::DrawImGui()
         ImGui::Text("FPS: %d", env.FPS);
         ImGui::Text("Frame time: %.2f ms", static_cast<float>(env.DeltaTime * 1000.0));
 
+        ImGui::Separator();
+        ImGui::Text("Pathfinding Demo:");
+        ImGui::Text("H: Make human walk from (5,5) to (50,50)");
+        ImGui::Text("T: Toggle human debug mode");
+        if (human)
+        {
+            ImGui::Text("Human moving: %s", human->IsMoving() ? "Yes" : "No");
+            ImGui::Text("Human debug: %s", human->IsDebugMode() ? "ON" : "OFF");
+
+            auto pos = human->GetActualPosition();
+            ImGui::Text("Human position: (%.1f, %.1f)", pos.x, pos.y);
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Custom Path:");
+
+        static int startX = 5;
+        static int startY = 5;
+        static int endX = 50;
+        static int endY = 50;
+
+        ImGui::SliderInt("Start X", &startX, 0, GRID_SIZE_X - 1);
+        ImGui::SliderInt("Start Y", &startY, 0, GRID_SIZE_Y - 1);
+        ImGui::SliderInt("End X", &endX, 0, GRID_SIZE_X - 1);
+        ImGui::SliderInt("End Y", &endY, 0, GRID_SIZE_Y - 1);
+
+        if (ImGui::Button("Find Path"))
+        {
+            if (human)
+            {
+                map.ClearPath();
+                map.FindPath(startX, startY, endX, endY);
+                auto path = map.GetCurrentPath();
+                if (!path.empty())
+                {
+                    human->FollowPath(path);
+                }
+                else
+                {
+                    printf("No path found from (%d,%d) to (%d,%d)!\n", startX, startY, endX, endY);
+                }
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Set Start to Human Pos"))
+        {
+            if (human)
+            {
+                auto pos = human->GetActualPosition();
+                startX = static_cast<int>(pos.x);
+                startY = static_cast<int>(pos.y);
+            }
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Road Building:");
+
+        if (road)
+        {
+            ImGui::Text("Total roads: %zu", road->getRoadCount());
+        }
+
+        static int roadStartX = 10;
+        static int roadStartY = 10;
+        static int roadEndX = 30;
+        static int roadEndY = 30;
+
+        ImGui::SliderInt("Road Start X", &roadStartX, 0, GRID_SIZE_X - 1);
+        ImGui::SliderInt("Road Start Y", &roadStartY, 0, GRID_SIZE_Y - 1);
+        ImGui::SliderInt("Road End X", &roadEndX, 0, GRID_SIZE_X - 1);
+        ImGui::SliderInt("Road End Y", &roadEndY, 0, GRID_SIZE_Y - 1);
+
+        if (ImGui::Button("Build Road Path"))
+        {
+            if (road)
+            {
+                road->buildRoadPath(map, roadStartX, roadStartY, roadEndX, roadEndY);
+                printf("Built road from (%d,%d) to (%d,%d). Total roads: %zu\n",
+                       roadStartX, roadStartY, roadEndX, roadEndY, road->getRoadCount());
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Clear All Roads"))
+        {
+            if (road)
+            {
+                road->removeAllRoad();
+                printf("All roads cleared\n");
+            }
+        }
+
+        if (ImGui::Button("Add Single Road"))
+        {
+            if (road)
+            {
+                road->addRoad(roadStartX, roadStartY);
+                printf("Added road at (%d,%d)\n", roadStartX, roadStartY);
+            }
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Remove Road"))
+        {
+            if (road)
+            {
+                road->removeRoad(roadStartX, roadStartY);
+                printf("Removed road at (%d,%d)\n", roadStartX, roadStartY);
+            }
+        }
+
     }
     ImGui::End();
 }
@@ -173,52 +334,71 @@ void GamePlayState::updateInput()
     if (input.KeyJustPressed(CS230::Input::Keys::Space))
     {
         map.ReGenerateMap();
+        map.InitializePathFinding();
+        map.ClearPath();
+        printf("Map regenerated and pathfinding reinitialized\n");
     }
 
     // for future road, human
     // int currentView = (index % 4) + 1;
 
 
-
-
-    // Map zoomin zoom out
     if (input.KeyDown(CS230::Input::Keys::Q))
-        camera.AdjustZoom(0.9f);
+        camera.AdjustZoom(0.95f);
     if (input.KeyDown(CS230::Input::Keys::E))
-        camera.AdjustZoom(1.1f);
+        camera.AdjustZoom(1.05f);
 
-    //mouse wheel zoom in zoom out 
-        
-    printf("%d", mouse.GetScrollDelta());
+    int scrollDelta = mouse.GetScrollDelta();
 
-    if (mouse.GetScrollDelta() > 0)
-    {
-        camera.AdjustZoom(0.9f);
-    }
-    else if (mouse.GetScrollDelta() < 0)
-    {
-        camera.AdjustZoom(1.1f);
+    static int debugFrameCount = 0;
+    debugFrameCount++;
+    if (scrollDelta != 0) {
+        printf("[DEBUG] Frame %d: scrollDelta = %d (DETECTED!)\n", debugFrameCount, scrollDelta);
     }
 
+    if (scrollDelta != 0)
+    {
+        printf("[SCROLL EVENT] Detected scroll: %d\n", scrollDelta);
 
-    // Limit
+        if (scrollDelta > 0)
+        {
+            // Zoom in (scroll up)
+            float oldZoom = camera.GetZoom();
+            camera.AdjustZoom(0.9f);
+            float newZoom = camera.GetZoom();
+            printf("  -> Zoom IN: %.3f -> %.3f (multiplier 0.9)\n", oldZoom, newZoom);
+        }
+        else if (scrollDelta < 0)
+        {
+            // Zoom out (scroll down)
+            float oldZoom = camera.GetZoom();
+            camera.AdjustZoom(1.1f);
+            float newZoom = camera.GetZoom();
+            printf("  -> Zoom OUT: %.3f -> %.3f (multiplier 1.1)\n", oldZoom, newZoom);
+        }
+    }
+
+    // Limit zoom range
     camera.ClampZoom(0.1f, 5.0f);
+
+    // Camera movement speed (pixels per second)
+    constexpr double camera_speed = 1.0;
 
     if (input.KeyDown(CS230::Input::Keys::A))
     {
-        camera.Move({ 1 * environment.DeltaTime, 0 });
+        camera.Move({ camera_speed * environment.DeltaTime, 0 });
     }
     if (input.KeyDown(CS230::Input::Keys::D))
     {
-        camera.Move({ -1 * environment.DeltaTime, 0 });
+        camera.Move({ -camera_speed * environment.DeltaTime, 0 });
     }
     if (input.KeyDown(CS230::Input::Keys::W))
     {
-        camera.Move({ 0, -1 * environment.DeltaTime });
+        camera.Move({ 0, -camera_speed * environment.DeltaTime });
     }
     if (input.KeyDown(CS230::Input::Keys::S))
     {
-        camera.Move({ 0, 1 * environment.DeltaTime });
+        camera.Move({ 0, camera_speed * environment.DeltaTime });
     }
     // reset
     if (input.KeyDown(CS230::Input::Keys::R))

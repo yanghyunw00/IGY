@@ -8,7 +8,7 @@
  */
 #include "Engine.hpp"
 #include "CS200/ImGuiHelper.hpp"
-#include "CS200/ImmediateRenderer2D.hpp"
+#include "CS200/InstancedRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "FPS.hpp"
@@ -46,7 +46,7 @@ public:
     util::Timer                timer{};
     WindowEnvironment          environment{};
     CS230::GameStateManager    gameStateManager{};
-    CS200::ImmediateRenderer2D renderer2D{};
+    InstancedRenderer2D        renderer2D{};
     CS230::TextureManager      textureManager{};
 };
 
@@ -136,7 +136,7 @@ void Engine::Update()
 
 bool Engine::HasGameEnded()
 {
-    return impl->window.IsClosed() || impl->gameStateManager.HasGameEnded();
+    return impl->window.IsClosed() || impl->gameStateManager.HasGameEnded();\
 }
 
 Engine::Engine() : impl(new Impl())

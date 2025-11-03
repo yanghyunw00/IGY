@@ -184,7 +184,7 @@ const Dokev::Texture2D* GridMap::GetPerlinTexture() const
     return &PerlinNoiseTexture;
 }
 
-GridCell** GridMap::GetViewArray(int viewIndex)
+GridCell** GridMap::GetViewArray(int viewIndex) const
 {
     switch (viewIndex)
     {
@@ -196,7 +196,7 @@ GridCell** GridMap::GetViewArray(int viewIndex)
     }
 }
 
-void GridMap::rotatePoint90(int x, int y, float tx, float ty, int angleDeg, float& oX, float& oY)
+void GridMap::rotatePoint90(int x, int y, float tx, float ty, int angleDeg, float& oX, float& oY) const
 {
     float dx = x - tx;
     float dy = y - ty;
@@ -241,35 +241,10 @@ void GridMap::InitializePathFinding()
 
     pathFinder = new PathFinding(GRID_SIZE_X, GRID_SIZE_Y, 50.0f);
 
-    std::vector<double> heights;
-    std::vector<float>  costs;
+    // Use the more efficient UpdateMapFromGrid method
+    pathFinder->UpdateMapFromGrid(m_gridCells);
 
-    heights.reserve(IsoGridMapArray.size());
-    costs.reserve(IsoGridMapArray.size());
-
-    for (const auto& cell : IsoGridMapArray)
-    {
-        heights.push_back(cell.getHeight());
-        costs.push_back(cell.getMovementCost());
-    }
-
-    pathFinder->SetHeightMap(heights);
-    pathFinder->SetCostMap(costs);
-
-    int walkableCount = 0;
-    for (int y = 0; y < GRID_SIZE_Y; y++)
-    {
-        for (int x = 0; x < GRID_SIZE_X; x++)
-        {
-            const auto& currentCell = IsoGridMapArray[y * GRID_SIZE_X + x];
-            bool        walkable    = currentCell.isWalkable();
-            pathFinder->SetWalkable(x, y, walkable);
-            if (walkable)
-            {
-                walkableCount++;
-            }
-        }
-    }
+    std::cout << "PathFinding initialized with UpdateMapFromGrid" << std::endl;
 }
 
 void GridMap::HandlePathFindingInput()
@@ -371,7 +346,7 @@ bool GridMap::IsWalkable(int x, int y)
     return false;
 }
 
-Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
+Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex) const
 {
     int x = (int)point.x;
     int y = (int)point.y;
@@ -380,13 +355,13 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
 
     switch (viewIndex)
     {
-        case 1: 
+        case 1:
             return point;
         case 2:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, newX, newY);
             return { newX, newY };
-        case 3: 
-            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY); 
+        case 3:
+            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY);
             return { newX, newY };
         case 4:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY);

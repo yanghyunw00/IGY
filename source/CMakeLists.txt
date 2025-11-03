@@ -10,6 +10,7 @@ set(SOURCE_CODE
     CS200/Image.hpp CS200/Image.cpp
     CS200/ImGuiHelper.hpp CS200/ImGuiHelper.cpp
     CS200/ImmediateRenderer2D.hpp CS200/ImmediateRenderer2D.cpp
+    CS200/InstancedRenderer2D.hpp CS200/InstancedRenderer2D.cpp
     CS200/IRenderer2D.hpp
     CS200/NDC.hpp
     CS200/Renderer2DUtils.hpp CS200/Renderer2DUtils.cpp

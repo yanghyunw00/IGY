@@ -42,37 +42,53 @@ bool Road::hasRoad(int x, int y)
 	return false;
 }
 
-void Road::drawRoads([[maybe_unused]]  GridMap& map,[[maybe_unused]]  int currentview)
+void Road::drawRoads(const GridMap& map, int currentview)
 {
-	if (!roadPositions.empty())
+	if (roadPositions.empty())
+		return;
+
+	GridCell** viewArray = map.GetViewArray(currentview);
+	int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+	int originY = 0;
+
+	// Draw roads in isometric order (back to front) just like the map
+	for (int sum = 0; sum < GRID_SIZE_X + GRID_SIZE_Y - 1; ++sum)
 	{
-		for ([[maybe_unused]]  auto& roadPos : roadPositions)
+		for (int x = 0; x <= sum; ++x)
 		{
-			Math::fvec2 transformedPos = map.TransformPathPointForView(roadPos, currentview);
+			int y = sum - x;
 
-			int gridX = static_cast<int>(transformedPos.x);
-			int gridY = static_cast<int>(transformedPos.y);
+			if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+			{
+				// Check if there's a road at this position
+				bool hasRoadHere = false;
+				for (const auto& roadPos : roadPositions)
+				{
+					if (static_cast<int>(roadPos.x) == x && static_cast<int>(roadPos.y) == y)
+					{
+						hasRoadHere = true;
+						break;
+					}
+				}
 
-			//Get height from the grid cell
-			GridCell** viewArray = map.GetViewArray(currentview);
-			float height = static_cast<float>(viewArray[gridY * GRID_SIZE_X + gridX]->getHeight());
+				if (hasRoadHere)
+				{
+					// Draw the road
+					float height = static_cast<float>(viewArray[y * GRID_SIZE_X + x]->getHeight());
+					int screenX = originX + (x - y) * TILE_WIDTH_HALF;
+					int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
+					int topY = static_cast<int>(height) - screenY;
 
-			//Get origin
-			int originX = map.GetIsoOriginX();
-			int originY = map.GetIsoOriginY();
-
-			//Manual isometric calculation
-			int isoX = static_cast<int>(originX + (transformedPos.x - transformedPos.y) * TILE_WIDTH_HALF);
-			int isoY = static_cast<int>(originY + (transformedPos.x + transformedPos.y) * TILE_HEIGHT_HALF - static_cast<int>(height));
-
-			DrawTexture(roadTexture, isoX, isoY, Dokev::ColorPalette::WHITE);
+					roadTexture.Draw(screenX, topY);
+				}
+			}
 		}
 	}
 }
 
-void Road::buildRoadPath([[maybe_unused]]  GridMap& map, [[maybe_unused]] int startX,[[maybe_unused]]  int startY, [[maybe_unused]] int endX,[[maybe_unused]]  int endY)
+void Road::buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY)
 {
-	//Use pathfinding
+	// Use pathfinding
 	map.FindPath(startX, startY, endX, endY);
 
 	std::vector<Math::fvec2> path = map.GetCurrentPath();

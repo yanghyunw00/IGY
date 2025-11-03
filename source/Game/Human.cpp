@@ -125,29 +125,35 @@ void Human::Update(float deltaTime, GridMap* map)
 	}
 }
 
-void Human::Draw([[maybe_unused]] int viewIndex,[[maybe_unused]]  GridMap* map) const
+void Human::Draw(int viewIndex, const GridMap* map) const
 {
-	// Math::fvec2  transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
+	float gridX_float = actualPosition.x;
+	float gridY_float = actualPosition.y;
 
-	// float gridX_float = transformedPos.x;
-	// float gridY_float = transformedPos.y;
+	int gridX_int = static_cast<int>(gridX_float);
+	int gridY_int = static_cast<int>(gridY_float);
 
-	// int gridX_int = static_cast<int>(gridX_float);
-	// int gridY_int = static_cast<int>(gridY_float);
+	if(gridX_int < 0 || gridX_int >= GRID_SIZE_X || gridY_int < 0 || gridY_int >= GRID_SIZE_Y)
+		return;
 
-	// if(gridX_int < 0 || gridX_int >= GRID_SIZE_X || gridY_int < 0 || gridY_int >= GRID_SIZE_Y)
-	// 	return;
+	// Get the view array
+	GridCell** viewArray = map->GetViewArray(viewIndex);
 
-	// GridCell** viewArray = map->GetViewArray(viewIndex);
-	// float height = viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight();
+	// Get height from the non-rotated grid position
+	float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
-	// int originX = map->GetIsoOriginX();
-	// int originY = map->GetIsoOriginY();
+	// Match the map's drawing calculation
+	int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+	int originY = 0;
 
-	// int isoX = originX + (gridX_float - gridY_float) * TILE_WIDTH_HALF;
-	// int isoY = originY + (gridX_float + gridY_float) * TILE_HEIGHT_HALF - static_cast<int>(height);
+	int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
+	int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
+	int topY = static_cast<int>(height) - screenY;
 
+	int drawX = screenX + TILE_WIDTH_HALF;
+	int drawY = topY;
 
-	// DrawCircle(isoX + TILE_WIDTH_HALF, isoY + TILE_HEIGHT_HALF, 10, color);
+	Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
+	Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
 }
 

@@ -34,7 +34,7 @@ public:
 
     void FollowPath(const std::vector<Math::fvec2>& newPath);
 	void Update(float deltaTime, GridMap* map);
-    void Draw(int viewIndex, GridMap* map) const;
+    void Draw(int viewIndex, const GridMap* map) const;
     bool IsMoving() const { return isMoving; }
 
 

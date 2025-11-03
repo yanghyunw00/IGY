@@ -106,7 +106,7 @@ namespace OpenGL
      * This provides a convenient interface while maintaining implementation
      * consistency across different texture creation methods.
      */
-    [[nodiscard]] TextureHandle CreateTextureFromImage(const CS200::Image& image, Filtering filtering = Filtering::NearestPixel, Wrapping wrapping = Wrapping::Repeat) noexcept;
+    [[nodiscard]] TextureHandle CreateTextureFromImage(const CS200::Image& image, Filtering filtering = Filtering::Linear, Wrapping wrapping = Wrapping::Repeat) noexcept;
 
     /**
      * \brief Create OpenGL texture from raw pixel data in memory
@@ -138,7 +138,7 @@ namespace OpenGL
      * data using GL::TexImage2D() for immediate GPU availability.
      */
     [[nodiscard]] TextureHandle
-        CreateTextureFromMemory(Math::ivec2 size, std::span<const CS200::RGBA> colors, Filtering filtering = Filtering::NearestPixel, Wrapping wrapping = Wrapping::Repeat) noexcept;
+        CreateTextureFromMemory(Math::ivec2 size, std::span<const CS200::RGBA> colors, Filtering filtering = Filtering::Linear, Wrapping wrapping = Wrapping::Repeat) noexcept;
 
     /**
      * \brief Create empty RGBA texture without initial pixel data
@@ -173,7 +173,7 @@ namespace OpenGL
      * particularly efficient when the texture will be written to by
      * rendering operations rather than CPU-provided data.
      */
-    [[nodiscard]] TextureHandle CreateRGBATexture(Math::ivec2 size, Filtering filtering = Filtering::NearestPixel, Wrapping wrapping = Wrapping::Repeat) noexcept;
+    [[nodiscard]] TextureHandle CreateRGBATexture(Math::ivec2 size, Filtering filtering = Filtering::Linear, Wrapping wrapping = Wrapping::Repeat) noexcept;
 
     /**
      * \brief Update texture filtering mode after creation
