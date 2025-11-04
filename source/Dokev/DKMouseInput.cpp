@@ -27,11 +27,6 @@ namespace Dokev
         SetMouseDown(Button::Middle, (mouseState & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0);
         SetMouseDown(Button::Right, (mouseState & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0);
 
-        static int updateCount = 0;
-        if (scrollDelta != 0 || updateCount++ % 120 == 0) {
-            printf("[MOUSE] Update: scrollDelta before reset = %d\n", scrollDelta);
-        }
-
         scrollDelta = 0;
     }
 
@@ -77,8 +72,6 @@ namespace Dokev
         if (event.type == SDL_MOUSEWHEEL)
         {
             scrollDelta = event.wheel.y;
-            printf("[MOUSE] ProcessEvent: SDL_MOUSEWHEEL detected, y=%d, scrollDelta set to %d\n",
-                   event.wheel.y, scrollDelta);
         }
     }
 

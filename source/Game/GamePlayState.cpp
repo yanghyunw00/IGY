@@ -71,12 +71,9 @@ void GamePlayState::Update()
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     updateInput();
     const auto& input       = Engine::GetInput();
-    // Don't call mouse.Update() here - it's handled by the engine/window before Update() is called
 
-    // Update smoke animation
     smokeSprite.Update(environment.DeltaTime);
 
-    // Update particles
     if (smokeEmitter)
     {
         smokeEmitter->Update(environment.DeltaTime);
@@ -90,20 +87,18 @@ void GamePlayState::Update()
             // Emit particles at camera center (world space)
             Math::vec2 emit_pos = camera.GetPosition();
             Math::vec2 emit_vel(0.0, 0.0);
-            Math::vec2 direction(0.0, 200.0);  // Upward (larger value because of camera zoom)
+            Math::vec2 direction(0.0, 200.0); 
             smokeEmitter->Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
             printf("Emitted particles at (%.1f, %.1f)! Active: %d\n",
                    emit_pos.x, emit_pos.y, smokeEmitter->GetActiveCount());
         }
     }
 
-    // Update human movement
     if (human)
     {
         human->Update(static_cast<float>(environment.DeltaTime), &map);
     }
 
-    // Press H to find path for human (demo: from (5,5) to (50,50))
     if (input.KeyJustPressed(CS230::Input::Keys::H))
     {
         if (human)
@@ -122,7 +117,6 @@ void GamePlayState::Update()
         }
     }
 
-    // Press T to toggle human debug mode
     if (input.KeyJustPressed(CS230::Input::Keys::T))
     {
         if (human)
@@ -347,40 +341,8 @@ void GamePlayState::updateInput()
     if (input.KeyDown(CS230::Input::Keys::E))
         camera.AdjustZoom(1.05f);
 
-    int scrollDelta = mouse.GetScrollDelta();
-
-    static int debugFrameCount = 0;
-    debugFrameCount++;
-    if (scrollDelta != 0) {
-        printf("[DEBUG] Frame %d: scrollDelta = %d (DETECTED!)\n", debugFrameCount, scrollDelta);
-    }
-
-    if (scrollDelta != 0)
-    {
-        printf("[SCROLL EVENT] Detected scroll: %d\n", scrollDelta);
-
-        if (scrollDelta > 0)
-        {
-            // Zoom in (scroll up)
-            float oldZoom = camera.GetZoom();
-            camera.AdjustZoom(0.9f);
-            float newZoom = camera.GetZoom();
-            printf("  -> Zoom IN: %.3f -> %.3f (multiplier 0.9)\n", oldZoom, newZoom);
-        }
-        else if (scrollDelta < 0)
-        {
-            // Zoom out (scroll down)
-            float oldZoom = camera.GetZoom();
-            camera.AdjustZoom(1.1f);
-            float newZoom = camera.GetZoom();
-            printf("  -> Zoom OUT: %.3f -> %.3f (multiplier 1.1)\n", oldZoom, newZoom);
-        }
-    }
-
-    // Limit zoom range
     camera.ClampZoom(0.1f, 5.0f);
 
-    // Camera movement speed (pixels per second)
     constexpr double camera_speed = 1.0;
 
     if (input.KeyDown(CS230::Input::Keys::A))
@@ -414,11 +376,11 @@ void GamePlayState::updateInput()
     //     std::cout << "x : " << x << " y : " << y << std::endl;
     // }
 
-    if (input.KeyDown(CS230::Input::Keys::Z))
+    if (input.KeyJustPressed(CS230::Input::Keys::Z))
     {
         index = (index - 1 + 4) % 4;
     }
-    else if (input.KeyDown(CS230::Input::Keys::C))
+    else if (input.KeyJustPressed(CS230::Input::Keys::C))
     {
         index = (index + 1) % 4;
     }
