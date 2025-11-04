@@ -28,7 +28,7 @@
 #include <iomanip>
 #include <numbers>
 #include <sstream>
-#include "OpenGL/GL.hpp" // added, might be aping the code.
+#include "OpenGL/GL.hpp" 
 void GamePlayState::Load()
 {
     GL::Enable(GL_STENCIL_TEST); //enable for mouse clicking.
@@ -46,7 +46,6 @@ void GamePlayState::Load()
 
     camera.SetZoom(0.3f);
 
-    // Load smoke animation
     try
     {
         smokeSprite = Dokev::AnimatedSprite("Assets/images/Smoke.spt");

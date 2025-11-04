@@ -46,7 +46,7 @@ public:
     util::Timer                timer{};
     WindowEnvironment          environment{};
     CS230::GameStateManager    gameStateManager{};
-    InstancedRenderer2D        renderer2D{};
+    CS200::InstancedRenderer2D        renderer2D{};
     CS230::TextureManager      textureManager{};
 };
 

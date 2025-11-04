@@ -15,16 +15,12 @@
 
 class GridMap;
 
-
-//Need to consider,,
 enum class HumanState
 {
-	Idle,           
-	SeekingRoad,    
-	MovingToRoad,   
-	FollowingRoad,  
-	Arrived        
-};
+	Idle,
+    Walking,  
+	Arrived
+}; 
 
 
 class Human
