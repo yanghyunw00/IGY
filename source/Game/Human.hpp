@@ -17,45 +17,184 @@ class GridMap;
 
 enum class HumanState
 {
-	Idle,
-    Walking,  
-	Arrived
-}; 
+    Idle,              // Standing still, doing nothing
+    Walking,           // Moving along a path
+    FindingDestination,// Deciding where to go next (AI thinking)
+    Working,           // Performing work (gathering, building, etc.)
+    Resting            // Resting to recover energy (future use)
+};
 
+struct HumanStats
+{
+    float happiness = 100.0f;      // 0-100: Overall happiness
+    float energy = 100.0f;         // 0-100: Energy level (future: affects speed)
+    float walkSpeed = 1.0f;        // Movement speed multiplier
+};
+
+enum class WorkType
+{
+    None,
+    Gathering,         // Gathering resources
+    Building,          // Building structures
+    Farming            // Farming crops
+};
+
+/**
+ * \brief Command source - who is controlling this human?
+ */
+enum class CommandSource
+{
+    Autonomous,        // Human decides on their own
+    PlayerOrdered      // Player gave a direct command
+};
+
+
+struct HumanAI
+{
+    float idleTimer = 0.0f;           // Time spent idle
+    float maxIdleTime = 2.0f;         // Max time before finding new destination
+
+    float explorationRadius = 10.0f;  // How far from current position to explore
+    bool isExploring = true;          // Currently in exploration mode
+
+    // Future: work assignment
+    WorkType assignedWork = WorkType::None;
+    Math::fvec2 workplacePosition = {-1, -1};  // Where to work
+    bool hasWorkplace = false;
+
+    // Future: road detection
+    bool preferRoads = true;          // Should try to use roads when pathfinding
+
+    CommandSource currentCommand = CommandSource::Autonomous;
+};
 
 class Human
 {
 public:
+    
     Human(Math::fvec2 startGridPos);
+    ~Human() = default;
 
-    void FollowPath(const std::vector<Math::fvec2>& newPath);
-	void Update(float deltaTime, GridMap* map);
+    // ========================================================================
+    // CORE UPDATE & DRAW
+    // ========================================================================
+    void Update(float deltaTime, GridMap* map);
     void Draw(int viewIndex, const GridMap* map) const;
+
+
+    // ========================================================================
+    // MOVEMENT & PATHFINDING
+    // ========================================================================
+    void FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source = CommandSource::Autonomous);
+    void StopMovement();
     bool IsMoving() const { return isMoving; }
 
+    // ========================================================================
+    // AI BEHAVIOR
+    // ========================================================================
 
-	Math::fvec2 GetActualPosition() const { return actualPosition; }
+    /**
+     * \brief Make human decide what to do next (autonomous AI)
+     */
+    void DecideNextAction(GridMap* map);
 
+    /**
+     * \brief Find a random walkable destination for exploration
+     * \return Random grid position to explore
+     */
+    Math::fvec2 FindRandomDestination(GridMap* map) const;
+
+    /**
+     * \brief Check if there's a road nearby and path to it (future feature)
+     * Using BFS
+     */
+    bool FindNearbyRoad(GridMap* map, Math::fvec2& outRoadPosition) const;
+
+    // ========================================================================
+    // WORK SYSTEM (Future)
+    // ========================================================================
+
+    /**
+     * \brief Assign work to this human
+     */
+    void AssignWork(WorkType type, Math::fvec2 workplacePos);
+
+    /**
+     * \brief Remove work assignment
+     */
+    void UnassignWork();
+
+    /**
+     * \brief Go to assigned workplace
+     */
+    void GoToWorkplace(GridMap* map);
+
+    WorkType GetAssignedWork() const { return ai.assignedWork; }
+    bool HasWorkAssignment() const { return ai.assignedWork != WorkType::None; }
+
+    // ========================================================================
+    // GETTERS
+    // ========================================================================
+    Math::fvec2 GetActualPosition() const { return actualPosition; }
+    Math::fvec2 GetGridPosition() const { return currentGridPos; }
+    HumanState GetState() const { return state; }
+    const HumanStats& GetStats() const { return stats; }
+    float GetHappiness() const { return stats.happiness; }
+
+    // ========================================================================
+    // DEBUG
+    // ========================================================================
 	void ToggleDebug() { debugMode = !debugMode; }
 	bool IsDebugMode() const { return debugMode; }
-	HumanState GetState() const { return state; }
 
 private:
-    Math::fvec2 actualPosition; // real time position
-    Math::fvec2 startPosition;
-    Math::fvec2 currentGridPos;
-    Math::fvec2 targetGridPos;  
+    // ========================================================================
+    // INTERNAL UPDATE FUNCTIONS
+    // ========================================================================
+    void UpdateMovement(float deltaTime, GridMap* map);
+    void UpdateIdle(float deltaTime, GridMap* map);
+    void UpdateFindingDestination(float deltaTime, GridMap* map);
+    void UpdateWorking(float deltaTime, GridMap* map);
+    void ChangeState(HumanState newState);
+
+    // ========================================================================
+    // TERRAIN HELPERS
+    // ========================================================================
+    bool IsTerrainWalkable(const GridMap* map, int gridX, int gridY) const;
+    std::string GetTerrainName(double height) const;
 
 
-    std::vector<Math::fvec2> path; 
-    size_t currentPathIndex;  
+private:
+    // ========================================================================
+    // POSITION & MOVEMENT
+    // ========================================================================
+    Math::fvec2 actualPosition;      // Interpolated real-time position
+    Math::fvec2 startPosition;       // Start of current movement segment
+    Math::fvec2 currentGridPos;      // Current grid tile
+    Math::fvec2 targetGridPos;       // Target grid tile for current segment
+
+
+    std::vector<Math::fvec2> path; // Current path 
+    size_t currentPathIndex;       // Index in path array
 
     bool isMoving;
-	bool debugMode = false;
 
-    float moveTimer;
+    float moveTimer; // Timer for interpolation
     const float moveDelay = 0.5f; 
 
+
+    // ========================================================================
+    // STATE & AI
+    // ========================================================================
+    HumanState state = HumanState::Idle;
+    HumanStats stats;
+    HumanAI ai;
+
+
+    // ========================================================================
+    // RENDERING
+    // ========================================================================
     CS200::RGBA color;
-	HumanState state = HumanState::Idle;
+	bool debugMode = false;
+
 };
