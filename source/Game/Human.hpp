@@ -54,7 +54,7 @@ struct HumanAI
     float idleTimer = 0.0f;           // Time spent idle
     float maxIdleTime = 2.0f;         // Max time before finding new destination
 
-    float explorationRadius = 10.0f;  // How far from current position to explore
+    float explorationRadius = 1000.0f;  // How far from current position to explore
     bool isExploring = true;          // Currently in exploration mode
 
     // Future: work assignment

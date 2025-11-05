@@ -19,8 +19,10 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     moveTimer      = 0.0f;
 }
 
-void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source = CommandSource::Autonomous)
+void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)
 {
+    (void) source;
+
     if (newPath.size() <= 1)
     {
         isMoving = false;
@@ -42,9 +44,9 @@ void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource so
     moveTimer        = 0.0f;
 }
 
-void Human::Update(float deltaTime, GridMap* map)
+void Human::UpdateMovement(float deltaTime, GridMap* map)
 {
-    if (!isMoving)
+     if (!isMoving)
         return;
 
     moveTimer += deltaTime;
@@ -113,6 +115,68 @@ void Human::Update(float deltaTime, GridMap* map)
     }
 }
 
+void Human::UpdateIdle(float deltaTime, GridMap* map)
+{
+    ai.idleTimer += deltaTime;
+    
+    if (ai.idleTimer >= ai.maxIdleTime)
+    {
+        ai.idleTimer = 0.0f;
+        std::cout << "Human: Time to find new destination!" << std::endl;
+        ChangeState(HumanState::FindingDestination);
+    }
+}
+
+void Human::UpdateFindingDestination(float deltaTime, GridMap* map)
+{
+    (void) deltaTime;
+    
+    if (!map) return;
+    
+    Math::fvec2 destination = FindRandomDestination(map);
+    
+    map->ClearPath();
+    map->FindPath(
+        static_cast<int>(currentGridPos.x), 
+        static_cast<int>(currentGridPos.y),
+        static_cast<int>(destination.x), 
+        static_cast<int>(destination.y)
+    );
+    
+    auto path = map->GetCurrentPath();
+    
+    if (!path.empty())
+    {
+        FollowPath(path);
+        ChangeState(HumanState::Walking);
+    }
+    else
+    {
+        ChangeState(HumanState::Idle);
+        ai.idleTimer = ai.maxIdleTime - 0.5f;  // 0.5초 후 다시 시도
+    }
+}
+void Human::Update(float deltaTime, GridMap* map)
+{
+   if (state == HumanState::Walking && isMoving)
+    {
+        UpdateMovement(deltaTime, map);
+        
+        if (!isMoving)
+        {
+            ChangeState(HumanState::Idle);
+        }
+    }
+    else if (state == HumanState::Idle)
+    {
+        UpdateIdle(deltaTime, map);
+    }
+    else if (state == HumanState::FindingDestination)
+    {
+        UpdateFindingDestination(deltaTime, map);
+    }
+}
+
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
     float gridX_float = actualPosition.x;
@@ -127,10 +191,10 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     // Get the view array
     GridCell** viewArray = map->GetViewArray(viewIndex);
 
-    // Get height from the non-rotated grid position
+   // map->TransformPathPointForView
+
     float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
-    // Match the map's drawing calculation
     int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
     int originY = 0;
 
@@ -166,11 +230,51 @@ std::string Human::GetTerrainName(double height) const
 
 void Human::DecideNextAction(GridMap* map)
 {
+    if (state == HumanState::Idle)
+    {
+        ChangeState(HumanState::FindingDestination);
+    }
 }
 
 Math::fvec2 Human::FindRandomDestination(GridMap* map) const
 {
-    return Math::fvec2();
+    (void)map;
+    
+    float maxDistance = ai.explorationRadius; 
+    
+    int attempts = 0;
+    const int maxAttempts = 10;
+    
+    while (attempts < maxAttempts)
+    {
+        float angle = (rand() % 360) * (3.14159f / 180.0f);
+        float distance = (rand() % (int)maxDistance) + 3.0f;  
+        
+        Math::fvec2 destination;
+        destination.x = currentGridPos.x + cos(angle) * distance;
+        destination.y = currentGridPos.y + sin(angle) * distance;
+        
+        // 맵 경계 체크
+        destination.x = std::max(0.0f, std::min((float)(GRID_SIZE_X - 1), destination.x));
+        destination.y = std::max(0.0f, std::min((float)(GRID_SIZE_Y - 1), destination.y));
+        
+        // 지형 체크 (나중에 구현)
+        // if (IsTerrainWalkable(map, (int)destination.x, (int)destination.y))
+        // {
+        //     return destination;
+        // }
+        
+        // 일단은 모든 위치 허용
+        return destination;
+        
+        attempts++;
+    }
+    
+    // 실패 시 현재 위치 근처 반환
+    return Math::fvec2(
+        currentGridPos.x + (rand() % 5 - 2), 
+        currentGridPos.y + (rand() % 5 - 2)
+    );
 }
 
 bool Human::FindNearbyRoad(GridMap* map, Math::fvec2& outRoadPosition) const

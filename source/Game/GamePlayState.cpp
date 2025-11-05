@@ -103,17 +103,7 @@ void GamePlayState::Update()
     {
         if (human)
         {
-            map.ClearPath();
-            map.FindPath(5, 5, 50, 50);
-            auto path = map.GetCurrentPath();
-            if (!path.empty())
-            {
-                human->FollowPath(path);
-            }
-            else
-            {
-                printf("No path found!\n");
-            }
+            human->DecideNextAction(&map);
         }
     }
 
