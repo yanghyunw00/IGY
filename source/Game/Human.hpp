@@ -52,10 +52,14 @@ enum class CommandSource
 struct HumanAI
 {
     float idleTimer = 0.0f;           // Time spent idle
-    float maxIdleTime = 2.0f;         // Max time before finding new destination
+    float maxIdleTime = 0.5f;         // Max time before finding new destination
 
-    float explorationRadius = 1000.0f;  // How far from current position to explore
+    float explorationRadius = 30.0f;  // How far from current position to explore
     bool isExploring = true;          // Currently in exploration mode
+
+    Math::fvec2 lastDirection = {0.0f, 0.0f};  // Last movement direction
+    std::vector<Math::fvec2> recentDestinations;  // Recent visited positions
+    static constexpr size_t maxRecentDestinations = 5;  // How many positions to remember
 
     // Future: work assignment
     WorkType assignedWork = WorkType::None;
@@ -102,7 +106,21 @@ public:
      * \brief Find a random walkable destination for exploration
      * \return Random grid position to explore
      */
-    Math::fvec2 FindRandomDestination(GridMap* map) const;
+    Math::fvec2 FindRandomDestination(GridMap* map);
+
+    /**
+     * \brief Create a human starting from outside the map (immigration)
+     * \param map The grid map
+     * \return Human positioned outside map boundaries
+     */
+    static Human CreateImmigrant(GridMap* map);
+
+    /**
+     * \brief Find closest walkable tile from current position (for entering map)
+     * \param map The grid map
+     * \return Closest valid tile position
+     */
+    Math::fvec2 FindClosestWalkableTile(GridMap* map) const;
 
     /**
      * \brief Check if there's a road nearby and path to it (future feature)

@@ -116,13 +116,13 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
 }
 
 void Human::UpdateIdle(float deltaTime, GridMap* map)
-{
+{ 
+    (void) map;
     ai.idleTimer += deltaTime;
     
     if (ai.idleTimer >= ai.maxIdleTime)
     {
         ai.idleTimer = 0.0f;
-        std::cout << "Human: Time to find new destination!" << std::endl;
         ChangeState(HumanState::FindingDestination);
     }
 }
@@ -143,17 +143,17 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map)
         static_cast<int>(destination.y)
     );
     
-    auto path = map->GetCurrentPath();
+    auto path_ = map->GetCurrentPath();
     
-    if (!path.empty())
+    if (!path_.empty())
     {
-        FollowPath(path);
+        FollowPath(path_);
         ChangeState(HumanState::Walking);
     }
     else
     {
         ChangeState(HumanState::Idle);
-        ai.idleTimer = ai.maxIdleTime - 0.5f;  // 0.5초 후 다시 시도
+        ai.idleTimer = ai.maxIdleTime - 0.5f; 
     }
 }
 void Human::Update(float deltaTime, GridMap* map)
@@ -179,19 +179,20 @@ void Human::Update(float deltaTime, GridMap* map)
 
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
-    float gridX_float = actualPosition.x;
-    float gridY_float = actualPosition.y;
+    // Transform the position based on the view rotation
+    Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
+
+    float gridX_float = transformedPos.x;
+    float gridY_float = transformedPos.y;
 
     int gridX_int = static_cast<int>(gridX_float);
     int gridY_int = static_cast<int>(gridY_float);
 
-    if (gridX_int < 0 || gridX_int >= GRID_SIZE_X || gridY_int < 0 || gridY_int >= GRID_SIZE_Y)
-        return;
+    // if (gridX_int < 0 || gridX_int >= GRID_SIZE_X || gridY_int < 0 || gridY_int >= GRID_SIZE_Y)
+    //     return;
 
     // Get the view array
     GridCell** viewArray = map->GetViewArray(viewIndex);
-
-   // map->TransformPathPointForView
 
     float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
@@ -230,54 +231,251 @@ std::string Human::GetTerrainName(double height) const
 
 void Human::DecideNextAction(GridMap* map)
 {
+    (void) map;
     if (state == HumanState::Idle)
     {
         ChangeState(HumanState::FindingDestination);
     }
 }
 
-Math::fvec2 Human::FindRandomDestination(GridMap* map) const
+Math::fvec2 Human::FindRandomDestination(GridMap* map)
 {
-    (void)map;
-    
-    float maxDistance = ai.explorationRadius; 
-    
+    if (!map)
+    {
+        return currentGridPos;
+    }
+
+    // Range of random tile to search
+    float maxDistance = ai.explorationRadius;
+    float minDistance = maxDistance * 0.5f;
+
     int attempts = 0;
     const int maxAttempts = 10;
-    
+
     while (attempts < maxAttempts)
     {
         float angle = (rand() % 360) * (3.14159f / 180.0f);
-        float distance = (rand() % (int)maxDistance) + 3.0f;  
-        
+        float distance = minDistance + (rand() % (int)(maxDistance - minDistance + 1));
+
         Math::fvec2 destination;
         destination.x = currentGridPos.x + cos(angle) * distance;
         destination.y = currentGridPos.y + sin(angle) * distance;
-        
-        // 맵 경계 체크
+
         destination.x = std::max(0.0f, std::min((float)(GRID_SIZE_X - 1), destination.x));
         destination.y = std::max(0.0f, std::min((float)(GRID_SIZE_Y - 1), destination.y));
-        
-        // 지형 체크 (나중에 구현)
-        // if (IsTerrainWalkable(map, (int)destination.x, (int)destination.y))
-        // {
-        //     return destination;
-        // }
-        
-        // 일단은 모든 위치 허용
+
+        int gridX = (int)destination.x;
+        int gridY = (int)destination.y;
+
+        if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
+        {
+            GridCell** viewArray = map->GetViewArray(1);
+            GridCell* cell = viewArray[gridY * GRID_SIZE_X + gridX];
+            double height = cell->getHeight();
+
+            if (height < 75.0)  //if water , try again
+            {
+                attempts++;
+                continue;
+            }
+        }
+
+        bool tooClose = false;
+        for (const auto& recentDest : ai.recentDestinations)
+        {
+            float dx = destination.x - recentDest.x;
+            float dy = destination.y - recentDest.y;
+            float distSq = dx * dx + dy * dy;
+
+            if (distSq < 100.0f)
+            {
+                tooClose = true;
+                break;
+            }
+        }
+
+        if (tooClose)
+        {
+            attempts++;
+            continue;
+        }
+
+        ai.lastDirection.x = destination.x - currentGridPos.x;
+        ai.lastDirection.y = destination.y - currentGridPos.y;
+
+        ai.recentDestinations.push_back(destination);
+        if (ai.recentDestinations.size() > ai.maxRecentDestinations)
+        {
+            ai.recentDestinations.erase(ai.recentDestinations.begin());
+        }
+
         return destination;
-        
-        attempts++;
     }
-    
-    // 실패 시 현재 위치 근처 반환
-    return Math::fvec2(
-        currentGridPos.x + (rand() % 5 - 2), 
-        currentGridPos.y + (rand() % 5 - 2)
-    );
 }
 
 bool Human::FindNearbyRoad(GridMap* map, Math::fvec2& outRoadPosition) const
 {
     return false;
+}
+
+Human Human::CreateImmigrant(GridMap* map)
+{
+    // Randomly select one of the 4 sides of the map
+    int side = rand() % 4;  // 0=top, 1=right, 2=bottom, 3=left
+
+    float spawnX, spawnY;
+    const float offset = 10.0f;  // Spawn 10 tiles outside the map
+
+    switch (side)
+    {
+        case 0: // Top (entering from north)
+            spawnX = (float)(rand() % GRID_SIZE_X);
+            spawnY = -offset;
+            break;
+        case 1: // Right (entering from east)
+            spawnX = GRID_SIZE_X - 1 + offset;
+            spawnY = (float)(rand() % GRID_SIZE_Y);
+            break;
+        case 2: // Bottom (entering from south)
+            spawnX = (float)(rand() % GRID_SIZE_X);
+            spawnY = GRID_SIZE_Y - 1 + offset;
+            break;
+        case 3: // Left (entering from west)
+            spawnX = -offset;
+            spawnY = (float)(rand() % GRID_SIZE_Y);
+            break;
+        default:
+            spawnX = 0.0f;
+            spawnY = 0.0f;
+            break;
+    }
+
+    Human immigrant(Math::fvec2(spawnX, spawnY));
+
+    // Find path to enter the map
+    if (map)
+    {
+        //closest land tile
+        Math::fvec2 entryPoint = immigrant.FindClosestWalkableTile(map);
+
+        map->ClearPath();
+
+        std::vector<Math::fvec2> entryPath;
+
+        float dx = entryPoint.x - spawnX;
+        float dy = entryPoint.y - spawnY;
+        float totalDist = sqrt(dx * dx + dy * dy);
+
+        int numPoints = (int)totalDist + 1; 
+
+        for (int i = 0; i <= numPoints; i++)
+        {
+            float t = (float)i / (float)numPoints; 
+            Math::fvec2 point;
+            point.x = spawnX + dx * t;
+            point.y = spawnY + dy * t;
+            entryPath.push_back(point);
+        }
+
+        immigrant.FollowPath(entryPath);
+        immigrant.ChangeState(HumanState::Walking);
+    }
+
+    return immigrant;
+}
+
+Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
+{
+    if (!map)
+    {
+        return Math::fvec2(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
+    }
+
+    float closestDist = 999999.0f;
+    Math::fvec2 closestTile(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
+
+    // Search along map boundaries (top, bottom, left, right edges only)
+    GridCell** viewArray = map->GetViewArray(1);
+
+    for (int x = 0; x < GRID_SIZE_X; x++)
+    {
+        for (int y = 0; y < 5 && y < GRID_SIZE_Y; y++)
+        {
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)  
+            {
+                float dx = x - currentGridPos.x;
+                float dy = y - currentGridPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+
+        // Bottom edge (check last 5 rows)
+        for (int y = GRID_SIZE_Y - 5; y < GRID_SIZE_Y; y++)
+        {
+            if (y < 0) continue;
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)
+            {
+                float dx = x - currentGridPos.x;
+                float dy = y - currentGridPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+    }
+
+    // Left and right edges
+    for (int y = 0; y < GRID_SIZE_Y; y++)
+    {
+        // Left edge (check first 5 columns)
+        for (int x = 0; x < 5 && x < GRID_SIZE_X; x++)
+        {
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)
+            {
+                float dx = x - currentGridPos.x;
+                float dy = y - currentGridPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+
+        // Right edge (check last 5 columns)
+        for (int x = GRID_SIZE_X - 5; x < GRID_SIZE_X; x++)
+        {
+            if (x < 0) continue;
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)
+            {
+                float dx = x - currentGridPos.x;
+                float dy = y - currentGridPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+    }
+
+    return closestTile;
 }
