@@ -70,7 +70,7 @@ public:
 	Math::fvec2 TransformPathPointForView(Math::fvec2 point, int viewIndex) const;
 
 private:
-	void rotatePoint90(int x, int y,
+	void rotatePoint90(float x, float y,
 		float tx, float ty,
 		int angleDeg,
 		float& outX, float& outY) const;
