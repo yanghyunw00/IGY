@@ -7,7 +7,7 @@
  * \copyright DigiPen Institute of Technology
  */
 
-
+ #pragma once
  #include <vector>
  #include "Dokev/DKTexture.hpp"
  #include "Engine/Vec2.hpp"
@@ -214,5 +214,7 @@ private:
     // ========================================================================
     CS200::RGBA color;
 	bool debugMode = false;
+
+    Dokev::Texture2D humanTexture;
 
 };

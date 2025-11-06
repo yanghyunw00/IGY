@@ -28,7 +28,7 @@
 #include "Engine/Window.hpp"
 
 #include "Game/GamePlayState.hpp"
-
+#include "Game/DEMO.hpp"
 namespace
 {
     [[maybe_unused]] int  gWindowWidth  = 1200;
@@ -81,7 +81,7 @@ EMSCRIPTEN_BINDINGS(main_window)
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     Engine& engine = Engine::Instance();
-    engine.Start("Team - Antarctic monkeys");
+    engine.Start("Team - doodoobird");
     engine.GetGameStateManager().PushState<GamePlayState>();
 
 #if !defined(__EMSCRIPTEN__)
