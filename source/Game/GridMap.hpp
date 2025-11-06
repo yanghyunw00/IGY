@@ -13,6 +13,7 @@
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Game/pathFinding.hpp"
+#include "Dokev/DKRenderState.hpp"
 
 #define GRID_SIZE_Y 91
 #define GRID_SIZE_X 91
@@ -46,7 +47,7 @@ public:
 	void ReGenerateMap();
 	void ResetIsoGridMapArray();
 	void InitializeIsoView();
-	void IsometricDrawMap(int index) const;
+	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::IMMEDIATE) const;
 	void ResetPerlinTexture();
 	const Dokev::Texture2D* GetPerlinTexture() const;
 	GridCell** GetViewArray(int viewIndex) const;

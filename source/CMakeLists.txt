@@ -66,6 +66,7 @@ set(SOURCE_CODE
 
 
     Game/GamePlayState.hpp Game/GamePlayState.cpp
+    Game/DEMO.hpp Game/DEMO.cpp
     Game/GridCell.hpp
     Game/CustomCell.hpp Game/CustomCell.cpp
     Game/GridMap.hpp Game/GridMap.cpp

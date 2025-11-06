@@ -31,10 +31,8 @@
 #include "OpenGL/GL.hpp" 
 void GamePlayState::Load()
 {
-    GL::Enable(GL_STENCIL_TEST); //enable for mouse clicking.
-    GL::ClearStencil(0); // reset. might have leftover shit from other gamestates
     CS200::RenderingAPI::SetClearColor(0x252525FF);
-    testTexture   = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
+
     auto perlin   = Dokev::GenImagePerlinNoise(256, 256, 0, 0, 0.01f);
     auto perlin2  = Dokev::GenImagePerlinNoise(256, 256, 256, 256, 0.01f);
     noiseTexture  = Dokev::LoadTextureFromImage(perlin);
@@ -56,7 +54,7 @@ void GamePlayState::Load()
     }
 
     smokeEmitter = std::make_unique<Dokev::ParticleEmitter>("Assets/images/Smoke.spt", 20);
-    smokeEmitter->SetMaxLife(1.0); // Particles live for 3 seconds
+    smokeEmitter->SetMaxLife(1.0); 
 
     human = std::make_unique<Human>(Math::fvec2(5.0f, 5.0f));
 

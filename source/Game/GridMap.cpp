@@ -18,7 +18,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "OpenGL/GL.hpp"
 
 
 GridMap::GridMap() : currentView(1), pathFinder(nullptr), showPath(false)
@@ -112,7 +111,7 @@ void GridMap::InitializeIsoView()
     }
 }
 
-void GridMap::IsometricDrawMap(int index) const
+void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) const
 {
     currentView = (index % 4) + 1;
 
@@ -160,8 +159,8 @@ void GridMap::IsometricDrawMap(int index) const
                     current_texture = 0;
 
  
-                Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE);
-                Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE);
+                Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
+                Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
 
             }
         }
