@@ -47,7 +47,7 @@ public:
 	void ReGenerateMap();
 	void ResetIsoGridMapArray();
 	void InitializeIsoView();
-	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::IMMEDIATE) const;
+	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 	void ResetPerlinTexture();
 	const Dokev::Texture2D* GetPerlinTexture() const;
 	GridCell** GetViewArray(int viewIndex) const;
