@@ -1,3 +1,10 @@
+/**
+ * \file DKGameObjectManager.hpp
+ * \brief
+ * \author Hyunseok Choi
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 #include "DKGameObject.hpp"
 #include "Engine/Matrix.hpp"
@@ -15,8 +22,8 @@ namespace Dokev
         std::vector<std::unique_ptr<GameObject>>& GetGameObjects();
         void                                      Refresh();
 
-        // void UpdateAll(double dt);  //여기서 한번에 update
-        // void DrawAll(Math::TransformationMatrix camera_matrix); // 여기서 한번에 draw
+        // void UpdateAll(double dt);  // update
+        // void DrawAll(Math::TransformationMatrix camera_matrix); //  draw
 
     private:
         std::vector<std::unique_ptr<GameObject>> m_gameObjects;

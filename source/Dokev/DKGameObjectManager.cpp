@@ -1,3 +1,10 @@
+/**
+ * \file DKGameObjectManager.cpp
+ * \brief
+ * \author Hyunseok Choi
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #include "DKGameObjectManager.hpp"
 
 namespace Dokev

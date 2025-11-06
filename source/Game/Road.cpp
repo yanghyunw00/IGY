@@ -11,6 +11,7 @@
 #include "GridMap.hpp"
 #include "Engine/Vec2.hpp"
 #include "Dokev/DKColor.hpp"
+#include "Dokev/DKTileManager.hpp"
 
 void Road::addRoad(int x, int y)
 {
@@ -48,10 +49,10 @@ void Road::drawRoads(const GridMap& map, int currentview)
 		return;
 
 	GridCell** viewArray = map.GetViewArray(currentview);
+
 	int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
 	int originY = 0;
 
-	// Draw roads in isometric order (back to front) just like the map
 	for (int sum = 0; sum < GRID_SIZE_X + GRID_SIZE_Y - 1; ++sum)
 	{
 		for (int x = 0; x <= sum; ++x)
@@ -60,7 +61,6 @@ void Road::drawRoads(const GridMap& map, int currentview)
 
 			if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
 			{
-				// Check if there's a road at this position
 				bool hasRoadHere = false;
 				for (const auto& roadPos : roadPositions)
 				{
@@ -73,7 +73,6 @@ void Road::drawRoads(const GridMap& map, int currentview)
 
 				if (hasRoadHere)
 				{
-					// Draw the road
 					float height = static_cast<float>(viewArray[y * GRID_SIZE_X + x]->getHeight());
 					int screenX = originX + (x - y) * TILE_WIDTH_HALF;
 					int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
@@ -88,14 +87,23 @@ void Road::drawRoads(const GridMap& map, int currentview)
 
 void Road::buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY)
 {
-	// Use pathfinding
 	map.FindPath(startX, startY, endX, endY);
 
 	std::vector<Math::fvec2> path = map.GetCurrentPath();
 
+	auto* tileManager = map.GetTileManager();
+
 	for (const auto& pos : path)
 	{
-		addRoad(static_cast<int>(pos.x), static_cast<int>(pos.y));
+		int x = static_cast<int>(pos.x);
+		int y = static_cast<int>(pos.y);
+
+		addRoad(x, y);
+
+		if (tileManager)
+		{
+			tileManager->AllocateTile(x, y, Dokev::TileType::ROAD);
+		}
 	}
 
 	map.ClearPath();
@@ -103,5 +111,24 @@ void Road::buildRoadPath(GridMap& map, int startX, int startY, int endX, int end
 
 void Road::removeAllRoad()
 {
+	roadPositions.clear();
+}
+
+void Road::removeAllRoad(GridMap& map)
+{
+	// Get TileManager from GridMap
+	auto* tileManager = map.GetTileManager();
+
+	// Deallocate all road tiles
+	if (tileManager)
+	{
+		for (const auto& pos : roadPositions)
+		{
+			int x = static_cast<int>(pos.x);
+			int y = static_cast<int>(pos.y);
+			tileManager->DeallocateTile(x, y);
+		}
+	}
+
 	roadPositions.clear();
 }

@@ -60,10 +60,12 @@ set(SOURCE_CODE
     Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp
     Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
     Dokev/DKParticleEmitter.hpp Dokev/DKParticleEmitter.cpp  
-    Dokev/DKGameObjectManager.hpp Dokev/DKGameObjectManager.cpp 
-    Dokev/DKGameObject.hpp Dokev/DKGameObject.cpp 
-    Dokev/DKComponent.hpp Dokev/DKComponent.cpp 
+    Dokev/DKGameObjectManager.hpp Dokev/DKGameObjectManager.cpp
+    Dokev/DKGameObject.hpp Dokev/DKGameObject.cpp
+    Dokev/DKComponent.hpp Dokev/DKComponent.cpp
     Dokev/DKGameObjectTypes.hpp
+    Dokev/DKGameWorldEditor.hpp Dokev/DKGameWorldEditor.cpp
+    Dokev/DKTileManager.hpp Dokev/DKTileManager.cpp 
 
 
 

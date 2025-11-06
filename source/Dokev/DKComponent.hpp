@@ -1,3 +1,10 @@
+/**
+ * \file DKComponent.hpp
+ * \brief
+ * \author Hyunseok Choi
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 
 #include "Engine/Vec2.hpp"
@@ -7,7 +14,8 @@
 struct IComponent
 {
     virtual ~IComponent() = default;
-    //virtual void Update([[maybe_unused]] double dt) {}; // Update 할때 사용
+    //virtual void Update([[maybe_unused]] double dt) {}; // Update
+
 };
 
 

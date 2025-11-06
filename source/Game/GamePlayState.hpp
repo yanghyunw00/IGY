@@ -16,6 +16,7 @@
 #include "Dokev/DKAnimationSprite.hpp"
 #include "Dokev/DKParticleEmitter.hpp"
 #include "Dokev/DKGameObjectManager.hpp"
+#include "Dokev/DKGameWorldEditor.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
 #include "Human.hpp"
@@ -59,16 +60,13 @@ private:
     // Road system
     std::unique_ptr<Road> road;
 
-    // Performance tracking
-    bool vsyncEnabled = true;
-
     // Immigration system
     float immigrationTimer = 0.0f;
-    mutable float immigrationInterval = 5.0f; 
-    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; 
+    float immigrationInterval = 5.0f;
+    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED;
 
     std::unique_ptr<GameObjectManager> m_goManager;
-private:
-    void                       updateInput();
 
+    // World editor
+    Dokev::GameWorldEditor worldEditor;
 };

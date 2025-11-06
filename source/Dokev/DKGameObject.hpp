@@ -1,3 +1,10 @@
+/**
+ * \file DKGameObject.hpp
+ * \brief
+ * \author Hyunseok Choi
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #pragma once
 #include "DKComponent.hpp"
 #include <memory>
@@ -18,8 +25,7 @@ namespace Dokev
 
         template <typename T>
         bool HasComponent();
-
-        //이걸로 한번에 Draw하고 Update하는게 어떨까용 -현우-
+        
         //virtual void Draw() = 0;
         //virtual void Update([[maybe_unused] double dt]) = 0;
         //virtual ~GameObject() {}
