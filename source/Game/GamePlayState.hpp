@@ -15,6 +15,7 @@
 #include "Dokev/DKMouseInput.hpp"
 #include "Dokev/DKAnimationSprite.hpp"
 #include "Dokev/DKParticleEmitter.hpp"
+#include "Dokev/DKGameObjectManager.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
 #include "Human.hpp"
@@ -64,9 +65,9 @@ private:
     // Immigration system
     float immigrationTimer = 0.0f;
     mutable float immigrationInterval = 5.0f; 
-    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; // if you change this to IMMEDIATE, ERROR
-    // this is probably because the rest of the renders are called with instanced, so If you want to change this,
-    //consult the DEMO.cpp file and how that handles switching.
+    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; 
+
+    std::unique_ptr<GameObjectManager> m_goManager;
 private:
     void                       updateInput();
 

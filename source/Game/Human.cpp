@@ -9,6 +9,7 @@
 
 #include "Human.hpp"
 #include "Dokev/DKColor.hpp"
+#include "Engine/Path.hpp"
 #include "GridMap.hpp"
 #include <iostream>
 
@@ -17,6 +18,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     startPosition  = currentGridPos;
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
+    humanTexture = Dokev::LoadTexture("Assets/images/textures/Human.png");
 }
 
 void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)
@@ -206,8 +208,9 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF;
     int drawY = topY;
 
-    Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
-    Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+   // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
+   // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+    humanTexture.Draw(drawX, drawY);
 }
 
 void Human::ChangeState(HumanState newState)

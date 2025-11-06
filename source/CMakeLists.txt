@@ -60,8 +60,10 @@ set(SOURCE_CODE
     Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp
     Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
     Dokev/DKParticleEmitter.hpp Dokev/DKParticleEmitter.cpp  
-
-    
+    Dokev/DKGameObjectManager.hpp Dokev/DKGameObjectManager.cpp 
+    Dokev/DKGameObject.hpp Dokev/DKGameObject.cpp 
+    Dokev/DKComponent.hpp Dokev/DKComponent.cpp 
+    Dokev/DKGameObjectTypes.hpp
 
 
 
@@ -73,7 +75,7 @@ set(SOURCE_CODE
     Game/Road.hpp Game/Road.cpp
     Game/pathFinding.hpp Game/pathFinding.cpp
     Game/Human.hpp Game/Human.cpp
-    Game/GameObject.hpp
+
 
    # Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
    # Game/Building.hpp Game/Building.cpp

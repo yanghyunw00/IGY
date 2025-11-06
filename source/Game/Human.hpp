@@ -215,4 +215,6 @@ private:
     CS200::RGBA color;
 	bool debugMode = false;
 
+    Dokev::Texture2D humanTexture;
+
 };

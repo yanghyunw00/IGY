@@ -60,6 +60,8 @@ void GamePlayState::Load()
     smokeEmitter = std::make_unique<Dokev::ParticleEmitter>(assets::locate_asset("Assets/images/Smoke.spt"), 20);
     smokeEmitter->SetMaxLife(1.0); 
 
+    m_goManager = std::make_unique<GameObjectManager>();
+
     human.reserve(100);
     human.push_back(Human(Math::fvec2(5.0f, 5.0f)));
     human.push_back(Human(Math::fvec2(78.0f, 13.0f)));;
@@ -73,6 +75,10 @@ void GamePlayState::Update()
     updateInput();
     const auto& input = Engine::GetInput();
 
+    //나중에
+    //m_goManager->Update(dt);
+    
+    
     smokeSprite.Update(environment.DeltaTime);
 
     if (smokeEmitter)
