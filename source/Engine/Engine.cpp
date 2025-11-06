@@ -96,14 +96,9 @@ CS200::IRenderer2D& Engine::GetRenderer2D(Dokev::RenderState selection)
         return Instance().impl->ImmediateRenderer2D;
         case Dokev::RenderState::INSTANCED:
         return Instance().impl->InstancedRenderer2D;
-        case Dokev::RenderState::BATCH:
-        //change to return the batch renderer
-        return Instance().impl->ImmediateRenderer2D;
-        case Dokev::RenderState::DOODOOBIRD:
-        return Instance().impl->ImmediateRenderer2D;
     }
     Instance().impl->logger.LogError("Reached the end of switch statement without returning at GetRenderer2D in Engine.cpp line 87");
-       return Instance().impl->ImmediateRenderer2D;
+       return Instance().impl->InstancedRenderer2D;
 }
 
 void Engine::Start(std::string_view window_title)

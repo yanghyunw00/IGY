@@ -6,6 +6,7 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
+#pragma once
 #include "CS200/RGBA.hpp"
 #include "Engine/GameState.hpp"
 #include "Engine/Matrix.hpp"
@@ -20,6 +21,7 @@
 #include "Road.hpp"
 #include <array>
 #include <memory>
+#include "Dokev/DKRenderState.hpp"
 
 class GamePlayState : public CS230::GameState
 {
@@ -62,7 +64,9 @@ private:
     // Immigration system
     float immigrationTimer = 0.0f;
     mutable float immigrationInterval = 5.0f; 
-
+    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; // if you change this to IMMEDIATE, ERROR
+    // this is probably because the rest of the renders are called with instanced, so If you want to change this,
+    //consult the DEMO.cpp file and how that handles switching.
 private:
     void                       updateInput();
 

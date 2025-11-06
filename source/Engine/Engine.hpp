@@ -218,7 +218,7 @@ public:
      * - Camera and viewport transformations
      * - Blend modes and rendering effects
      */
-    static CS200::IRenderer2D& GetRenderer2D(Dokev::RenderState selection = Dokev::RenderState::IMMEDIATE);
+    static CS200::IRenderer2D& GetRenderer2D(Dokev::RenderState selection = Dokev::RenderState::INSTANCED);
     /**
      * \brief Access the texture resource management system
      * \return Reference to TextureManager for texture loading and caching
