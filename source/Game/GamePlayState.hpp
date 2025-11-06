@@ -51,10 +51,17 @@ private:
     std::unique_ptr<Dokev::ParticleEmitter> smokeEmitter;
 
     // Human pathfinding demo
-    std::unique_ptr<Human> human;
+    std::vector<Human> human;
 
     // Road system
     std::unique_ptr<Road> road;
+
+    // Performance tracking
+    bool vsyncEnabled = true;
+
+    // Immigration system
+    float immigrationTimer = 0.0f;
+    mutable float immigrationInterval = 5.0f; 
 
 private:
     void                       updateInput();

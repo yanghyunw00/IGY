@@ -19,10 +19,10 @@ namespace Dokev
         life = 0.0;
     }
 
-    void AnimatedParticle::Start([[maybe_unused]] Math::vec2 position,[[maybe_unused]] Math::vec2 velocity, double max_life)
+    void AnimatedParticle::Start([[maybe_unused]] Math::vec2 position_,[[maybe_unused]] Math::vec2 velocity_, double max_life)
     {
-        this->position = position;
-        this->velocity = velocity;
+        this->position = position_;
+        this->velocity = velocity_;
         this->life = max_life;
 
         if (!sprite.GetCurrentAnimationName().empty())

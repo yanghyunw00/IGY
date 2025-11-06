@@ -25,7 +25,7 @@ namespace Dokev
     public:
         AnimatedParticle(const std::filesystem::path& spt_file);
 
-        void Start(Math::vec2 position, Math::vec2 velocity, double max_life);
+        void Start(Math::vec2 position_, Math::vec2 velocity_, double max_life);
         void Update(double dt);
         void Draw(Math::TransformationMatrix camera_matrix) const;
 

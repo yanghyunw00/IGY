@@ -196,7 +196,7 @@ GridCell** GridMap::GetViewArray(int viewIndex) const
     }
 }
 
-void GridMap::rotatePoint90(int x, int y, float tx, float ty, int angleDeg, float& oX, float& oY) const
+void GridMap::rotatePoint90(float x, float y, float tx, float ty, int angleDeg, float& oX, float& oY) const
 {
     float dx = x - tx;
     float dy = y - ty;
@@ -272,7 +272,6 @@ void GridMap::ClearPath()
 {
     currentPath.clear();
     showPath = false;
-    std::cout << "Path cleared" << std::endl;
 }
 
 void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
@@ -348,8 +347,8 @@ bool GridMap::IsWalkable(int x, int y)
 
 Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex) const
 {
-    int x = (int)point.x;
-    int y = (int)point.y;
+    float x = point.x;
+    float y = point.y;
 
     float newX, newY;
 
