@@ -7,7 +7,7 @@
  * \copyright DigiPen Institute of Technology
  */
 
-
+ #pragma once
  #include <vector>
  #include "Dokev/DKTexture.hpp"
  #include "Engine/Vec2.hpp"

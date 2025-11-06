@@ -13,6 +13,7 @@
 #include "OpenGL/Texture.hpp"
 #include "Vec2.hpp"
 #include <filesystem>
+#include "Dokev/DKRenderState.hpp"
 
 namespace CS230
 {
@@ -89,7 +90,7 @@ namespace CS230
          * rendering, automatically managing texture binding and shader state for
          * optimal performance when drawing multiple textures.
          */
-        void Draw(const Math::TransformationMatrix& display_matrix, unsigned int color = 0xFFFFFFFF);
+        void Draw(const Math::TransformationMatrix& display_matrix, unsigned int color = 0xFFFFFFFF,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED);
 
         /**
          * \brief Draw a rectangular region of the texture (sprite sheet support)
@@ -124,7 +125,7 @@ namespace CS230
          * The transformation matrix affects the final rendered size and position,
          * while frame_size determines which portion of the texture is sampled.
          */
-        void Draw(const Math::TransformationMatrix& display_matrix, Math::ivec2 texel_position, Math::ivec2 frame_size, unsigned int color = 0xFFFFFFFF);
+        void Draw(const Math::TransformationMatrix& display_matrix, Math::ivec2 texel_position, Math::ivec2 frame_size, unsigned int color = 0xFFFFFFFF,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED);
 
         /**
          * \brief Get the dimensions of the texture in pixels
