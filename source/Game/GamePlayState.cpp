@@ -10,6 +10,7 @@
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
+#include "Engine/Path.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKImage.hpp"
@@ -49,14 +50,14 @@ void GamePlayState::Load()
 
     try
     {
-        smokeSprite = Dokev::AnimatedSprite("Assets/images/Smoke.spt");
+        smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
     }
     catch (const std::exception& e)
     {
         printf("Failed to load smoke animation: %s\n", e.what());
     }
 
-    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>("Assets/images/Smoke.spt", 20);
+    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>(assets::locate_asset("Assets/images/Smoke.spt"), 20);
     smokeEmitter->SetMaxLife(1.0); 
 
     human.reserve(100);
