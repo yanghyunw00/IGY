@@ -6,6 +6,7 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
+
 #include "GamePlayState.hpp"
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
@@ -30,6 +31,8 @@
 #include <iomanip>
 #include <numbers>
 #include <sstream>
+
+// #include "Human.hpp" 
 
 void GamePlayState::Load()
 {
@@ -60,11 +63,32 @@ void GamePlayState::Load()
     smokeEmitter = std::make_unique<Dokev::ParticleEmitter>("Assets/images/Smoke.spt", 20);
     smokeEmitter->SetMaxLife(1.0); // Particles live for 3 seconds
 
-    human.reserve(100);
-    human.push_back(Human(Math::fvec2(5.0f, 5.0f)));
-    human.push_back(Human(Math::fvec2(78.0f, 13.0f)));;
+    m_goManager = std::make_unique<GameObjectManager>();
+    m_movementSystem = std::make_unique<MovementSystem>();
+    m_renderSystem = std::make_unique<RenderSystem>();
+    m_aiSystem = std::make_unique<AISystem>(); 
+
+    // human.reserve(100); 
+    // human.push_back(Human(Math::fvec2(5.0f, 5.0f))); 
+    // human.push_back(Human(Math::fvec2(78.0f, 13.0f)));; 
+
+    // GameObject
+    auto human1 = m_goManager->CreateGameObject();
+    human1->AddComponent<TransformComponent>(Math::fvec2(5.0f, 5.0f), Math::fvec2(5.0f, 5.0f));
+    human1->AddComponent<PathComponent>();
+    human1->AddComponent<AIComponent>();
+    human1->AddComponent<StatsComponent>();
+    human1->AddComponent<RenderComponent>(Dokev::ColorPalette::RED); 
+
+    auto human2 = m_goManager->CreateGameObject();
+    human2->AddComponent<TransformComponent>(Math::fvec2(78.0f, 13.0f), Math::fvec2(78.0f, 13.0f));
+    human2->AddComponent<PathComponent>();
+    human2->AddComponent<AIComponent>();
+    human2->AddComponent<StatsComponent>();
+    human2->AddComponent<RenderComponent>(Dokev::ColorPalette::BLUE);
 
     road = std::make_unique<Road>();
+    
 }
 
 void GamePlayState::Update()
@@ -93,18 +117,26 @@ void GamePlayState::Update()
             printf("Emitted particles at (%.1f, %.1f)! Active: %d\n", emit_pos.x, emit_pos.y, smokeEmitter->GetActiveCount());
         }
     }
-    for (auto& h : human)
-    {
-        h.Update(static_cast<float>(environment.DeltaTime), &map);
-    }
+    
+    // for (auto& h : human) 
+    // { 
+    //     h.Update(static_cast<float>(environment.DeltaTime), &map);
+    // } 
+
+    // 시스템이 모든 GameObject를 업데이트
+    m_aiSystem->Update(m_goManager.get(), static_cast<float>(environment.DeltaTime), &map);
+    m_movementSystem->Update(m_goManager.get(), static_cast<float>(environment.DeltaTime), &map);
 
     // Auto immigration system
     immigrationTimer += static_cast<float>(environment.DeltaTime);
     if (immigrationTimer >= immigrationInterval)
     {
         immigrationTimer = 0.0f;
-        human.push_back(Human::CreateImmigrant(&map));
+        // human.push_back(Human::CreateImmigrant(&map));
+        CreateImmigrantGameObject(&map); 
     }
+    
+    m_goManager->Refresh();
 }
 
 void GamePlayState::Draw() const
@@ -144,10 +176,13 @@ void GamePlayState::Draw() const
     }
 
     // Draw human
-    for (auto& h : human)
-    {
-        h.Draw(currentView, &map);
-    }
+    // for (auto& h : human) 
+    // { 
+    //     h.Draw(currentView, &map); 
+    // } 
+
+    // RenderSystem
+    m_renderSystem->Draw(m_goManager.get(), currentView, &map);
 
     renderer2d.EndScene();
 }
@@ -196,7 +231,7 @@ void GamePlayState::DrawImGui()
             camera.SetZoom(zoom);
         }
 
-        ImGui::Spacing();
+        ImGui::Spacing(`);
 
         if (ImGui::Button("Rotate to Map right"))
         {
@@ -217,21 +252,23 @@ void GamePlayState::DrawImGui()
         ImGui::Text("HUMAN CONTROLS");
         ImGui::Separator();
 
-        ImGui::Text("Total Humans: %zu", human.size());
+        ImGui::Text("Total Humans: %zu", m_goManager->GetGameObjects().size());
 
         if (ImGui::Button("Spawn Immigrant"))
         {
-            human.push_back(Human::CreateImmigrant(&map));
+            // human.push_back(Human::CreateImmigrant(&map));
+            CreateImmigrantGameObject(&map); 
         }
 
         ImGui::SameLine();
 
         if (ImGui::Button("Make All Humans Explore"))
         {
-            for (auto& h : human)
-            {
-                h.DecideNextAction(&map);
-            }
+            // for (auto& h : human) 
+            // { 
+            //     h.DecideNextAction(&map); 
+            // }
+            m_aiSystem->MakeAllExplore(m_goManager.get()); 
         }
 
         ImGui::SliderFloat("Immigration Interval (sec)", &immigrationInterval, 1.0f, 30.0f);
@@ -431,4 +468,156 @@ void GamePlayState::Unload()
 gsl::czstring GamePlayState::GetName() const
 {
     return "IGY";
+}
+
+// Human::FindClosestWalkableTile
+Math::fvec2 GamePlayState::FindClosestWalkableTile(GridMap* map, Math::fvec2 startPos) const
+{
+    if (!map)
+    {
+        return Math::fvec2(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
+    }
+
+    float closestDist = 999999.0f;
+    Math::fvec2 closestTile(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
+
+    GridCell** viewArray = map->GetViewArray(1);
+
+    for (int x = 0; x < GRID_SIZE_X; x++)
+    {
+        for (int y = 0; y < 5 && y < GRID_SIZE_Y; y++)
+        {
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)  
+            {
+                float dx = x - startPos.x;
+                float dy = y - startPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+
+        for (int y = GRID_SIZE_Y - 5; y < GRID_SIZE_Y; y++)
+        {
+            if (y < 0) continue;
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)
+            {
+                float dx = x - startPos.x;
+                float dy = y - startPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+    }
+
+    for (int y = 0; y < GRID_SIZE_Y; y++)
+    {
+        for (int x = 0; x < 5 && x < GRID_SIZE_X; x++)
+        {
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)
+            {
+                float dx = x - startPos.x;
+                float dy = y - startPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+
+        for (int x = GRID_SIZE_X - 5; x < GRID_SIZE_X; x++)
+        {
+            if (x < 0) continue;
+            GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+            if (cell->getHeight() >= 75.0)
+            {
+                float dx = x - startPos.x;
+                float dy = y - startPos.y;
+                float dist = dx * dx + dy * dy;
+
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closestTile = Math::fvec2((float)x, (float)y);
+                }
+            }
+        }
+    }
+    return closestTile;
+}
+
+// Human::CreateImmigrant 
+void GamePlayState::CreateImmigrantGameObject(GridMap* map)
+{
+    int side = rand() % 4;
+    float spawnX, spawnY;
+    const float offset = 10.0f; 
+
+    switch (side)
+    {
+        case 0: spawnX = (float)(rand() % GRID_SIZE_X); spawnY = -offset; break;
+        case 1: spawnX = GRID_SIZE_X - 1 + offset; spawnY = (float)(rand() % GRID_SIZE_Y); break;
+        case 2: spawnX = (float)(rand() % GRID_SIZE_X); spawnY = GRID_SIZE_Y - 1 + offset; break;
+        case 3: spawnX = -offset; spawnY = (float)(rand() % GRID_SIZE_Y); break;
+        default: spawnX = 0.0f; spawnY = 0.0f; break;
+    }
+
+    Math::fvec2 spawnPos(spawnX, spawnY);
+    auto immigrant = m_goManager->CreateGameObject();
+    
+    immigrant->AddComponent<TransformComponent>(spawnPos, spawnPos);
+    auto pathComp = immigrant->AddComponent<PathComponent>();
+    auto aiComp = immigrant->AddComponent<AIComponent>();
+    immigrant->AddComponent<StatsComponent>();
+    immigrant->AddComponent<RenderComponent>(Dokev::ColorPalette::GREEN); // immigrant color(temp green)
+
+    if (map)
+    {
+        Math::fvec2 entryPoint = FindClosestWalkableTile(map, spawnPos);
+
+        map->ClearPath();
+
+        std::vector<Math::fvec2> entryPath;
+
+        float dx = entryPoint.x - spawnX;
+        float dy = entryPoint.y - spawnY;
+        float totalDist = sqrt(dx * dx + dy * dy);
+
+        int numPoints = (int)totalDist + 1; 
+        if (numPoints < 2) numPoints = 2;
+
+        for (int i = 0; i <= numPoints; i++)
+        {
+            float t = (float)i / (float)numPoints; 
+            Math::fvec2 point;
+            point.x = spawnX + dx * t;
+            point.y = spawnY + dy * t;
+            entryPath.push_back(point);
+        }
+
+        // Human::FollowPath 
+        pathComp->path = entryPath;
+        pathComp->currentPathIndex = 1;
+        pathComp->startPosition = entryPath[0];
+        pathComp->targetGridPos = entryPath[1];
+        pathComp->isMoving = true;
+        pathComp->moveTimer = 0.0f;
+
+        aiComp->state = HumanState::Walking;
+    }
 }

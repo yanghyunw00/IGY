@@ -16,10 +16,14 @@
 #include "Dokev/DKParticleEmitter.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
-#include "Human.hpp"
+//#include "Human.hpp"
 #include "Road.hpp"
 #include <array>
 #include <memory>
+#include "GameObjectManager.hpp"
+#include "MovementSystem.hpp"
+#include "RenderSystem.hpp"
+#include "AISystem.hpp"
 
 class GamePlayState : public CS230::GameState
 {
@@ -51,7 +55,7 @@ private:
     std::unique_ptr<Dokev::ParticleEmitter> smokeEmitter;
 
     // Human pathfinding demo
-    std::vector<Human> human;
+    //std::vector<Human> human;
 
     // Road system
     std::unique_ptr<Road> road;
@@ -63,7 +67,15 @@ private:
     float immigrationTimer = 0.0f;
     mutable float immigrationInterval = 5.0f; 
 
+
+    std::unique_ptr<GameObjectManager> m_goManager;
+    std::unique_ptr<MovementSystem> m_movementSystem;
+    std::unique_ptr<RenderSystem> m_renderSystem;
+    std::unique_ptr<AISystem> m_aiSystem;
+
 private:
-    void                       updateInput();
+    void                        updateInput();
+    void                        CreateImmigrantGameObject(GridMap* map);
+    Math::fvec2                 FindClosestWalkableTile(GridMap* map, Math::fvec2 startPos) const;
 
 };
