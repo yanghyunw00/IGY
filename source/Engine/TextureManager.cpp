@@ -35,7 +35,7 @@ namespace CS230
         try
         {
             CS200::Image                image(file_name, true);
-            const OpenGL::TextureHandle handle      = OpenGL::CreateTextureFromImage(image, OpenGL::Filtering::Linear, OpenGL::Wrapping::ClampToEdge);
+            const OpenGL::TextureHandle handle      = OpenGL::CreateTextureFromImage(image, OpenGL::Filtering::NearestPixel, OpenGL::Wrapping::ClampToEdge);
             auto                        new_texture = std::shared_ptr<Texture>(new Texture(handle, image.GetSize()));
             texture_cache[key]                      = new_texture;
             return new_texture;
@@ -51,7 +51,7 @@ namespace CS230
     {
         try
         {
-            const OpenGL::TextureHandle handle      = OpenGL::CreateTextureFromMemory(size, pixels, OpenGL::Filtering::Linear, OpenGL::Wrapping::ClampToEdge);
+            const OpenGL::TextureHandle handle      = OpenGL::CreateTextureFromMemory(size, pixels, OpenGL::Filtering::NearestPixel, OpenGL::Wrapping::ClampToEdge);
             auto                        new_texture = std::shared_ptr<Texture>(new Texture(handle, size));
             return new_texture;
         }
