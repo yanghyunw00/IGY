@@ -9,6 +9,7 @@
 
 #include "Human.hpp"
 #include "Dokev/DKColor.hpp"
+#include "Engine/Path.hpp"
 #include "GridMap.hpp"
 #include <iostream>
 
@@ -17,6 +18,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     startPosition  = currentGridPos;
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
+    humanTexture = Dokev::LoadTexture("Assets/images/textures/Human.png");
 }
 
 void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)
@@ -206,8 +208,10 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF;
     int drawY = topY;
 
-    Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
-    Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+    //For Debugging stuff
+   // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
+   // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+    humanTexture.Draw(drawX, drawY);
 }
 
 void Human::ChangeState(HumanState newState)
@@ -315,10 +319,12 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map)
 
 bool Human::FindNearbyRoad(GridMap* map, Math::fvec2& outRoadPosition) const
 {
+    (void) map;
+    (void) outRoadPosition;
     return false;
 }
 
-Human Human::CreateImmigrant(GridMap* map)
+Human Human::CreateImmigrant()
 {
     // Randomly select one of the 4 sides of the map
     int side = rand() % 4;  // 0=top, 1=right, 2=bottom, 3=left
@@ -350,36 +356,6 @@ Human Human::CreateImmigrant(GridMap* map)
     }
 
     Human immigrant(Math::fvec2(spawnX, spawnY));
-
-    //// Find path to enter the map
-    //if (map)
-    //{
-    //    //closest land tile
-    //    Math::fvec2 entryPoint = immigrant.FindClosestWalkableTile(map);
-
-    //    map->ClearPath();
-
-    //    std::vector<Math::fvec2> entryPath;
-
-    //    float dx = entryPoint.x - spawnX;
-    //    float dy = entryPoint.y - spawnY;
-    //    float totalDist = sqrt(dx * dx + dy * dy);
-
-    //    int numPoints = (int)totalDist + 1; 
-
-    //    for (int i = 0; i <= numPoints; i++)
-    //    {
-    //        float t = (float)i / (float)numPoints; 
-    //        Math::fvec2 point;
-    //        point.x = spawnX + dx * t;
-    //        point.y = spawnY + dy * t;
-    //        entryPath.push_back(point);
-    //    }
-
-    //    immigrant.FollowPath(entryPath);
-    //    immigrant.ChangeState(HumanState::Walking);
-    //}
-
     return immigrant;
 }
 
