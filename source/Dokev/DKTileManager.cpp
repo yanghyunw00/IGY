@@ -15,7 +15,6 @@ namespace Dokev
         this->gridSizeX = gridSizeX_;
         this->gridSizeY = gridSizeY_;
 
-        // Initialize tile grid with default values
         tiles.assign(gridSizeX_, std::vector<TileOccupancy>(gridSizeY_));
     }
 
