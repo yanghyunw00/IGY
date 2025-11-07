@@ -18,6 +18,7 @@
 #include "OpenGL/GL.hpp"
 #include <utility>
 
+
 namespace CS230
 {
 
@@ -26,12 +27,12 @@ namespace CS230
         return mat[0][0] == 1.0 && mat[0][1] == 0.0 && mat[0][2] == 0.0 && mat[1][0] == 0.0 && mat[1][1] == 1.0 && mat[1][2] == 0.0 && mat[2][0] == 0.0 && mat[2][1] == 0.0 && mat[2][2] == 1.0;
     }
 
-    void CS230::Texture::Draw(const Math::TransformationMatrix& display_matrix, unsigned int color)
+    void CS230::Texture::Draw(const Math::TransformationMatrix& display_matrix, unsigned int color,Dokev::RenderState selected_renderer)
     {
-        Draw(display_matrix, { 0, 0 }, GetSize(), color);
+        Draw(display_matrix, { 0, 0 }, GetSize(), color,selected_renderer);
     }
 
-    void CS230::Texture::Draw(const Math::TransformationMatrix& display_matrix, Math::ivec2 texel_position, Math::ivec2 frame_size, unsigned int color)
+    void CS230::Texture::Draw(const Math::TransformationMatrix& display_matrix, Math::ivec2 texel_position, Math::ivec2 frame_size, unsigned int color,Dokev::RenderState selected_renderer)// draw with texture
     {
         if (textureHandle == 0)
         {
@@ -46,23 +47,12 @@ namespace CS230
             { static_cast<double>(frame_size.x), static_cast<double>(frame_size.y) }
         };
 
-        // if (IsIdentityMatrix(display_matrix)) // background
-        // {
-        //     transform_matrix = Math::TranslationMatrix(Math::vec2{ static_cast<double>(frame_size.x) / 2.0, static_cast<double>(frame_size.y) / 2.0 });
-
-        //     const Math::TransformationMatrix final_transform = transform_matrix * scale_matrix;
-        //     Engine::GetRenderer2D().DrawQuad(final_transform, textureHandle, st_min, st_max, tintColor);
-        // }
-        // else
-        // {
-        //     const Math::TranslationMatrix    toCenter(Math::vec2{ 0.5, 0.5 });
-        //     const Math::TransformationMatrix final_transform = display_matrix * scale_matrix * toCenter;
-        //     Engine::GetRenderer2D().DrawQuad(final_transform, textureHandle, st_min, st_max, tintColor);
-        // }
-
+ 
         const Math::TranslationMatrix    toCenter(Math::vec2{ 0.5, 0.5 });
         const Math::TransformationMatrix final_transform = display_matrix * scale_matrix * toCenter;
-        Engine::GetRenderer2D().DrawQuad(final_transform, textureHandle, st_min, st_max, tintColor);
+        Engine::GetRenderer2D(selected_renderer).DrawQuad(final_transform, textureHandle, st_min, st_max, tintColor);
+
+
     }
 
     Math::ivec2 CS230::Texture::GetSize() const

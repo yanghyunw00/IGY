@@ -13,7 +13,7 @@
 #include <filesystem>
 #include <memory>
 #include <string>
-
+#include "Dokev/DKRenderState.hpp"
 namespace CS230
 {
     class Texture;
@@ -43,7 +43,7 @@ namespace Dokev
 
         Math::ivec2 GetSize() const;
 
-        void Draw(int posX, int posY, CS200::RGBA tint = CS200::WHITE) const;
+        void Draw(int posX, int posY, CS200::RGBA tint = CS200::WHITE,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 
         void Draw(Math::vec2 position, CS200::RGBA tint = CS200::WHITE) const;
 
@@ -66,9 +66,7 @@ namespace Dokev
 
     void UnLoadTexture(Texture2D texture);
 
-    void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint = CS200::WHITE);
-
-
+    void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED);
 
     void DrawTextureV(const Texture2D& texture, Math::vec2 position, CS200::RGBA tint = CS200::WHITE);
 

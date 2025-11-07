@@ -11,6 +11,7 @@
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
+#include "Engine/Path.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKImage.hpp"
@@ -36,10 +37,9 @@
 
 void GamePlayState::Load()
 {
-    GL::Enable(GL_STENCIL_TEST); // enable for mouse clicking.
-    GL::ClearStencil(0);         // reset. might have leftover shit from other gamestates
+
     CS200::RenderingAPI::SetClearColor(0x252525FF);
-    testTexture   = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
+
     auto perlin   = Dokev::GenImagePerlinNoise(256, 256, 0, 0, 0.01f);
     auto perlin2  = Dokev::GenImagePerlinNoise(256, 256, 256, 256, 0.01f);
     noiseTexture  = Dokev::LoadTextureFromImage(perlin);
@@ -53,15 +53,15 @@ void GamePlayState::Load()
 
     try
     {
-        smokeSprite = Dokev::AnimatedSprite("Assets/images/Smoke.spt");
+        smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
     }
     catch (const std::exception& e)
     {
         printf("Failed to load smoke animation: %s\n", e.what());
     }
 
-    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>("Assets/images/Smoke.spt", 20);
-    smokeEmitter->SetMaxLife(1.0); // Particles live for 3 seconds
+    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>(assets::locate_asset("Assets/images/Smoke.spt"), 20);
+    smokeEmitter->SetMaxLife(1.0); 
 
     m_goManager = std::make_unique<GameObjectManager>();
     m_movementSystem = std::make_unique<MovementSystem>();
@@ -142,7 +142,7 @@ void GamePlayState::Update()
 void GamePlayState::Draw() const
 {
     CS200::RenderingAPI::Clear();
-    auto& renderer2d = Engine::GetRenderer2D();
+    auto& renderer2d = Engine::GetRenderer2D(selected_renderer);
 
     auto windowSize = Engine::GetWindow().GetSize();
     auto ndcMatrix  = CS200::build_ndc_matrix(windowSize);
@@ -153,7 +153,7 @@ void GamePlayState::Draw() const
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    map.IsometricDrawMap(index);
+    map.IsometricDrawMap(index,selected_renderer);
 
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 

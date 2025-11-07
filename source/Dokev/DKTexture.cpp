@@ -56,7 +56,7 @@ namespace Dokev
         return texture->GetSize();
     }
 
-    void Texture2D::Draw(int posX, int posY, CS200::RGBA tint) const
+    void Texture2D::Draw(int posX, int posY, CS200::RGBA tint,Dokev::RenderState selected_renderer) const
     {
         if (!texture)
         {
@@ -64,18 +64,11 @@ namespace Dokev
         }
 
         const auto size = texture->GetSize();
-
-        //    Math::vec2 center{
-        //        static_cast<double>(posX),
-        //        static_cast<double>(posY)};
-        //    auto transform = Math::TranslationMatrix(center);
-
-
         Math::vec2 adjustedPosition{ static_cast<double>(posX), static_cast<double>(posY) - static_cast<double>(size.y) };
 
         auto transform = Math::TranslationMatrix(adjustedPosition);
 
-        texture->Draw(transform, tint);
+        texture->Draw(transform, tint,selected_renderer);
     }
 
     void Texture2D::Draw(Math::vec2 position, CS200::RGBA tint) const
@@ -172,9 +165,9 @@ namespace Dokev
         // dont need to implement -> sharedptr!
     }
 
-    void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint)
+    void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint,Dokev::RenderState selected_renderer)
     {
-        texture.Draw(posX, posY, tint);
+        texture.Draw(posX, posY, tint,selected_renderer);
     }
 
     void DrawTextureV(const Texture2D& texture, Math::vec2 position, CS200::RGBA tint)

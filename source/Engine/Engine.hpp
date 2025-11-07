@@ -13,6 +13,7 @@
 #include <memory>
 #include <string_view>
 #include "Dokev/DKMouseInput.hpp"
+#include "Dokev/DKRenderState.hpp"
 
 namespace CS230
 {
@@ -217,8 +218,7 @@ public:
      * - Camera and viewport transformations
      * - Blend modes and rendering effects
      */
-    static CS200::IRenderer2D& GetRenderer2D();
-
+    static CS200::IRenderer2D& GetRenderer2D(Dokev::RenderState selection = Dokev::RenderState::INSTANCED);
     /**
      * \brief Access the texture resource management system
      * \return Reference to TextureManager for texture loading and caching

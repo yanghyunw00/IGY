@@ -6,6 +6,7 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
+#pragma once
 #include "CS200/RGBA.hpp"
 #include "Engine/GameState.hpp"
 #include "Engine/Matrix.hpp"
@@ -16,14 +17,11 @@
 #include "Dokev/DKParticleEmitter.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
-//#include "Human.hpp"
+#include "Human.hpp"
 #include "Road.hpp"
 #include <array>
 #include <memory>
-#include "GameObjectManager.hpp"
-#include "MovementSystem.hpp"
-#include "RenderSystem.hpp"
-#include "AISystem.hpp"
+#include "Dokev/DKRenderState.hpp"
 
 class GamePlayState : public CS230::GameState
 {
@@ -55,7 +53,7 @@ private:
     std::unique_ptr<Dokev::ParticleEmitter> smokeEmitter;
 
     // Human pathfinding demo
-    //std::vector<Human> human;
+    std::vector<Human> human;
 
     // Road system
     std::unique_ptr<Road> road;
@@ -66,16 +64,10 @@ private:
     // Immigration system
     float immigrationTimer = 0.0f;
     mutable float immigrationInterval = 5.0f; 
-
-
-    std::unique_ptr<GameObjectManager> m_goManager;
-    std::unique_ptr<MovementSystem> m_movementSystem;
-    std::unique_ptr<RenderSystem> m_renderSystem;
-    std::unique_ptr<AISystem> m_aiSystem;
-
+    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; // if you change this to IMMEDIATE, ERROR
+    // this is probably because the rest of the renders are called with instanced, so If you want to change this,
+    //consult the DEMO.cpp file and how that handles switching.
 private:
-    void                        updateInput();
-    void                        CreateImmigrantGameObject(GridMap* map);
-    Math::fvec2                 FindClosestWalkableTile(GridMap* map, Math::fvec2 startPos) const;
+    void                       updateInput();
 
 };
