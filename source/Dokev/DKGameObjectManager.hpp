@@ -6,26 +6,28 @@
  * \copyright DigiPen Institute of Technology
  */
 #pragma once
+#include "DKComponent.hpp"
 #include "DKGameObject.hpp"
-#include "Engine/Matrix.hpp"
 #include <algorithm>
 #include <memory>
 #include <vector>
 
+class Human;
 
 namespace Dokev
 {
-    class GameObjectManager
+    class GameObjectManager : public IComponent
     {
     public:
-        GameObject*                               CreateGameObject();
-        std::vector<std::unique_ptr<GameObject>>& GetGameObjects();
-        void                                      Refresh();
+        void AddHuman(Human* human);
 
-        // void UpdateAll(double dt);  // update
-        // void DrawAll(Math::TransformationMatrix camera_matrix); //  draw
+        std::vector<std::unique_ptr<Human>>& GetHumans();
+
+        void Unload();
+        void Refresh();
 
     private:
-        std::vector<std::unique_ptr<GameObject>> m_gameObjects;
+        std::vector<std::unique_ptr<Human>> m_humans;
+        // std::vector<std::unique_ptr<Building>> m_buildings;
     };
 }

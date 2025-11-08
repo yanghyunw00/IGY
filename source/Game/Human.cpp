@@ -11,15 +11,24 @@
 #include "Dokev/DKColor.hpp"
 #include "Engine/Path.hpp"
 #include "GridMap.hpp"
+#include "Road.hpp"
 #include <iostream>
+#include <queue>
+#include <unordered_map>
 
-Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false), color(Dokev::ColorPalette::BLUE)
+Human::Human(Math::fvec2 startGridPos)
+    : currentGridPos(startGridPos),
+      targetGridPos(startGridPos),
+      currentPathIndex(0),
+      isMoving(false),
+      color(Dokev::ColorPalette::BLUE)
 {
     startPosition  = currentGridPos;
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
     humanTexture = Dokev::LoadTexture("Assets/images/textures/Human.png");
 }
+
 
 void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)
 {
@@ -129,24 +138,24 @@ void Human::UpdateIdle(float deltaTime, GridMap* map)
     }
 }
 
-void Human::UpdateFindingDestination(float deltaTime, GridMap* map)
+void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road)
 {
     (void) deltaTime;
-    
+
     if (!map) return;
-    
-    Math::fvec2 destination = FindRandomDestination(map);
-    
+
+    Math::fvec2 destination = FindRandomDestination(map, road);
+
     map->ClearPath();
     map->FindPath(
-        static_cast<int>(currentGridPos.x), 
+        static_cast<int>(currentGridPos.x),
         static_cast<int>(currentGridPos.y),
-        static_cast<int>(destination.x), 
+        static_cast<int>(destination.x),
         static_cast<int>(destination.y)
     );
-    
+
     auto path_ = map->GetCurrentPath();
-    
+
     if (!path_.empty())
     {
         FollowPath(path_);
@@ -155,15 +164,15 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map)
     else
     {
         ChangeState(HumanState::Idle);
-        ai.idleTimer = ai.maxIdleTime - 0.5f; 
+        ai.idleTimer = ai.maxIdleTime - 0.5f;
     }
 }
-void Human::Update(float deltaTime, GridMap* map)
+void Human::Update(float deltaTime, GridMap* map, const Road* road)
 {
    if (state == HumanState::Walking && isMoving)
     {
         UpdateMovement(deltaTime, map);
-        
+
         if (!isMoving)
         {
             ChangeState(HumanState::Idle);
@@ -175,13 +184,12 @@ void Human::Update(float deltaTime, GridMap* map)
     }
     else if (state == HumanState::FindingDestination)
     {
-        UpdateFindingDestination(deltaTime, map);
+        UpdateFindingDestination(deltaTime, map, road);
     }
 }
 
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
-    // Transform the position based on the view rotation
     Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
 
     float gridX_float = transformedPos.x;
@@ -242,14 +250,65 @@ void Human::DecideNextAction(GridMap* map)
     }
 }
 
-Math::fvec2 Human::FindRandomDestination(GridMap* map)
+Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
 {
     if (!map)
     {
         return currentGridPos;
     }
 
-    // Range of random tile to search
+    if (road)
+    {
+        // 이미 도로를 따라가고 있으면 다음 도로 타일 찾기
+        if (ai.isFollowingRoad)
+        {
+            bool foundRoad = false;
+            Math::fvec2 nextRoadTile = FindNextRoadTile(road, foundRoad);
+
+            if (foundRoad)
+            {
+                return nextRoadTile;
+            }
+            else
+            {
+                // 도로 끝에 도달 - 방향 전환
+                ai.roadDirection = !ai.roadDirection;
+                nextRoadTile = FindNextRoadTile(road, foundRoad);
+
+                if (foundRoad)
+                {
+                    return nextRoadTile;
+                }
+                else
+                {
+                    // 더 이상 도로가 없음
+                    ai.isFollowingRoad = false;
+                }
+            }
+        }
+
+        // 도로를 따라가지 않고 있으면 가장 가까운 도로 찾기
+        if (!ai.isFollowingRoad)
+        {
+            Math::fvec2 roadPos;
+            if (FindNearbyRoad(road, roadPos))
+            {
+                ai.isFollowingRoad = true;
+                std::cout << "Found road at (" << roadPos.x << ", " << roadPos.y << ")" << std::endl;
+                ai.recentDestinations.push_back(roadPos);
+                if (ai.recentDestinations.size() > ai.maxRecentDestinations)
+                {
+                    ai.recentDestinations.erase(ai.recentDestinations.begin());
+                }
+                return roadPos;
+            }
+            else
+            {
+                std::cout << "No road found nearby - falling back to random exploration" << std::endl;
+            }
+        }
+    }
+
     float maxDistance = ai.explorationRadius;
     float minDistance = maxDistance * 0.5f;
 
@@ -277,7 +336,7 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map)
             GridCell* cell = viewArray[gridY * GRID_SIZE_X + gridX];
             double height = cell->getHeight();
 
-            if (height < 75.0)  //if water , try again
+            if (height < 75.0)  //if water, try again
             {
                 attempts++;
                 continue;
@@ -315,18 +374,146 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map)
 
         return destination;
     }
+
+    return currentGridPos;
 }
 
-bool Human::FindNearbyRoad(GridMap* map, Math::fvec2& outRoadPosition) const
+Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
 {
-    (void) map;
-    (void) outRoadPosition;
+    outFoundRoad = false;
+
+    if (!road)
+        return currentGridPos;
+
+    int currentX = static_cast<int>(currentGridPos.x);
+    int currentY = static_cast<int>(currentGridPos.y);
+
+    int directions[8][2] = {
+        {1, 0},   // 오른쪽
+        {-1, 0},  // 왼쪽
+        {0, 1},   // 아래
+        {0, -1},  // 위
+        {1, 1},   // 오른쪽 아래
+        {1, -1},  // 오른쪽 위
+        {-1, 1},  // 왼쪽 아래
+        {-1, -1}  // 왼쪽 위
+    };
+
+    for (auto& dir : directions)
+    {
+        int nx = currentX + dir[0];
+        int ny = currentY + dir[1];
+
+        if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
+            continue;
+
+        // 도로인지 확인
+        if (road->hasRoad(nx, ny))
+        {
+            // 방향이 반대가 아닌지 확인 (왔던 길로 바로 돌아가지 않음)
+            Math::fvec2 direction(static_cast<float>(dir[0]), static_cast<float>(dir[1]));
+            float dotProduct = direction.x * ai.lastDirection.x + direction.y * ai.lastDirection.y;
+
+            // 반대 방향이 아니면 선택
+            if (dotProduct >= -0.5f) 
+            {
+                outFoundRoad = true;
+                return Math::fvec2(static_cast<float>(nx), static_cast<float>(ny));
+            }
+        }
+    }
+
+    // 반대 방향까지 포함해서 재탐색
+    for (auto& dir : directions)
+    {
+        int nx = currentX + dir[0];
+        int ny = currentY + dir[1];
+
+        if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
+            continue;
+
+        if (road->hasRoad(nx, ny))
+        {
+            outFoundRoad = true;
+            return Math::fvec2(static_cast<float>(nx), static_cast<float>(ny));
+        }
+    }
+
+    return currentGridPos;
+}
+
+bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
+{
+    if (!road)
+        return false;
+
+    int startX = static_cast<int>(currentGridPos.x);
+    int startY = static_cast<int>(currentGridPos.y);
+
+    if (road->hasRoad(startX, startY))
+    {
+        outRoadPosition = Math::fvec2(static_cast<float>(startX), static_cast<float>(startY));
+        return true;
+    }
+
+    std::queue<std::pair<int, int>> q;
+    std::unordered_map<int, bool> visited;
+
+    auto key = [&](int x, int y) { return y * GRID_SIZE_X + x; };
+
+    q.push({ startX, startY });
+    visited[key(startX, startY)] = true;
+
+    int directions[8][2] = {
+        {1, 0},   // 오른쪽
+        {-1, 0},  // 왼쪽
+        {0, 1},   // 아래
+        {0, -1},  // 위
+        {1, 1},   // 오른쪽 아래
+        {1, -1},  // 오른쪽 위
+        {-1, 1},  // 왼쪽 아래
+        {-1, -1}  // 왼쪽 위
+    };
+
+    int searchLimit = 1000; 
+    int searchCount = 0;
+
+    while (!q.empty() && searchCount < searchLimit)
+    {
+        auto [cx, cy] = q.front();
+        q.pop();
+        searchCount++;
+
+        for (auto& dir : directions)
+        {
+            int nx = cx + dir[0];
+            int ny = cy + dir[1];
+
+            if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
+                continue;
+
+            // visited check
+            if (visited[key(nx, ny)])
+                continue;
+
+            visited[key(nx, ny)] = true;
+
+            // if found road
+            if (road->hasRoad(nx, ny))
+            {
+                outRoadPosition = Math::fvec2(static_cast<float>(nx), static_cast<float>(ny));
+                return true;
+            }
+
+            q.push({ nx, ny });
+        }
+    }
+
     return false;
 }
 
 Human Human::CreateImmigrant()
 {
-    // Randomly select one of the 4 sides of the map
     int side = rand() % 4;  // 0=top, 1=right, 2=bottom, 3=left
 
     float spawnX, spawnY;
@@ -369,7 +556,6 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
     float closestDist = 999999.0f;
     Math::fvec2 closestTile(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
 
-    // Search along map boundaries (top, bottom, left, right edges only)
     GridCell** viewArray = map->GetViewArray(1);
 
     for (int x = 0; x < GRID_SIZE_X; x++)
@@ -391,7 +577,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
             }
         }
 
-        // Bottom edge (check last 5 rows)
+        // Bottom edge
         for (int y = GRID_SIZE_Y - 5; y < GRID_SIZE_Y; y++)
         {
             if (y < 0) continue;
@@ -414,7 +600,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
     // Left and right edges
     for (int y = 0; y < GRID_SIZE_Y; y++)
     {
-        // Left edge (check first 5 columns)
+        // Left edge 
         for (int x = 0; x < 5 && x < GRID_SIZE_X; x++)
         {
             GridCell* cell = viewArray[y * GRID_SIZE_X + x];
@@ -432,7 +618,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
             }
         }
 
-        // Right edge (check last 5 columns)
+        // Right edge
         for (int x = GRID_SIZE_X - 5; x < GRID_SIZE_X; x++)
         {
             if (x < 0) continue;

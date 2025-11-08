@@ -6,129 +6,133 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
-#include <vector>
 #include "Road.hpp"
-#include "GridMap.hpp"
-#include "Engine/Vec2.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKTileManager.hpp"
+#include "Engine/Vec2.hpp"
+#include "GridMap.hpp"
+#include <vector>
 
-void Road::addRoad(int x, int y)
+void Road::addRoad(int x, int y, GridMap& map)
 {
-	roadPositions.push_back({ static_cast<float>(x), static_cast<float>(y)});
+    auto* tileManager = map.GetTileManager();
+
+    roadPositions.push_back({ static_cast<float>(x), static_cast<float>(y) });
+    if (tileManager)
+    {
+        tileManager->AllocateTile(x, y, Dokev::TileType::ROAD);
+    }
 }
 
-void Road::removeRoad(int x, int y)
+void Road::removeRoad(int x, int y, GridMap& map)
 {
-	for (auto it = roadPositions.begin(); it != roadPositions.end(); ++it)
-	{
-		if (it->x == x && it->y == y)
-		{
-			roadPositions.erase(it);
-			break;
-		}
-	}
+    auto* tileManager = map.GetTileManager();
+
+    if (tileManager)
+    {
+        tileManager->DeallocateTile(x, y);
+    }
+
+    roadPositions.clear();
 }
 
-bool Road::hasRoad(int x, int y)
+bool Road::hasRoad(int x, int y) const
 {
-	for (auto it = roadPositions.begin(); it != roadPositions.end(); ++it)
-	{
-		if (it->x == x && it->y == y)
-		{
-			return true;
-		}
-	}
+    for (auto it = roadPositions.begin(); it != roadPositions.end(); ++it)
+    {
+        if (it->x == x && it->y == y)
+        {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 void Road::drawRoads(const GridMap& map, int currentview)
 {
-	if (roadPositions.empty())
-		return;
+    if (roadPositions.empty())
+        return;
 
-	GridCell** viewArray = map.GetViewArray(currentview);
+    GridCell** viewArray = map.GetViewArray(currentview);
 
-	int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
-	int originY = 0;
+    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+    int originY = 0;
 
-	for (int sum = 0; sum < GRID_SIZE_X + GRID_SIZE_Y - 1; ++sum)
-	{
-		for (int x = 0; x <= sum; ++x)
-		{
-			int y = sum - x;
+    for (int sum = 0; sum < GRID_SIZE_X + GRID_SIZE_Y - 1; ++sum)
+    {
+        for (int x = 0; x <= sum; ++x)
+        {
+            int y = sum - x;
 
-			if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
-			{
-				bool hasRoadHere = false;
-				for (const auto& roadPos : roadPositions)
-				{
-					if (static_cast<int>(roadPos.x) == x && static_cast<int>(roadPos.y) == y)
-					{
-						hasRoadHere = true;
-						break;
-					}
-				}
+            if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+            {
+                bool hasRoadHere = false;
+                for (const auto& roadPos : roadPositions)
+                {
+                    if (static_cast<int>(roadPos.x) == x && static_cast<int>(roadPos.y) == y)
+                    {
+                        hasRoadHere = true;
+                        break;
+                    }
+                }
 
-				if (hasRoadHere)
-				{
-					float height = static_cast<float>(viewArray[y * GRID_SIZE_X + x]->getHeight());
-					int screenX = originX + (x - y) * TILE_WIDTH_HALF;
-					int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
-					int topY = static_cast<int>(height) - screenY;
+                if (hasRoadHere)
+                {
+                    float height  = static_cast<float>(viewArray[y * GRID_SIZE_X + x]->getHeight());
+                    int   screenX = originX + (x - y) * TILE_WIDTH_HALF;
+                    int   screenY = originY + (x + y) * TILE_HEIGHT_HALF;
+                    int   topY    = static_cast<int>(height) - screenY;
 
-					roadTexture.Draw(screenX, topY);
-				}
-			}
-		}
-	}
+                    roadTexture.Draw(screenX, topY);
+                }
+            }
+        }
+    }
 }
 
 void Road::buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY)
 {
-	map.FindPath(startX, startY, endX, endY);
+    map.FindPath(startX, startY, endX, endY);
 
-	std::vector<Math::fvec2> path = map.GetCurrentPath();
+    std::vector<Math::fvec2> path = map.GetCurrentPath();
 
-	auto* tileManager = map.GetTileManager();
+    auto* tileManager = map.GetTileManager();
 
-	for (const auto& pos : path)
-	{
-		int x = static_cast<int>(pos.x);
-		int y = static_cast<int>(pos.y);
+    for (const auto& pos : path)
+    {
+        int x = static_cast<int>(pos.x);
+        int y = static_cast<int>(pos.y);
 
-		addRoad(x, y);
+        addRoad(x, y, map);
 
-		if (tileManager)
-		{
-			tileManager->AllocateTile(x, y, Dokev::TileType::ROAD);
-		}
-	}
+        if (tileManager)
+        {
+            tileManager->AllocateTile(x, y, Dokev::TileType::ROAD);
+        }
+    }
 
-	map.ClearPath();
+    map.ClearPath();
 }
 
 void Road::removeAllRoad()
 {
-	roadPositions.clear();
+    roadPositions.clear();
 }
 
 void Road::removeAllRoad(GridMap& map)
 {
-	// Get TileManager from GridMap
-	auto* tileManager = map.GetTileManager();
+    auto* tileManager = map.GetTileManager();
 
-	// Deallocate all road tiles
-	if (tileManager)
-	{
-		for (const auto& pos : roadPositions)
-		{
-			int x = static_cast<int>(pos.x);
-			int y = static_cast<int>(pos.y);
-			tileManager->DeallocateTile(x, y);
-		}
-	}
+    if (tileManager)
+    {
+        for (const auto& pos : roadPositions)
+        {
+            int x = static_cast<int>(pos.x);
+            int y = static_cast<int>(pos.y);
+            tileManager->DeallocateTile(x, y);
+        }
+    }
 
-	roadPositions.clear();
+    roadPositions.clear();
 }

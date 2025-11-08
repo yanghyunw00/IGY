@@ -7,6 +7,9 @@
  */
 #include "DKGameWorldEditor.hpp"
 #include "DKCamera.hpp"
+#include "DKGameObjectManager.hpp"
+#include "DKMapManager.hpp"
+
 #include "../Game/GridMap.hpp"
 #include "../Game/Human.hpp"
 #include "../Game/Road.hpp"
@@ -18,16 +21,16 @@
 
 namespace Dokev
 {
-    void GameWorldEditor::Initialize(GridMap* mapPtr, Camera* cameraPtr, std::vector<Human>* humanPtr, Road* roadPtr,
-                                     int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr)
+    void GameWorldEditor::Initialize(MapManager* mapManagerPtr, Camera* cameraPtr,
+                                     int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr,
+                                     GameObjectManager* gameObjectManager)
     {
-        map = mapPtr;
+        mapManager = mapManagerPtr;
         camera = cameraPtr;
-        humans = humanPtr;
-        road = roadPtr;
         rotationIndex = indexPtr;
         immigrationTimer = immigrationTimerPtr;
         immigrationInterval = immigrationIntervalPtr;
+        goManager = gameObjectManager;
     }
 
     void GameWorldEditor::UpdateInput()
@@ -38,8 +41,9 @@ namespace Dokev
         // Regenerate map
         if (input.KeyJustPressed(CS230::Input::Keys::Space))
         {
-            if (map)
+            if (mapManager)
             {
+                auto map = mapManager->GetMap();
                 map->ReGenerateMap();
                 map->InitializePathFinding();
                 map->ClearPath();
@@ -169,52 +173,25 @@ namespace Dokev
             ImGui::Spacing();
         }
 
-        // HUMAN CONTROLS Section
-        if (humans && map)
+        // IMMIGRATION CONTROLS Section
+        if (immigrationInterval && immigrationTimer)
         {
-            ImGui::Text("HUMAN CONTROLS");
+            ImGui::Text("IMMIGRATION CONTROLS");
             ImGui::Separator();
 
-            ImGui::Text("Total Humans: %zu", humans->size());
+            ImGui::SliderFloat("Immigration Interval (sec)", immigrationInterval, 1.0f, 30.0f);
+            ImGui::Text("Next immigrant in: %.1f sec", *immigrationInterval - *immigrationTimer);
 
-            if (ImGui::Button("Spawn Immigrant"))
-            {
-                humans->push_back(Human::CreateImmigrant());
-            }
-
-            ImGui::SameLine();
-
-            if (ImGui::Button("Make All Humans Explore"))
-            {
-                for (auto& h : *humans)
-                {
-                    h.DecideNextAction(map);
-                }
-            }
-
-            if (immigrationInterval && immigrationTimer)
-            {
-                ImGui::SliderFloat("Immigration Interval (sec)", immigrationInterval, 1.0f, 30.0f);
-                ImGui::Text("Next immigrant in: %.1f sec", *immigrationInterval - *immigrationTimer);
-            }
-
-            ImGui::Separator();
-            ImGui::Text("Custom Path:");
-
-            static int startX = 5;
-            static int startY = 5;
-            static int endX = 50;
-            static int endY = 50;
-
-            ImGui::SliderInt("Start X", &startX, 0, GRID_SIZE_X - 1);
-            ImGui::SliderInt("Start Y", &startY, 0, GRID_SIZE_Y - 1);
-            ImGui::SliderInt("End X", &endX, 0, GRID_SIZE_X - 1);
-            ImGui::SliderInt("End Y", &endY, 0, GRID_SIZE_Y - 1);
+            ImGui::Spacing();
+            ImGui::Spacing();
         }
 
         // ROAD CONTROLS Section
-        if (road && map)
+        if (mapManager)
         {
+            auto road = mapManager->GetRoad();
+            auto map = mapManager->GetMap();
+
             ImGui::Separator();
             ImGui::Text("Road Building:");
 
@@ -246,7 +223,7 @@ namespace Dokev
 
             if (ImGui::Button("Add Single Road"))
             {
-                road->addRoad(roadStartX, roadStartY);
+                road->addRoad(roadStartX, roadStartY, *map);
                 printf("Added road at (%d,%d)\n", roadStartX, roadStartY);
             }
 
@@ -254,8 +231,77 @@ namespace Dokev
 
             if (ImGui::Button("Remove Road"))
             {
-                road->removeRoad(roadStartX, roadStartY);
+                road->removeRoad(roadStartX, roadStartY, *map);
                 printf("Removed road at (%d,%d)\n", roadStartX, roadStartY);
+            }
+        }
+
+        // HUMAN CONTROLS Section
+        if (goManager)
+        {
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Text("HUMAN CONTROLS");
+            ImGui::Separator();
+
+            auto& humans = goManager->GetHumans();
+            ImGui::Text("Total Humans: %zu", humans.size());
+
+            ImGui::Spacing();
+
+            if (ImGui::Button("Add Human at Center"))
+            {
+                goManager->AddHuman(new Human(Math::fvec2(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f)));
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Add Immigrant"))
+            {
+                goManager->AddHuman(new Human(Human::CreateImmigrant()));
+            }
+
+            ImGui::Spacing();
+
+            // Individual human controls
+            if (ImGui::TreeNode("Individual Humans"))
+            {
+                int index = 0;
+                for (auto& human : humans)
+                {
+                    ImGui::PushID(index);
+
+                    std::string label = "Human #" + std::to_string(index);
+                    if (ImGui::TreeNode(label.c_str()))
+                    {
+                        auto pos = human->GetGridPosition();
+                        ImGui::Text("Position: (%.1f, %.1f)", pos.x, pos.y);
+                        ImGui::Text("State: %s",
+                            human->GetState() == HumanState::Idle ? "Idle" :
+                            human->GetState() == HumanState::Walking ? "Walking" :
+                            human->GetState() == HumanState::FindingDestination ? "Finding Destination" :
+                            human->GetState() == HumanState::Working ? "Working" : "Resting");
+                        ImGui::Text("Happiness: %.1f", human->GetHappiness());
+
+                        if (ImGui::Button("Toggle Debug"))
+                        {
+                            human->ToggleDebug();
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGui::Button("Remove"))
+                        {
+                            human->Destroy();
+                        }
+
+                        ImGui::TreePop();
+                    }
+
+                    ImGui::PopID();
+                    index++;
+                }
+                ImGui::TreePop();
             }
         }
 

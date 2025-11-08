@@ -23,7 +23,8 @@ namespace CS230
     void GameStateManager::Update()
     {
         mToClear.clear();
-        mGameStateStack.back()->Update();
+        const auto& environment = Engine::GetWindowEnvironment();
+        mGameStateStack.back()->Update(environment.DeltaTime);
     }
 
     void GameStateManager::Draw()
