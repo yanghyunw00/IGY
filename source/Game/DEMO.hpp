@@ -46,7 +46,7 @@ private:
     Dokev::Camera camera;
     Dokev::Mouse mouse;
     std::unique_ptr<CS200::IRenderer2D>          customRenderer;
-    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED;
+    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; // will change to batched
 private:
     void                       updateInput();
 

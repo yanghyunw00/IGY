@@ -158,7 +158,8 @@ void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) c
                 int originalX = selectedView[count]->x;
                 int originalY = selectedView[count]->y;
 
-                Dokev::TileType tileType = tileManager->GetTileType(originalX, originalY);
+                Dokev::TileType tileType = tileManager->GetTileType(originalX, originalY);// why not retrieve the memory where they are all contiguous? like maybe a struct so there are fewer cache misses?
+
 
                 if (tileType == Dokev::TileType::ROAD)
                 {
@@ -174,10 +175,10 @@ void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) c
                         current_texture = 1;
                     if (height < 75)
                         current_texture = 0;
-
                     Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
                 }
+
             }
         }
     }

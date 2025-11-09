@@ -82,7 +82,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     Engine& engine = Engine::Instance();
     engine.Start("Team - doodoobird");
-    engine.GetGameStateManager().PushState<GamePlayState>();
+    engine.GetGameStateManager().PushState<DEMO>();
 
 #if !defined(__EMSCRIPTEN__)
     while (engine.HasGameEnded() == false)

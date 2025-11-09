@@ -46,14 +46,11 @@ void DEMO::Load()
 
     camera.SetZoom(0.3f);
 
-
-
 }
 
 
 void DEMO::Update()
 {
-
 
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
 
@@ -129,7 +126,7 @@ void DEMO::DrawImGui()
 
 void DEMO::SwitchRenderer(Dokev::RenderState type)
 {
-    if (selected_renderer == type)
+    if (selected_renderer == type) // if we switched to the same type
         return;
 
     if (customRenderer)
@@ -143,11 +140,6 @@ void DEMO::SwitchRenderer(Dokev::RenderState type)
     switch (type)
     {
         case Dokev::RenderState::IMMEDIATE: break;
-
-        // case Dokev::RenderState::BATCH:
-        //     customRenderer = std::make_unique<CS200::BatchRenderer2D>();
-        //     customRenderer->Init();
-        //     break;
 
         case Dokev::RenderState::INSTANCED:
             customRenderer = std::make_unique<CS200::InstancedRenderer2D>();

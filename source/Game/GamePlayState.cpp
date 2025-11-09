@@ -119,6 +119,7 @@ void GamePlayState::Update()
 void GamePlayState::Draw() const
 {
     CS200::RenderingAPI::Clear();
+
     auto& renderer2d = Engine::GetRenderer2D(selected_renderer);
 
     auto windowSize = Engine::GetWindow().GetSize();
@@ -130,6 +131,8 @@ void GamePlayState::Draw() const
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+
+    
     map.IsometricDrawMap(index,selected_renderer);
 
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
