@@ -113,7 +113,7 @@ public:
      * \param map The grid map
      * \return Human positioned outside map boundaries
      */
-    static Human CreateImmigrant(GridMap* map);
+    static Human CreateImmigrant();
 
     /**
      * \brief Find closest walkable tile from current position (for entering map)
@@ -214,5 +214,7 @@ private:
     // ========================================================================
     CS200::RGBA color;
 	bool debugMode = false;
+
+    Dokev::Texture2D humanTexture;
 
 };

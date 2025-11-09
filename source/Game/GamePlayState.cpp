@@ -10,6 +10,7 @@
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
+#include "Engine/Path.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKImage.hpp"
@@ -49,29 +50,38 @@ void GamePlayState::Load()
 
     try
     {
-        smokeSprite = Dokev::AnimatedSprite("Assets/images/Smoke.spt");
+        smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
     }
     catch (const std::exception& e)
     {
         printf("Failed to load smoke animation: %s\n", e.what());
     }
 
-    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>("Assets/images/Smoke.spt", 20);
+    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>(assets::locate_asset("Assets/images/Smoke.spt"), 20);
     smokeEmitter->SetMaxLife(1.0); 
+
+    m_goManager = std::make_unique<GameObjectManager>();
 
     human.reserve(100);
     human.push_back(Human(Math::fvec2(5.0f, 5.0f)));
     human.push_back(Human(Math::fvec2(78.0f, 13.0f)));;
 
     road = std::make_unique<Road>();
+
+    // Initialize world editor
+    worldEditor.Initialize(&map, &camera, &human, road.get(), &index, &immigrationTimer, &immigrationInterval);
 }
 
 void GamePlayState::Update()
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
-    updateInput();
+    worldEditor.UpdateInput();
     const auto& input = Engine::GetInput();
 
+    //나중에
+    //m_goManager->Update(dt);
+    
+    
     smokeSprite.Update(environment.DeltaTime);
 
     if (smokeEmitter)
@@ -102,14 +112,14 @@ void GamePlayState::Update()
     if (immigrationTimer >= immigrationInterval)
     {
         immigrationTimer = 0.0f;
-        human.push_back(Human::CreateImmigrant(&map));
+        human.push_back(Human::CreateImmigrant());
     }
 }
 
 void GamePlayState::Draw() const
 {
     CS200::RenderingAPI::Clear();
-    auto& renderer2d = Engine::GetRenderer2D();
+    auto& renderer2d = Engine::GetRenderer2D(selected_renderer);
 
     auto windowSize = Engine::GetWindow().GetSize();
     auto ndcMatrix  = CS200::build_ndc_matrix(windowSize);
@@ -120,7 +130,7 @@ void GamePlayState::Draw() const
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    map.IsometricDrawMap(index);
+    map.IsometricDrawMap(index,selected_renderer);
 
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
@@ -134,15 +144,9 @@ void GamePlayState::Draw() const
     {
         smokeEmitter->Draw(cameraTransform * ndcMatrix);
     }
-
-    // Draw roads
-    int currentView = (index % 4) + 1;
-    if (road)
-    {
-        road->drawRoads(map, currentView);
-    }
-
+    
     // Draw human
+    int currentView = (index % 4) + 1;
     for (auto& h : human)
     {
         h.Draw(currentView, &map);
@@ -153,274 +157,9 @@ void GamePlayState::Draw() const
 
 void GamePlayState::DrawImGui()
 {
-    if (ImGui::Begin("Controller"))
-    {
-        // PERFORMANCE Section
-        ImGui::Text("PERFORMANCE");
-        ImGui::Separator();
-
-        const auto& env = Engine::GetWindowEnvironment();
-        ImGui::Text("FPS: %d", env.FPS);
-        ImGui::Text("Frame time: %.2f ms", static_cast<float>(env.DeltaTime * 1000.0));
-
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        ImGui::Text("DISPLAY SETTINGS");
-        ImGui::Separator();
-
-        if (ImGui::Checkbox("VSync Enabled", &vsyncEnabled))
-        {
-            if (vsyncEnabled)
-            {
-                if (SDL_GL_SetSwapInterval(-1) != 0)
-                    SDL_GL_SetSwapInterval(1);       
-            }
-            else
-            {
-                SDL_GL_SetSwapInterval(0); 
-            }
-        }
-
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        // CAMERA CONTROLS Section
-        ImGui::Text("CAMERA CONTROLS");
-        ImGui::Separator();
-
-        float zoom = camera.GetZoom();
-        if (ImGui::SliderFloat("Zoom", &zoom, 0.1f, 1.0f))
-        {
-            camera.SetZoom(zoom);
-        }
-
-        ImGui::Spacing();
-
-        if (ImGui::Button("Rotate to Map right"))
-        {
-            index = (index - 1 + 4) % 4;
-        }
-
-        if (ImGui::Button("Roatate Map to Left"))
-        {
-            index = (index + 1) % 4;
-        }
-
-        ImGui::Text("Rotate Index: %d", index);
-
-        ImGui::Spacing();
-        ImGui::Spacing();
-
-        // HUMAN CONTROLS Section
-        ImGui::Text("HUMAN CONTROLS");
-        ImGui::Separator();
-
-        ImGui::Text("Total Humans: %zu", human.size());
-
-        if (ImGui::Button("Spawn Immigrant"))
-        {
-            human.push_back(Human::CreateImmigrant(&map));
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Make All Humans Explore"))
-        {
-            for (auto& h : human)
-            {
-                h.DecideNextAction(&map);
-            }
-        }
-
-        ImGui::SliderFloat("Immigration Interval (sec)", &immigrationInterval, 1.0f, 30.0f);
-        ImGui::Text("Next immigrant in: %.1f sec", immigrationInterval - immigrationTimer);
-
-        ImGui::Separator();
-        // if (!human.empty())
-        // {
-        //     ImGui::Text("Human moving: %s", human->IsMoving() ? "Yes" : "No");
-        //     ImGui::Text("Human debug: %s", human->IsDebugMode() ? "ON" : "OFF");
-
-        //     for (auto& h : human)
-        //     {
-
-        //     }
-        //     ImGui::Text("Human position: (%.1f, %.1f)", pos.x, pos.y);
-        // }
-
-        ImGui::Separator();
-        ImGui::Text("Custom Path:");
-
-        static int startX = 5;
-        static int startY = 5;
-        static int endX   = 50;
-        static int endY   = 50;
-
-        ImGui::SliderInt("Start X", &startX, 0, GRID_SIZE_X - 1);
-        ImGui::SliderInt("Start Y", &startY, 0, GRID_SIZE_Y - 1);
-        ImGui::SliderInt("End X", &endX, 0, GRID_SIZE_X - 1);
-        ImGui::SliderInt("End Y", &endY, 0, GRID_SIZE_Y - 1);
-
-        // if (ImGui::Button("Find Path"))
-        // {
-        //     if (human)
-        //     {
-        //         map.ClearPath();
-        //         map.FindPath(startX, startY, endX, endY);
-        //         auto path = map.GetCurrentPath();
-        //         if (!path.empty())
-        //         {
-        //             human->FollowPath(path);
-        //         }
-        //         else
-        //         {
-        //             printf("No path found from (%d,%d) to (%d,%d)!\n", startX, startY, endX, endY);
-        //         }
-        //     }
-        // }
-
-        ImGui::SameLine();
-
-        // if (ImGui::Button("Set Start to Human Pos"))
-        // {
-        //     if (human)
-        //     {
-        //         auto pos = human->GetActualPosition();
-        //         startX   = static_cast<int>(pos.x);
-        //         startY   = static_cast<int>(pos.y);
-        //     }
-        // }
-
-        ImGui::Separator();
-        ImGui::Text("Road Building:");
-
-        if (road)
-        {
-            ImGui::Text("Total roads: %zu", road->getRoadCount());
-        }
-
-        static int roadStartX = 10;
-        static int roadStartY = 10;
-        static int roadEndX   = 30;
-        static int roadEndY   = 30;
-
-        ImGui::SliderInt("Road Start X", &roadStartX, 0, GRID_SIZE_X - 1);
-        ImGui::SliderInt("Road Start Y", &roadStartY, 0, GRID_SIZE_Y - 1);
-        ImGui::SliderInt("Road End X", &roadEndX, 0, GRID_SIZE_X - 1);
-        ImGui::SliderInt("Road End Y", &roadEndY, 0, GRID_SIZE_Y - 1);
-
-        if (ImGui::Button("Build Road Path"))
-        {
-            if (road)
-            {
-                road->buildRoadPath(map, roadStartX, roadStartY, roadEndX, roadEndY);
-                printf("Built road from (%d,%d) to (%d,%d). Total roads: %zu\n", roadStartX, roadStartY, roadEndX, roadEndY, road->getRoadCount());
-            }
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Clear All Roads"))
-        {
-            if (road)
-            {
-                road->removeAllRoad();
-                printf("All roads cleared\n");
-            }
-        }
-
-        if (ImGui::Button("Add Single Road"))
-        {
-            if (road)
-            {
-                road->addRoad(roadStartX, roadStartY);
-                printf("Added road at (%d,%d)\n", roadStartX, roadStartY);
-            }
-        }
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Remove Road"))
-        {
-            if (road)
-            {
-                road->removeRoad(roadStartX, roadStartY);
-                printf("Removed road at (%d,%d)\n", roadStartX, roadStartY);
-            }
-        }
-    }
-    ImGui::End();
+    worldEditor.DrawImGui();
 }
 
-void GamePlayState::updateInput()
-{
-    const auto& input       = Engine::GetInput();
-    const auto& environment = Engine::GetWindowEnvironment();
-
-
-    // Re gen
-    if (input.KeyJustPressed(CS230::Input::Keys::Space))
-    {
-        map.ReGenerateMap();
-        map.InitializePathFinding();
-        map.ClearPath();
-        printf("Map regenerated and pathfinding reinitialized\n");
-    }
-
-    // for future road, human
-    // int currentView = (index % 4) + 1;
-
-
-    if (input.KeyDown(CS230::Input::Keys::Q))
-        camera.AdjustZoom(0.95f);
-    if (input.KeyDown(CS230::Input::Keys::E))
-        camera.AdjustZoom(1.05f);
-
-    camera.ClampZoom(0.1f, 5.0f);
-
-    constexpr double camera_speed = 1.0;
-
-    if (input.KeyDown(CS230::Input::Keys::A))
-    {
-        camera.Move({ camera_speed * environment.DeltaTime, 0 });
-    }
-    if (input.KeyDown(CS230::Input::Keys::D))
-    {
-        camera.Move({ -camera_speed * environment.DeltaTime, 0 });
-    }
-    if (input.KeyDown(CS230::Input::Keys::W))
-    {
-        camera.Move({ 0, -camera_speed * environment.DeltaTime });
-    }
-    if (input.KeyDown(CS230::Input::Keys::S))
-    {
-        camera.Move({ 0, camera_speed * environment.DeltaTime });
-    }
-    // reset
-    if (input.KeyDown(CS230::Input::Keys::R))
-    {
-        camera.Reset();
-    }
-
-    // if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))
-    // {
-    //     //int x = stencil_value & 0xFF; int y = (stencil_value >> 8) & 0xFF;
-    //     int stencil_value;
-    //     glReadPixels(mouse.GetPosition().x,mouse.GetPosition().y, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_INT, &stencil_value);
-    //     int x = stencil_value & 0xFF; int y = (stencil_value >> 8) & 0xFF;
-    //     std::cout << "x : " << x << " y : " << y << std::endl;
-    // }
-
-    if (input.KeyJustPressed(CS230::Input::Keys::Z))
-    {
-        index = (index - 1 + 4) % 4;
-    }
-    else if (input.KeyJustPressed(CS230::Input::Keys::C))
-    {
-        index = (index + 1) % 4;
-    }
-}
 
 void GamePlayState::Unload()
 {
