@@ -15,6 +15,7 @@
 #include <cstdint>
 #include "OpenGL/VertexArray.hpp"
 #include <array>
+#include <vector>
 
 namespace CS200
 {
@@ -23,7 +24,8 @@ namespace CS200
     {
     public:
 
-        // BatchRenderer2D() = default;
+           BatchRenderer2D(unsigned max_quads = 10000); // get the max numbers in the constructor
+
 
         // BatchRenderer2D(const BatchRenderer2D& other) = delete;
 
@@ -45,32 +47,31 @@ namespace CS200
 
         void DrawQuad(const Math::TransformationMatrix& transform, OpenGL::TextureHandle texture, Math::vec2 texture_coord_bl, Math::vec2 texture_coord_tr, CS200::RGBA tintColor) override;
 
+   
+
     private:
 
-        enum class SDFShape : uint8_t
+        struct QuadVertex
         {
-            Circle    = 0,
-            Rectangle = 1,
+            float                        x = 0, y = 0;
+            float                        s = 0, t = 0;
+            //float                        model[9];
+            std::array<unsigned char, 4> tint{};
         };
 
-        void DrawSDF(const Math::TransformationMatrix& transform, CS200::RGBA fill_color, CS200::RGBA line_color, double line_width, SDFShape sdf_shape);
+        std::vector<QuadVertex> vertexData;
+        OpenGL::CompiledShader  shader{};
+        OpenGL::Handle          vertexBuffer = 0, indexBuffer = 0, vertexArrayObject = 0;
 
+        unsigned maxVertices = 0; // limit for max vertices in a single batch
+        unsigned maxIndices  = 0;
 
-    private:
-        OpenGL::VertexArrayHandle vao{}; // Vertex Array Object
-        OpenGL::BufferHandle      vbo{}; //  Vertex Buffer Object
-        OpenGL::BufferHandle      ibo{}; //  Index Buffer Object
-        OpenGL::BufferHandle      uniformBlock{};
+        QuadVertex* vertexDataEnd = nullptr; // where are we in the current vertex buffer
+        unsigned    indexCount    = 0;
+           
+        void flush();
 
-        GLsizei indicesCount = 0;
+        void startBatch();
 
-        OpenGL::VertexArrayHandle sdf_vao{};
-        OpenGL::BufferHandle      sdfVbo{};
-
-        OpenGL::CompiledShader textureShader{};
-        OpenGL::CompiledShader sdfShader{};
-
-        OpenGL::BufferHandle       uboCamera{};
-        Math::TransformationMatrix viewProjection;
     };
 }
