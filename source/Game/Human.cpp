@@ -85,7 +85,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
 
             if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
             {
-                GridCell** viewArray   = map->GetViewArray(1);
+                GridCell** viewArray   = map->GetViewArray(0);
                 GridCell*  currentCell = viewArray[gridY * GRID_SIZE_X + gridX];
 
                 std::string terrainName;
@@ -216,10 +216,10 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF;
     int drawY = topY;
 
-    //For Debugging stuff
-   // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
-   // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
-    humanTexture.Draw(drawX, drawY);
+    //For Debugging stuffas
+    Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
+    Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+    //humanTexture.Draw(drawX, drawY);
 }
 
 void Human::ChangeState(HumanState newState)
@@ -332,7 +332,7 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
 
         if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
         {
-            GridCell** viewArray = map->GetViewArray(1);
+            GridCell** viewArray = map->GetViewArray(0);
             GridCell* cell = viewArray[gridY * GRID_SIZE_X + gridX];
             double height = cell->getHeight();
 
@@ -556,7 +556,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
     float closestDist = 999999.0f;
     Math::fvec2 closestTile(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
 
-    GridCell** viewArray = map->GetViewArray(1);
+    GridCell** viewArray = map->GetViewArray(0);
 
     for (int x = 0; x < GRID_SIZE_X; x++)
     {

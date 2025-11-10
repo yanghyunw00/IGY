@@ -103,7 +103,7 @@ void GamePlayState::Update(double dt)
     if (immigrationTimer >= immigrationInterval)
     {
         immigrationTimer = 0.0f;
-        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Human::CreateImmigrant()));
+        //GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Human::CreateImmigrant()));
     }
 }
 

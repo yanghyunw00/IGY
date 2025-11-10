@@ -42,7 +42,7 @@ private:
     Dokev::Texture2D noiseTexture2;
 
     //Iso grid
-    int index = 1;
+    int index = 0;
 
     Dokev::Camera camera;
     Dokev::Mouse mouse;
