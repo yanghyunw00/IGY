@@ -1,6 +1,6 @@
 /**
  * \file DKTileManager.hpp
- * \brief Manages tile allocation/deallocation for buildings and roads
+ * \brief
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology

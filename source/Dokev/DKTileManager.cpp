@@ -1,6 +1,6 @@
 /**
  * \file DKTileManager.cpp
- * \brief Implementation of TileManager
+ * \brief 
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology

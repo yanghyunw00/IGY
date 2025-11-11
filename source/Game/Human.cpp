@@ -11,19 +11,22 @@
 #include "Dokev/DKColor.hpp"
 #include "Engine/Path.hpp"
 #include "GridMap.hpp"
+#include "Road.hpp"
 #include <iostream>
+#include <queue>
+#include <unordered_map>
 
 Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false), color(Dokev::ColorPalette::BLUE)
 {
     startPosition  = currentGridPos;
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
-    humanTexture = Dokev::LoadTexture("Assets/images/textures/Human.png");
+    humanTexture   = Dokev::LoadTexture("Assets/images/textures/Human.png");
 }
 
 void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)
 {
-    (void) source;
+    (void)source;
 
     if (newPath.size() <= 1)
     {
@@ -48,7 +51,7 @@ void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource so
 
 void Human::UpdateMovement(float deltaTime, GridMap* map)
 {
-     if (!isMoving)
+    if (!isMoving)
         return;
 
     moveTimer += deltaTime;
@@ -76,13 +79,13 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
 
             if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
             {
-                GridCell** viewArray   = map->GetViewArray(1);
+                GridCell** viewArray   = map->GetViewArray(0);
                 GridCell*  currentCell = viewArray[gridY * GRID_SIZE_X + gridX];
 
                 std::string terrainName;
                 double      height = currentCell->getHeight();
-				terrainName = GetTerrainName(height);
-                std::cout << "Arrived Tile: (" << gridX << ", " << gridY << ") - " << terrainName << " [Height: " << (int)height << "]" << std::endl;
+                terrainName        = GetTerrainName(height);
+                ai.previousGridPos = startPosition; 
             }
         }
 
@@ -95,7 +98,6 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
             path.clear();
             if (debugMode)
             {
-                std::cout << "=== Destination ===" << std::endl;
             }
         }
         else // 아직 덜 갔으면
@@ -118,10 +120,10 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
 }
 
 void Human::UpdateIdle(float deltaTime, GridMap* map)
-{ 
-    (void) map;
+{
+    (void)map;
     ai.idleTimer += deltaTime;
-    
+
     if (ai.idleTimer >= ai.maxIdleTime)
     {
         ai.idleTimer = 0.0f;
@@ -129,24 +131,20 @@ void Human::UpdateIdle(float deltaTime, GridMap* map)
     }
 }
 
-void Human::UpdateFindingDestination(float deltaTime, GridMap* map)
+void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road)
 {
-    (void) deltaTime;
-    
-    if (!map) return;
-    
-    Math::fvec2 destination = FindRandomDestination(map);
-    
+    (void)deltaTime;
+
+    if (!map)
+        return;
+
+    Math::fvec2 destination = FindRandomDestination(map, road);
+
     map->ClearPath();
-    map->FindPath(
-        static_cast<int>(currentGridPos.x), 
-        static_cast<int>(currentGridPos.y),
-        static_cast<int>(destination.x), 
-        static_cast<int>(destination.y)
-    );
-    
+    map->FindPath(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y), static_cast<int>(destination.x), static_cast<int>(destination.y));
+
     auto path_ = map->GetCurrentPath();
-    
+
     if (!path_.empty())
     {
         FollowPath(path_);
@@ -155,18 +153,30 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map)
     else
     {
         ChangeState(HumanState::Idle);
-        ai.idleTimer = ai.maxIdleTime - 0.5f; 
+        ai.idleTimer = ai.maxIdleTime - 0.5f;
     }
 }
-void Human::Update(float deltaTime, GridMap* map)
+
+void Human::Update(float deltaTime, GridMap* map, const Road* road)
 {
-   if (state == HumanState::Walking && isMoving)
+    if (state == HumanState::Walking && isMoving)
     {
         UpdateMovement(deltaTime, map);
-        
+
         if (!isMoving)
         {
-            ChangeState(HumanState::Idle);
+            bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), 
+                                                static_cast<int>(currentGridPos.y));
+
+            if (ai.isFollowingRoad && onRoad)
+            {
+                ChangeState(HumanState::FindingDestination);
+            }
+            else
+            {
+                ai.isFollowingRoad = false; 
+                ChangeState(HumanState::Idle);
+            }
         }
     }
     else if (state == HumanState::Idle)
@@ -175,13 +185,12 @@ void Human::Update(float deltaTime, GridMap* map)
     }
     else if (state == HumanState::FindingDestination)
     {
-        UpdateFindingDestination(deltaTime, map);
+        UpdateFindingDestination(deltaTime, map, road);
     }
 }
 
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
-    // Transform the position based on the view rotation
     Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
 
     float gridX_float = transformedPos.x;
@@ -208,15 +217,15 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF;
     int drawY = topY;
 
-    //For Debugging stuff
-   // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
-   // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
-    humanTexture.Draw(drawX, drawY);
+    // For Debugging stuffas
+    Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
+    Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+    // humanTexture.Draw(drawX, drawY);
 }
 
 void Human::ChangeState(HumanState newState)
 {
-	state = newState;
+    state = newState;
 }
 
 std::string Human::GetTerrainName(double height) const
@@ -226,39 +235,80 @@ std::string Human::GetTerrainName(double height) const
         return "Water";
     }
     else if (height < 150.0)
-         return "Plains";
+        return "Plains";
     else if (height < 205.0)
         return "Mountains";
     else
-		return "Peak";
+        return "Peak";
 }
 
 void Human::DecideNextAction(GridMap* map)
 {
-    (void) map;
+    (void)map;
     if (state == HumanState::Idle)
     {
         ChangeState(HumanState::FindingDestination);
     }
 }
 
-Math::fvec2 Human::FindRandomDestination(GridMap* map)
+Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
 {
     if (!map)
     {
         return currentGridPos;
     }
 
-    // Range of random tile to search
+    if (road)
+    {
+        // 이미 도로를 따라가고 있으면 다음 도로 타일 찾기
+        if (ai.isFollowingRoad)
+        {
+            bool        foundRoad    = false;
+            Math::fvec2 nextRoadTile = FindNextRoadTile(road, foundRoad);
+
+            if (foundRoad)
+            {
+                ai.lastDirection.x = nextRoadTile.x - currentGridPos.x;
+                ai.lastDirection.y = nextRoadTile.y - currentGridPos.y;
+                return nextRoadTile;
+            }
+            else
+            {
+                // 도로 끝에 도달했거나 더 이상 갈 도로가 없음
+                ai.isFollowingRoad = false;
+            }
+        }
+
+        // 도로를 따라가지 않고 있으면 가장 가까운 도로 찾기
+        if (!ai.isFollowingRoad)
+        {
+            Math::fvec2 roadPos;
+            if (FindNearbyRoad(road, roadPos))
+            {
+                ai.isFollowingRoad = true;
+                ai.recentDestinations.push_back(roadPos);
+                if (ai.recentDestinations.size() > ai.maxRecentDestinations)
+                {
+                    ai.recentDestinations.erase(ai.recentDestinations.begin());
+                }
+                return roadPos;
+            }
+            else
+            {
+                std::cout << "No road found nearby" << std::endl;
+            }
+        }
+    }
+
     float maxDistance = ai.explorationRadius;
     float minDistance = maxDistance * 0.5f;
 
-    int attempts = 0;
+    int       attempts    = 0;
     const int maxAttempts = 10;
 
     while (attempts < maxAttempts)
     {
-        float angle = (rand() % 360) * (3.14159f / 180.0f);
+        float angle    = (rand() % 360) * (3.14159f / 180.0f);
         float distance = minDistance + (rand() % (int)(maxDistance - minDistance + 1));
 
         Math::fvec2 destination;
@@ -273,11 +323,11 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map)
 
         if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
         {
-            GridCell** viewArray = map->GetViewArray(1);
-            GridCell* cell = viewArray[gridY * GRID_SIZE_X + gridX];
-            double height = cell->getHeight();
+            GridCell** viewArray = map->GetViewArray(0);
+            GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
+            double     height    = cell->getHeight();
 
-            if (height < 75.0)  //if water , try again
+            if (height < 75.0) // if water, try again
             {
                 attempts++;
                 continue;
@@ -287,8 +337,8 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map)
         bool tooClose = false;
         for (const auto& recentDest : ai.recentDestinations)
         {
-            float dx = destination.x - recentDest.x;
-            float dy = destination.y - recentDest.y;
+            float dx     = destination.x - recentDest.x;
+            float dy     = destination.y - recentDest.y;
             float distSq = dx * dx + dy * dy;
 
             if (distSq < 100.0f)
@@ -315,19 +365,167 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map)
 
         return destination;
     }
+
+    return currentGridPos;
 }
 
-bool Human::FindNearbyRoad(GridMap* map, Math::fvec2& outRoadPosition) const
+Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
 {
-    (void) map;
-    (void) outRoadPosition;
+    outFoundRoad = false;
+    if (!road)
+        return currentGridPos;
+
+    int currentX = static_cast<int>(currentGridPos.x);
+    int currentY = static_cast<int>(currentGridPos.y);
+
+
+    int prevX = static_cast<int>(startPosition.x);
+    int prevY = static_cast<int>(startPosition.y);
+
+    int directions[4][2] = {
+        {  1,  0 }, // 오른쪽
+        { -1,  0 }, // 왼쪽
+        {  0,  1 }, // 아래
+        {  0, -1 }  // 위
+    };
+
+    std::vector<Math::fvec2> candidates;
+    for (auto& dir : directions)
+    {
+        int nx = currentX + dir[0];
+        int ny = currentY + dir[1];
+
+        if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
+            continue;
+
+        if (road->hasRoad(nx, ny))
+        {
+            candidates.push_back(Math::fvec2(static_cast<float>(nx), static_cast<float>(ny)));
+        }
+    }
+
+    // single road
+    if (candidates.empty())
+    {
+        outFoundRoad = false;
+        return currentGridPos;
+    }
+
+    // delete previous road
+    std::vector<Math::fvec2> nextMoveOptions;
+    if (candidates.size() > 1) //more than one road
+    {
+        for (const auto& tile : candidates)
+        {
+            if (static_cast<int>(tile.x) != prevX || static_cast<int>(tile.y) != prevY)
+            {
+                nextMoveOptions.push_back(tile);
+            }
+        }
+    }
+    else
+    {
+        // one candidate
+        nextMoveOptions = candidates; 
+    }
+    
+    // decide the next move 
+    if (nextMoveOptions.empty())
+    {
+        outFoundRoad = true;
+        return candidates[0]; 
+    }
+    else if (nextMoveOptions.size() == 1)
+    {
+        // 직선 / 코너
+        outFoundRoad = true;
+        return nextMoveOptions[0];
+    }
+    else
+    {
+        // 교차로 -> 랜더ㅕㅁ선택
+        outFoundRoad = true;
+        int randomIndex = rand() % nextMoveOptions.size();
+        return nextMoveOptions[randomIndex];
+    }
+}
+
+bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
+{
+    if (!road)
+        return false;
+
+    int startX = static_cast<int>(currentGridPos.x);
+    int startY = static_cast<int>(currentGridPos.y);
+
+    if (road->hasRoad(startX, startY))
+    {
+        outRoadPosition = Math::fvec2(static_cast<float>(startX), static_cast<float>(startY));
+        return true;
+    }
+
+    std::queue<std::pair<int, int>> q;
+    std::unordered_map<int, bool>   visited;
+
+    auto key = [&](int x, int y)
+    {
+        return y * GRID_SIZE_X + x;
+    };
+
+    q.push({ startX, startY });
+    visited[key(startX, startY)] = true;
+
+    int directions[8][2] = {
+        {  1,  0 }, // 오른쪽
+        { -1,  0 }, // 왼쪽
+        {  0,  1 }, // 아래
+        {  0, -1 }, // 위
+        {  1,  1 }, // 오른쪽 아래
+        {  1, -1 }, // 오른쪽 위
+        { -1,  1 }, // 왼쪽 아래
+        { -1, -1 }  // 왼쪽 위
+    };
+
+    int searchLimit = 1000;
+    int searchCount = 0;
+
+    while (!q.empty() && searchCount < searchLimit)
+    {
+        auto [cx, cy] = q.front();
+        q.pop();
+        searchCount++;
+
+        for (auto& dir : directions)
+        {
+            int nx = cx + dir[0];
+            int ny = cy + dir[1];
+
+            if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
+                continue;
+
+            // visited check
+            if (visited[key(nx, ny)])
+                continue;
+
+            visited[key(nx, ny)] = true;
+
+            // if found road
+            if (road->hasRoad(nx, ny))
+            {
+                outRoadPosition = Math::fvec2(static_cast<float>(nx), static_cast<float>(ny));
+                return true;
+            }
+
+            q.push({ nx, ny });
+        }
+    }
+
     return false;
 }
 
 Human Human::CreateImmigrant()
 {
-    // Randomly select one of the 4 sides of the map
-    int side = rand() % 4;  // 0=top, 1=right, 2=bottom, 3=left
+    int side = rand() % 4; // 0=top, 1=right, 2=bottom, 3=left
 
     float spawnX, spawnY;
 
@@ -366,21 +564,20 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
         return Math::fvec2(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
     }
 
-    float closestDist = 999999.0f;
+    float       closestDist = 999999.0f;
     Math::fvec2 closestTile(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f);
 
-    // Search along map boundaries (top, bottom, left, right edges only)
-    GridCell** viewArray = map->GetViewArray(1);
+    GridCell** viewArray = map->GetViewArray(0);
 
     for (int x = 0; x < GRID_SIZE_X; x++)
     {
         for (int y = 0; y < 5 && y < GRID_SIZE_Y; y++)
         {
             GridCell* cell = viewArray[y * GRID_SIZE_X + x];
-            if (cell->getHeight() >= 75.0)  
+            if (cell->getHeight() >= 75.0)
             {
-                float dx = x - currentGridPos.x;
-                float dy = y - currentGridPos.y;
+                float dx   = x - currentGridPos.x;
+                float dy   = y - currentGridPos.y;
                 float dist = dx * dx + dy * dy;
 
                 if (dist < closestDist)
@@ -391,15 +588,16 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
             }
         }
 
-        // Bottom edge (check last 5 rows)
+        // Bottom edge
         for (int y = GRID_SIZE_Y - 5; y < GRID_SIZE_Y; y++)
         {
-            if (y < 0) continue;
+            if (y < 0)
+                continue;
             GridCell* cell = viewArray[y * GRID_SIZE_X + x];
             if (cell->getHeight() >= 75.0)
             {
-                float dx = x - currentGridPos.x;
-                float dy = y - currentGridPos.y;
+                float dx   = x - currentGridPos.x;
+                float dy   = y - currentGridPos.y;
                 float dist = dx * dx + dy * dy;
 
                 if (dist < closestDist)
@@ -414,14 +612,14 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
     // Left and right edges
     for (int y = 0; y < GRID_SIZE_Y; y++)
     {
-        // Left edge (check first 5 columns)
+        // Left edge
         for (int x = 0; x < 5 && x < GRID_SIZE_X; x++)
         {
             GridCell* cell = viewArray[y * GRID_SIZE_X + x];
             if (cell->getHeight() >= 75.0)
             {
-                float dx = x - currentGridPos.x;
-                float dy = y - currentGridPos.y;
+                float dx   = x - currentGridPos.x;
+                float dy   = y - currentGridPos.y;
                 float dist = dx * dx + dy * dy;
 
                 if (dist < closestDist)
@@ -432,15 +630,16 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
             }
         }
 
-        // Right edge (check last 5 columns)
+        // Right edge
         for (int x = GRID_SIZE_X - 5; x < GRID_SIZE_X; x++)
         {
-            if (x < 0) continue;
+            if (x < 0)
+                continue;
             GridCell* cell = viewArray[y * GRID_SIZE_X + x];
             if (cell->getHeight() >= 75.0)
             {
-                float dx = x - currentGridPos.x;
-                float dy = y - currentGridPos.y;
+                float dx   = x - currentGridPos.x;
+                float dy   = y - currentGridPos.y;
                 float dist = dx * dx + dy * dy;
 
                 if (dist < closestDist)
