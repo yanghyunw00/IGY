@@ -10,7 +10,7 @@
 #include "Game/GridMap.hpp"
 #include "Game/Road.hpp"
 #include <memory>
-#include "Game/Resource.h"
+#include "Game/Resource.hpp"
 #include <vector>
 
 class MapManager : public IComponent
@@ -28,6 +28,7 @@ public:
     const Road* GetRoad() const { return road.get(); }
 
     const std::vector<std::unique_ptr<Resource>>& GetResources() const { return m_resources; }
+    std::vector<std::unique_ptr<Resource>>& GetResources() { return m_resources; }
 
 private:
     void SpawnResources(); 

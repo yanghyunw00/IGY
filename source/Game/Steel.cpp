@@ -1,4 +1,4 @@
-#include "Steel.h"
+#include "Steel.hpp"
 #include "Dokev/DKUtility.hpp"
 
 Steel::Steel(int x, int y, int amount)

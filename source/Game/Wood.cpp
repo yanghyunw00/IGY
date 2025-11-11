@@ -1,4 +1,4 @@
-#include "Wood.h"
+#include "Wood.hpp"
 #include "Dokev/DKUtility.hpp" 
 
 Wood::Wood(int x, int y, int amount)

@@ -9,9 +9,9 @@
 #include "Dokev/DKUtility.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
-#include "Game/Wood.h"
-#include "Game/Stone.h"
-#include "Game/Steel.h"
+#include "Game/Wood.hpp"
+#include "Game/Stone.hpp"
+#include "Game/Steel.hpp"
 
 MapManager::MapManager()
 {

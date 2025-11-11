@@ -38,6 +38,20 @@
 #include <sstream>
 #include "Game/Resource.h"
 #include "Game/ResourceManager.hpp"
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include "Game/Wood.h"
+#include "Game/Stone.h"
+#include "Game/Steel.h"
+#include "Game/Road.hpp"
+
+using json = nlohmann::json;
+
+NLOHMANN_JSON_SERIALIZE_ENUM( ResourceType, {
+    {ResourceType::Wood, "Wood"},
+    {ResourceType::Stone, "Stone"},
+    {ResourceType::Steel, "Steel"}
+})
 
 void GamePlayState::Load()
 {
@@ -181,3 +195,4 @@ gsl::czstring GamePlayState::GetName() const
 {
     return "IGY";
 }
+

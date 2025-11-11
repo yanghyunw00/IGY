@@ -1,6 +1,6 @@
 #pragma once
 #include "Dokev/DKComponent.hpp"
-#include "Game/Resource.h"
+#include "Game/Resource.hpp"
 
 class ResourceManager : public IComponent
 {

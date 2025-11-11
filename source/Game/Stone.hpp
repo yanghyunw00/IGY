@@ -1,5 +1,5 @@
 #pragma once
-#include "Resource.h"
+#include "Resource.hpp"
 
 class Stone : public Resource
 {

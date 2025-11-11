@@ -1,4 +1,4 @@
-#include "Stone.h"
+#include "Stone.hpp"
 #include "Dokev/DKUtility.hpp" 
 
 Stone::Stone(int x, int y, int amount)

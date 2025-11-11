@@ -1,4 +1,4 @@
-#include "Resource.h"
+#include "Resource.hpp"
 #include "Game/GridMap.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKUtility.hpp"
