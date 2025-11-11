@@ -18,12 +18,13 @@
 #include "Engine/Input.hpp"
 #include <imgui.h>
 #include <SDL.h>
+#include "Game/ResourceManager.hpp"
 
 namespace Dokev
 {
     void GameWorldEditor::Initialize(MapManager* mapManagerPtr, Camera* cameraPtr,
                                      int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr,
-                                     GameObjectManager* gameObjectManager)
+                                     GameObjectManager* gameObjectManager, ResourceManager* resourceManagerPtr)
     {
         mapManager = mapManagerPtr;
         camera = cameraPtr;
@@ -31,6 +32,7 @@ namespace Dokev
         immigrationTimer = immigrationTimerPtr;
         immigrationInterval = immigrationIntervalPtr;
         goManager = gameObjectManager;
+        resourceManager = resourceManagerPtr;
     }
 
     void GameWorldEditor::UpdateInput()
@@ -185,6 +187,29 @@ namespace Dokev
             ImGui::Spacing();
             ImGui::Spacing();
         }
+        if (resourceManager)
+        {
+            ImGui::Text("PLAYER RESOURCES");
+            ImGui::Separator();
+            ImGui::Text("Wood: %d", resourceManager->totalWood);
+            ImGui::Text("Stone: %d", resourceManager->totalStone);
+            ImGui::Text("Steel: %d", resourceManager->totalSteel);
+            ImGui::Spacing();
+            ImGui::Spacing();
+        }
+        ImGui::Text("SAVE / LOAD");
+        ImGui::Separator();
+        if (ImGui::Button("Save Game"))
+        {
+            saveGameRequested = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Load Game"))
+        {
+            loadGameRequested = true;
+        }
+        ImGui::Spacing();
+        ImGui::Spacing();
 
         // ROAD CONTROLS Section
         if (mapManager)

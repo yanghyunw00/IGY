@@ -86,6 +86,7 @@ set(SOURCE_CODE
     Game/Wood.hpp Game/Wood.cpp
     Game/Stone.hpp Game/Stone.cpp
     Game/Steel.hpp Game/Steel.cpp
+    Game/ResourceManager.hpp
 
 
    # Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp

@@ -37,6 +37,7 @@
 #include <numbers>
 #include <sstream>
 #include "Game/Resource.h"
+#include "Game/ResourceManager.hpp"
 
 void GamePlayState::Load()
 {
@@ -50,6 +51,9 @@ void GamePlayState::Load()
     // Initialize MapManager component
     AddGSComponent<MapManager>();
     GetGSComponent<MapManager>()->Initialize();
+
+    // Initialize ResourceManager
+    AddGSComponent<ResourceManager>();
 
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
@@ -69,7 +73,8 @@ void GamePlayState::Load()
 
     worldEditor.Initialize(GetGSComponent<MapManager>().get(), &camera, &index,
                           &immigrationTimer, &immigrationInterval,
-                          GetGSComponent<Dokev::GameObjectManager>().get());
+                          GetGSComponent<Dokev::GameObjectManager>().get(),
+                          GetGSComponent<ResourceManager>().get());
 }
 
 void GamePlayState::Update(double dt)
@@ -77,6 +82,17 @@ void GamePlayState::Update(double dt)
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     worldEditor.UpdateInput();
     const auto& input = Engine::GetInput();
+    
+    if (worldEditor.IsSaveRequested())
+    {
+        SaveGame("savegame.json");
+        worldEditor.ClearSaveRequest();
+    }
+    if (worldEditor.IsLoadRequested())
+    {
+        LoadGame("savegame.json");
+        worldEditor.ClearLoadRequest();
+    }
 
     UpdateGSComponents(dt);
 
