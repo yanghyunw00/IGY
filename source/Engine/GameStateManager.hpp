@@ -9,9 +9,9 @@
 #pragma once
 
 #include "Dokev/DKUtility.hpp"
+#include "Dokev/DKGameState.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
-#include "GameState.hpp"
 #include <memory>
 #include <vector>
 
@@ -35,8 +35,8 @@ namespace CS230
         void Clear();
 
     private:
-        std::vector<std::unique_ptr<GameState>> mGameStateStack;
-        std::vector<std::unique_ptr<GameState>> mToClear;
+        std::vector<std::unique_ptr<Dokev::GameState>> mGameStateStack;
+        std::vector<std::unique_ptr<Dokev::GameState>> mToClear;
     };
 
     template <typename STATE>

@@ -15,22 +15,25 @@
 #include "Dokev/DKMouseInput.hpp"
 #include "Dokev/DKAnimationSprite.hpp"
 #include "Dokev/DKParticleEmitter.hpp"
+#include "Dokev/DKParticles.hpp"
+#include "Dokev/DKGameObjectManager.hpp"
+#include "Dokev/DKGameWorldEditor.hpp"
+#include "Dokev/DKMapManager.hpp"
+
 #include "Engine/Vec2.hpp"
-#include "GridMap.hpp"
-#include "Human.hpp"
-#include "Road.hpp"
 #include <array>
 #include <memory>
 #include "Dokev/DKRenderState.hpp"
+#include "Dokev/DKGameState.hpp"
 
-class GamePlayState : public CS230::GameState
+class GamePlayState : public Dokev::GameState
 {
 public:
     void          Load() override;
-    void          Update() override;
+    void          Update(double dt) override;
     void          Unload() override;
     void          Draw() const override;
-    void          DrawImGui() override;
+    void          DrawImGui();
     gsl::czstring GetName() const override;
 
 private:
@@ -38,10 +41,8 @@ private:
     Dokev::Texture2D noiseTexture;
     Dokev::Texture2D noiseTexture2;
 
-    GridMap map;
-
     //Iso grid
-    int index = 1;
+    int index = 0;
 
     Dokev::Camera camera;
     Dokev::Mouse mouse;
@@ -50,24 +51,13 @@ private:
     Dokev::AnimatedSprite smokeSprite;
 
     // Particle emitter demo
-    std::unique_ptr<Dokev::ParticleEmitter> smokeEmitter;
-
-    // Human pathfinding demo
-    std::vector<Human> human;
-
-    // Road system
-    std::unique_ptr<Road> road;
-
-    // Performance tracking
-    bool vsyncEnabled = true;
+    Dokev::ParticleEmitter<Dokev::Smoke> smokeEmitter;
 
     // Immigration system
     float immigrationTimer = 0.0f;
-    mutable float immigrationInterval = 5.0f; 
-    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; // if you change this to IMMEDIATE, ERROR
-    // this is probably because the rest of the renders are called with instanced, so If you want to change this,
-    //consult the DEMO.cpp file and how that handles switching.
-private:
-    void                       updateInput();
+    float immigrationInterval = 5.0f;
+    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED;
 
+    // World editor
+    Dokev::GameWorldEditor worldEditor;
 };

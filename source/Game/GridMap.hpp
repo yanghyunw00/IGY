@@ -8,10 +8,12 @@
 
 #pragma once
 #include <vector>
+#include <memory>
 #include "GridCell.hpp"
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKShapes.hpp"
+#include "Dokev/DKTileManager.hpp"
 #include "Game/pathFinding.hpp"
 #include "Dokev/DKRenderState.hpp"
 
@@ -69,6 +71,10 @@ public:
 	int GetIsoOriginY() const { return isoOriginY; }
 	Math::fvec2 TransformPathPointForView(Math::fvec2 point, int viewIndex) const;
 
+	// TileManager access
+	Dokev::TileManager* GetTileManager() { return tileManager.get(); }
+	const Dokev::TileManager* GetTileManager() const { return tileManager.get(); }
+
 private:
 	void rotatePoint90(float x, float y,
 		float tx, float ty,
@@ -115,4 +121,7 @@ private:
 	std::vector<Math::fvec2> currentPath;
 	bool showPath;
 
+	// Tile management for buildings and roads
+	std::unique_ptr<Dokev::TileManager> tileManager;
+	Dokev::Texture2D RoadTexture;
 };

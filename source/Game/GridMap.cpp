@@ -20,14 +20,15 @@
 #include <vector>
 
 
-GridMap::GridMap() : currentView(1), pathFinder(nullptr), showPath(false)
+GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 {
-    // resize the grid because the grid might change in later itereations of the code. current there is no need for this
     PlainsTexture     = Dokev::LoadTexture("Assets/images/textures/IsoPlains.png");
     WaterTexture      = Dokev::LoadTexture("Assets/images/textures/IsoWater.png");
     MountainTexture   = Dokev::LoadTexture("Assets/images/textures/IsoMountains.png");
     SnowTexture       = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
-    Max_Height        = Dokev::LoadTexture("Assets/images/textures/Max_Height.png"); // Use IsoPeak as placeholder for Max_Height
+    Max_Height        = Dokev::LoadTexture("Assets/images/textures/Max_Height.png"); 
+    RoadTexture       = Dokev::LoadTexture("Assets/images/textures/road.png");
+
     IsoGridTexture[0] = WaterTexture;
     IsoGridTexture[1] = PlainsTexture;
     IsoGridTexture[2] = MountainTexture;
@@ -47,6 +48,10 @@ GridMap::GridMap() : currentView(1), pathFinder(nullptr), showPath(false)
 
 
     InitializeIsoView();
+
+    // Initialize TileManager
+    tileManager = std::make_unique<Dokev::TileManager>();
+    tileManager->Initialize(GRID_SIZE_X, GRID_SIZE_Y);
 
     // InitializePathFinding();
 };
@@ -91,19 +96,19 @@ void GridMap::InitializeIsoView()
             view1[y * GRID_SIZE_X + x] = &m_gridCells[y][x];
 
             // 90도 회전
-            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, new_x, new_y);
+            rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, new_x, new_y);
             int rotIndex90 = static_cast<int>(new_y) * GRID_SIZE_X + static_cast<int>(new_x);
             if (rotIndex90 >= 0 && rotIndex90 < GRID_SIZE_X * GRID_SIZE_Y)
                 view2[rotIndex90] = &m_gridCells[y][x];
 
             // 180도 회전
-            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, new_x, new_y);
+            rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, new_x, new_y);
             int rotIndex180 = static_cast<int>(new_y) * GRID_SIZE_X + static_cast<int>(new_x);
             if (rotIndex180 >= 0 && rotIndex180 < GRID_SIZE_X * GRID_SIZE_Y)
                 view3[rotIndex180] = &m_gridCells[y][x];
 
             // 270도 회전
-            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, new_x, new_y);
+            rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, new_x, new_y);
             int rotIndex270 = static_cast<int>(new_y) * GRID_SIZE_X + static_cast<int>(new_x);
             if (rotIndex270 >= 0 && rotIndex270 < GRID_SIZE_X * GRID_SIZE_Y)
                 view4[rotIndex270] = &m_gridCells[y][x];
@@ -113,7 +118,7 @@ void GridMap::InitializeIsoView()
 
 void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) const
 {
-    currentView = (index % 4) + 1;
+    currentView = index % 4;
 
     GridCell* const* selectedView = nullptr;
     switch (index % 4)
@@ -150,22 +155,32 @@ void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) c
                 double height  = selectedView[count]->getHeight();
                 int    topY    = static_cast<int>(height) - screenY;
 
-                int current_texture = 3;
-                if (height < 205)
-                    current_texture = 2;
-                if (height < 150)
-                    current_texture = 1;
-                if (height < 75)
-                    current_texture = 0;
+                int originalX = selectedView[count]->x;
+                int originalY = selectedView[count]->y;
 
- 
-                Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
-                Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
+                Dokev::TileType tileType = tileManager->GetTileType(originalX, originalY);
 
+                if (tileType == Dokev::TileType::ROAD)
+                {
+                    Dokev::DrawTexture(RoadTexture, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                }
+                else
+                {
+                    int current_texture = 3;
+                    if (height < 205)
+                        current_texture = 2;
+                    if (height < 150)
+                        current_texture = 1;
+                    if (height < 75)
+                        current_texture = 0;
+
+                    Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
+                    Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
+                }
             }
         }
     }
-    // DrawCurrentPathIsometric(Dokev::ColorPalette::RED, currentView);
 }
 
 void GridMap::ResetPerlinTexture()
@@ -187,10 +202,10 @@ GridCell** GridMap::GetViewArray(int viewIndex) const
 {
     switch (viewIndex)
     {
-        case 1: return view1;
-        case 2: return view2;
-        case 3: return view3;
-        case 4: return view4;
+        case 0: return view1;
+        case 1: return view2;
+        case 2: return view3;
+        case 3: return view4;
         default: return view1;
     }
 }
@@ -240,7 +255,6 @@ void GridMap::InitializePathFinding()
 
     pathFinder = new PathFinding(GRID_SIZE_X, GRID_SIZE_Y, 50.0f);
 
-    // Use the more efficient UpdateMapFromGrid method
     pathFinder->UpdateMapFromGrid(m_gridCells);
 
     std::cout << "PathFinding initialized with UpdateMapFromGrid" << std::endl;
@@ -353,15 +367,15 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
 
     switch (viewIndex)
     {
-        case 1:
+        case 0:
             return point;
-        case 2:
+        case 1:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, newX, newY);
             return { newX, newY };
-        case 3:
+        case 2:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY);
             return { newX, newY };
-        case 4:
+        case 3:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY);
             return { newX, newY };
         default:

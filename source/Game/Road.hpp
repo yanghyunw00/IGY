@@ -35,10 +35,11 @@ public:
 	{
 	};
 
-	void addRoad(int x, int y);
-	void removeRoad(int x, int y);
+	void addRoad(int x, int y, GridMap& map);
+	void removeRoad(int x, int y, GridMap& map);
 	void removeAllRoad();
-	bool hasRoad(int x, int y);
+	void removeAllRoad(GridMap& map);
+	bool hasRoad(int x, int y) const;
 	void drawRoads(const GridMap& map, int currentview);
 	void buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY);
 
