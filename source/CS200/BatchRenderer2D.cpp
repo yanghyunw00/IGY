@@ -33,9 +33,30 @@ namespace CS200
         const std::filesystem::path fragment_file = assets::locate_asset("Assets/shaders/BatchRenderer2D/batch.frag");
         shader                                    = OpenGL::CreateShader(vertex_file, fragment_file);      
 
-        Gl::GenBuffers(1, &vertexBuffer);
+        GL::GenBuffers(1, &vertexBuffer);
+        GL::BindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+        GL::BufferData(GL_ARRAY_BUFFER, sizeof(QuadVertex)* maxVertices, nullptr, GL_DYNAMIC_DRAW);
+        GL::BindBuffer(GL_ARRAY_BUFFER, 0);
 
+        std::vector<unsigned> indice_values(maxIndices);
+        unsigned              offset = 0;
+        for (unsigned i = 0; i < maxIndices; i += 6)
+        {
 
+            
+            indice_values[i + 0] = offset + 0;
+            indice_values[i + 1] = offset + 1;
+            indice_values[i + 2] = offset + 2;
+            indice_values[i + 3] = offset + 2;
+            indice_values[i + 4] = offset + 3;
+            indice_values[i + 5] = offset + 0;
+            offset += 4;
+        };
+
+        GL::GenBuffers(1, &indexBuffer);
+        GL::BindBuffer(GL_ARRAY_BUFFER, indexBuffer);
+        GL::BufferData(GL_ARRAY_BUFFER, sizeof(unsigned) * maxIndices, indice_values.data(), GL_DYNAMIC_DRAW);
+        GL::BindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     void CS200::BatchRenderer2D::Shutdown()
