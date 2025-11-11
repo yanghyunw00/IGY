@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <numbers>
 #include <sstream>
+#include "Game/Resource.h"
 
 void GamePlayState::Load()
 {
@@ -124,6 +125,12 @@ void GamePlayState::Draw() const
     auto mapMgr = GetGSComponent<MapManager>();
     mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer);
 
+    const auto& resources = mapMgr->GetResources();
+    //resource
+    for (const auto& resource : resources)
+    {
+        resource->Draw(index, mapMgr->GetMap());
+    }
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
     // Draw smoke animation at position (200, 200)
