@@ -13,6 +13,7 @@
 #include <vector>
 
 class Human;
+class Building;
 
 namespace Dokev
 {
@@ -20,14 +21,16 @@ namespace Dokev
     {
     public:
         void AddHuman(Human* human);
+        void AddBuilding(Building* building);
 
         std::vector<std::unique_ptr<Human>>& GetHumans();
+        std::vector<std::unique_ptr<Building>>& GetBuildings();
 
         void Unload();
         void Refresh();
 
     private:
         std::vector<std::unique_ptr<Human>> m_humans;
-        // std::vector<std::unique_ptr<Building>> m_buildings;
+        std::vector<std::unique_ptr<Building>> m_buildings;
     };
 }

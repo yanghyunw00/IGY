@@ -13,6 +13,9 @@
 #include "../Game/GridMap.hpp"
 #include "../Game/Human.hpp"
 #include "../Game/Road.hpp"
+#include"../Game/Building.hpp"
+#include"../Game/ResidentBuilding.hpp"
+#include"../Game/WorkBuilding.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Window.hpp"
 #include "Engine/Input.hpp"
@@ -235,6 +238,106 @@ namespace Dokev
                 printf("Removed road at (%d,%d)\n", roadStartX, roadStartY);
             }
         }
+
+        // BUILDING CONTROLS=============================================================
+        if(goManager && mapManager)
+        {
+            ImGui::Spacing();
+            ImGui::Spacing();
+            ImGui::Text("BUILDING CONTROLS");
+            ImGui::Separator();
+
+            auto& buildings = goManager->GetBuildings();
+            ImGui::Text("Total Buildings : %zu", buildings.size());
+
+            ImGui::Spacing();
+
+            ImGui::Text("Resident building: ");
+            if(ImGui::Button("Add Small House"))
+            {
+                auto map = mapManager->GetMap();
+
+                vec2 pos = vec2(rand() % (GRID_SIZE_X -1), rand() % (GRID_SIZE_Y -1));
+
+                const int maxAttemps = 100;
+                bool isfound = false;
+
+                for(int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
+                {
+                    int gridX = rand() % GRID_SIZE_X;
+                    int gridY = rand() % GRID_SIZE_Y;
+
+                    GridCell** viewArray= map->GetViewArray(1);
+                    GridCell* cell = viewArray[gridY * GRID_SIZE_X + gridX];
+                    double height = cell->getHeight();
+
+                    if(height >= 75.0f)
+                    {
+                        pos = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
+                        isfound = true;
+                    }
+                }
+                goManager->AddBuilding(new ResidentBuilding(pos, 1, 1, BuildingType::SmallHouse));
+            }
+
+            ImGui::Spacing();
+
+            ImGui::Text("Work Buildings: ");
+            if(ImGui::Button("Add Farm"))
+            {
+                auto map = mapManager->GetMap();
+
+                vec2 pos = vec2(rand() % (GRID_SIZE_X -1), rand() % (GRID_SIZE_Y -1));
+
+                const int maxAttemps = 100;
+                bool isfound = false;
+
+                for(int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
+                {
+                    int gridX = rand() % GRID_SIZE_X;
+                    int gridY = rand() % GRID_SIZE_Y;
+
+                    GridCell** viewArray= map->GetViewArray(1);
+                    GridCell* cell = viewArray[gridY * GRID_SIZE_X + gridX];
+                    double height = cell->getHeight();
+
+                    if(height >= 75.0f)
+                    {
+                        pos = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
+                        isfound = true;
+                    }
+                }
+                goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::Farm));
+            }
+
+            if(ImGui::Button("Add Office"))
+            {
+                auto map = mapManager->GetMap();
+
+                vec2 pos = vec2(rand() % (GRID_SIZE_X -1), rand() % (GRID_SIZE_Y -1));
+
+                const int maxAttemps = 100;
+                bool isfound = false;
+
+                for(int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
+                {
+                    int gridX = rand() % GRID_SIZE_X;
+                    int gridY = rand() % GRID_SIZE_Y;
+
+                    GridCell** viewArray= map->GetViewArray(1);
+                    GridCell* cell = viewArray[gridY * GRID_SIZE_X + gridX];
+                    double height = cell->getHeight();
+
+                    if(height >= 75.0f)
+                    {
+                        pos = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
+                        isfound = true;
+                    }
+                }
+                goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::Office));
+        }
+    }
+        // =======================================================================================================
 
         // HUMAN CONTROLS Section
         if (goManager)

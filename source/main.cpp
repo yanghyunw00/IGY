@@ -81,7 +81,7 @@ EMSCRIPTEN_BINDINGS(main_window)
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     Engine& engine = Engine::Instance();
-    engine.Start("Team - doodoobird");
+    engine.Start("IGY");
     engine.GetGameStateManager().PushState<GamePlayState>();
 
 #if !defined(__EMSCRIPTEN__)

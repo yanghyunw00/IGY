@@ -84,9 +84,9 @@ set(SOURCE_CODE
     Game/Road.hpp Game/Road.cpp
 
 
-   # Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
-   # Game/Building.hpp Game/Building.cpp
-   # Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
+    Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
+    Game/Building.hpp Game/Building.cpp
+    Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
     
 
 

@@ -19,6 +19,9 @@
 #include "Dokev/DKGameObjectManager.hpp"
 #include "Human.hpp"
 #include "GridMap.hpp"
+#include "Building.hpp"
+#include "ResidentBuilding.hpp"
+#include "WorkBuilding.hpp"
 
 #include "Engine/Path.hpp"
 #include "Engine/Engine.hpp"
@@ -139,6 +142,13 @@ void GamePlayState::Draw() const
     for (const auto& human : humans)
     {
         human->Draw(index, mapMgr->GetMap());
+    }
+
+    // Draw all buildings
+    auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+    for(const auto& building : buildings)
+    {
+        building->Draw(index, mapMgr->GetMap());
     }
 
     renderer2d.EndScene();

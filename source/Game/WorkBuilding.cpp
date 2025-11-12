@@ -9,11 +9,34 @@
 
 #include "WorkBuilding.hpp"
 
-WorkBuilding::WorkBuilding(vec2 pos, int w, int h) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10)
+WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10)
 {
     max_capacity     = 20;
     current_capacity = 0;
     cost             = 150;
+
+    buildingType = bt;
+
+    switch(bt)
+    {
+        case BuildingType::Farm:
+        texture = Dokev::LoadTexture("Assets/images/textures/farm.png");
+        max_capacity = 10;
+        cost = 0;
+        break;
+
+        case BuildingType::Office:
+        texture = Dokev::LoadTexture("Assets/images/textures/work.png");
+        max_capacity = 10;
+        cost = 0;
+        break;
+
+        default:
+            texture = Dokev::LoadTexture("Assets/images/textures/MissingTexture.png");
+            max_capacity = 0;
+            cost = 0;
+            break;
+    }
 }
 
 WorkBuilding::~WorkBuilding()
@@ -26,9 +49,31 @@ void WorkBuilding::Update([[maybe_unused]] float dt)
     // TODO
 }
 
-void WorkBuilding::Draw()
+void WorkBuilding::Draw(int viewIndex, const GridMap* map)
 {
-    // TODO
+    Math::fvec2 transformedPos = map->TransformPathPointForView(Math::fvec2(gridPosition.x, gridPosition.y), viewIndex);
+
+    float gridX_float = transformedPos.x;
+    float gridY_float = transformedPos.y;
+
+    int gridX_int = static_cast<int>(gridX_float);
+    int gridY_int = static_cast<int>(gridY_float);
+
+    GridCell** viewArray = map->GetViewArray(viewIndex);
+
+    float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
+
+    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH/2;
+    int originY = 0;
+
+    int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
+    int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
+    int topY = static_cast<int>(height) - screenY;
+    
+    int drawX = screenX + TILE_WIDTH_HALF;
+    int drawY = topY;
+
+    texture.Draw(drawX, drawY);
 }
 
 void WorkBuilding::AddWorker(int count)

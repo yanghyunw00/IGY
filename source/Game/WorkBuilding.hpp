@@ -18,11 +18,13 @@ protected:
     int   resourceProduce;
 
 public:
-    WorkBuilding(vec2 pos, int w, int h);
+    WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
     ~WorkBuilding() override;
 
     void Update([[maybe_unused]] float dt) override;
-    void Draw() override;
+    void Draw(int viewIndex, const GridMap* map) override;
+
+    std::string TypeName() override {return "WorkBuilding";}
 
     // Workplace functions
     void  AddWorker(int count);
