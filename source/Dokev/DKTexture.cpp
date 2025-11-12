@@ -218,6 +218,7 @@ namespace Dokev
 
         auto handle = texture.texture->GetHandle();
         GL::FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, handle, 0);
+        
         GL::ReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, img.GetPixels().data());
 
         GL::BindFramebuffer(GL_FRAMEBUFFER, 0);

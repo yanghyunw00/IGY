@@ -226,7 +226,7 @@ void DEMO::updateInput()
         index = (index + 1) % 4;
     }
     mouse.Update();
-    if (input.KeyJustPressed(CS230::Input::Keys::Y))
+    if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))
     {
 
         map.IsometricDrawMouseAtlas(index, selected_renderer);// to update the atlas
