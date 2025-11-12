@@ -10,7 +10,7 @@
 #include <vector>
 
 class MapManager;
-
+class ResourceManager;
 
 namespace Dokev
 {

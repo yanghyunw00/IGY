@@ -40,7 +40,7 @@ void MapManager::SpawnResources()
         {
             GridCell* cell = viewArray[y * GRID_SIZE_X + x];
             
-            if (cell && !cell->getWater() && !tileManager->IsTileOccupied(x, y))
+            if (cell && !cell->getWater() && !map.GetTileManager()->IsTileOccupied(x, y))
             {
                 if (Dokev::ChanceRoll(spawnChance))
                 {
