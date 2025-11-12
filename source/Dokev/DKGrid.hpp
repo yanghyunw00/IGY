@@ -6,13 +6,6 @@
  * \copyright DigiPen Institute of Technology
  */
 
-/**
- * \file DKGrid.hpp
- * \brief Isometric grid utility functions for coordinate conversion and grid management
- * \author Dongyun Lee
- * \date 2025 Fall
- * \copyright DigiPen Institute of Technology
- */
 #pragma once
 
 #include "Engine/Vec2.hpp"
