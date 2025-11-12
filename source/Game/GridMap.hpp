@@ -16,6 +16,7 @@
 #include "Dokev/DKTileManager.hpp"
 #include "Game/pathFinding.hpp"
 #include "Dokev/DKRenderState.hpp"
+#include "OpenGL/GL.hpp"
 
 #define GRID_SIZE_Y 91
 #define GRID_SIZE_X 91
@@ -37,11 +38,6 @@ public:
 
 	~GridMap()
 	{
-		// if (pathFinder)
-		// {
-		// 	delete pathFinder;
-		// 	pathFinder = nullptr;
-		// }
 
 		UnloadImage(PerlinNoiseImage);
 	};
@@ -50,6 +46,9 @@ public:
 	void ResetIsoGridMapArray();
 	void InitializeIsoView();
 	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
+
+	void IsometricDrawMouseAtlas(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
+
 	void ResetPerlinTexture();
 	const Dokev::Texture2D* GetPerlinTexture() const;
 	GridCell** GetViewArray(int viewIndex) const;
@@ -92,7 +91,7 @@ private:
 	mutable GridCell* view4[GRID_SIZE_X * GRID_SIZE_Y];
 
 	Dokev::Texture2D IsoGridTexture[4];
-
+	
 	std::vector<GridCell> GridMapArray;
 	Dokev::Image PerlinNoiseImage;
 	Dokev::Texture2D PerlinNoiseTexture;
@@ -102,12 +101,11 @@ private:
 	Dokev::Texture2D MountainTexture;
 	Dokev::Texture2D SnowTexture;
 	Dokev::Texture2D Max_Height;
+	
+	Dokev::Texture2D IsoMouseAtlas;
 
-	Dokev::Texture2D IsoMapTexture[4];
-	Dokev::Texture2D IsoMap1Texture;
-	Dokev::Texture2D IsoMap2Texture;
-	Dokev::Texture2D IsoMap3Texture;
-	Dokev::Texture2D IsoMap4Texture;
+
+
 
 	int mapOriginX = 0;
 	int mapOriginY = 0;
@@ -124,4 +122,13 @@ private:
 	// Tile management for buildings and roads
 	std::unique_ptr<Dokev::TileManager> tileManager;
 	Dokev::Texture2D RoadTexture;
+
+public: 
+
+
+	GLuint mouseAtlasFBO   = 0;
+    GLuint mouseAtlasTex   = 0;
+
+
+
 };

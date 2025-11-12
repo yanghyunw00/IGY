@@ -28,10 +28,14 @@ namespace Math
             return matrix[index];
         }
 
+        
+
+
         TransformationMatrix  operator*(TransformationMatrix m) const;
         TransformationMatrix& operator*=(TransformationMatrix m);
         vec2                  operator*(vec2 v) const;
         void                  Reset();
+        TransformationMatrix  Inverse() const;
 
     protected:
         double matrix[3][3];

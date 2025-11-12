@@ -49,5 +49,7 @@ private:
     Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; // will change to batched
 private:
     void                       updateInput();
+private: //test shi
 
+    bool show_atlas = false;
 };

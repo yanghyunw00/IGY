@@ -65,6 +65,8 @@ void DEMO::Draw() const
     // use the currently selected renderer (allows IMMEDIATE / INSTANCED switching)
     auto& renderer2d = Engine::GetRenderer2D(selected_renderer);
 
+    auto& renderer2d_IMMEDIATE = Engine::GetRenderer2D(Dokev::RenderState::IMMEDIATE);
+
     auto windowSize = Engine::GetWindow().GetSize();
     auto ndcMatrix  = CS200::build_ndc_matrix(windowSize);
 
@@ -72,11 +74,21 @@ void DEMO::Draw() const
 
     renderer2d.BeginScene(cameraTransform * ndcMatrix);
 
+    renderer2d_IMMEDIATE.BeginScene(cameraTransform * ndcMatrix);
+
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    map.IsometricDrawMap(index,selected_renderer);
-
+    
+    if(show_atlas)
+    {
+        map.IsometricDrawMouseAtlas(index,selected_renderer);
+    }
+    else
+    {
+        map.IsometricDrawMap(index,selected_renderer);
+    }
     renderer2d.EndScene();
+    renderer2d_IMMEDIATE.EndScene();
 }
 
 
@@ -97,9 +109,17 @@ void DEMO::DrawImGui()
             index = (index - 1 + 4) % 4;
         }
 
-        if (ImGui::Button("Roatate Map to Left"))
+        if (ImGui::Button("Rotate Map to Left"))
         {
             index = (index + 1) % 4;
+        }
+        if (ImGui::Button("show mouse atlas"))
+        {
+            show_atlas = true;
+        }
+        if (ImGui::Button("dont show mouse atlas"))
+        {
+            show_atlas = false;
         }
 
         ImGui::Text("Rotate Index: %d", index);
@@ -205,6 +225,32 @@ void DEMO::updateInput()
     {
         index = (index + 1) % 4;
     }
+    mouse.Update();
+    if (input.KeyJustPressed(CS230::Input::Keys::Y))
+    {
+
+        map.IsometricDrawMouseAtlas(index, selected_renderer);// to update the atlas
+
+        GLubyte pixel[4] = { 0 };
+        glBindFramebuffer(GL_FRAMEBUFFER, map.mouseAtlasFBO);
+
+        int         windowHeight = 800;
+        Math::ivec2 mouseScreen  = mouse.GetPosition();
+        mouseScreen.y            = windowHeight - mouseScreen.y;
+
+        glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1 ) / 255.f;
+        float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1 ) / 255.f;
+
+        
+        std::cout << "Clicked tile (" << std::ceil(tileX) << ", " << std::ceil(tileY) << ")\n";
+    }
+
+
+
 }
 
 void DEMO::Unload()
