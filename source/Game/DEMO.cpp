@@ -49,7 +49,7 @@ void DEMO::Load()
 }
 
 
-void DEMO::Update()
+void DEMO::Update(double dt)
 {
 
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();

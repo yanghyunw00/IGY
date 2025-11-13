@@ -63,7 +63,7 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
 
     float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
-    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH/2;
+    int originX = 0;
     int originY = 0;
 
     int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);

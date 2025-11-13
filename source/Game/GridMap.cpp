@@ -44,7 +44,8 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 
     if (!IsoGridMapArray.empty())
     {
-        isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+        //isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+        isoOriginX = 0;
         isoOriginY = static_cast<int>(IsoGridMapArray[0].getHeight());
         std::cout << "isoOrigin set: X=" << isoOriginX << ", Y=" << isoOriginY << std::endl;
     }
@@ -422,7 +423,7 @@ void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
 
     GridCell** selectedView = GetViewArray(viewIndex);
 
-    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+    int originX = 0;
     int originY = static_cast<int>(selectedView[0]->getHeight());
 
     std::vector<Math::fvec2> transformedPath;

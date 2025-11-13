@@ -40,7 +40,7 @@ void Resource::Draw(int viewIndex, const GridMap* map) const
     //float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
     //int originX = map->GetIsoOriginX();
-    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+    int originX = 0;
     int originY = 0;
 
     int screenX = originX + static_cast<int>((transformedPos.x - transformedPos.y) * TILE_WIDTH_HALF);

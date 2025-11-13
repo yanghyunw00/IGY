@@ -7,7 +7,7 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "CS200/RGBA.hpp"
-#include "Engine/GameState.hpp"
+#include "Dokev/DKGameState.hpp"
 #include "Engine/Matrix.hpp"
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKCamera.hpp"
@@ -22,11 +22,11 @@
 #include <memory>
 
 
-class DEMO : public CS230::GameState
+class DEMO : public Dokev::GameState
 {
 public:
     void          Load() override;
-    void          Update() override;
+    void          Update(double dt) override;
     void          Unload() override;
     void          Draw() const override;
     void          SwitchRenderer(Dokev::RenderState type);

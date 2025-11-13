@@ -56,7 +56,7 @@ void Road::drawRoads(const GridMap& map, int currentview)
 
     GridCell** viewArray = map.GetViewArray(currentview);
 
-    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+    int originX = 0;
     int originY = 0;
 
     for (int sum = 0; sum < GRID_SIZE_X + GRID_SIZE_Y - 1; ++sum)
