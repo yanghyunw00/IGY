@@ -37,8 +37,10 @@ void Resource::Draw(int viewIndex, const GridMap* map) const
     if (!cell) return;
     
     float height = static_cast<float>(cell->getHeight());
+    //float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
-    int originX = map->GetIsoOriginX();
+    //int originX = map->GetIsoOriginX();
+    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
     int originY = 0;
 
     int screenX = originX + static_cast<int>((transformedPos.x - transformedPos.y) * TILE_WIDTH_HALF);
@@ -47,6 +49,7 @@ void Resource::Draw(int viewIndex, const GridMap* map) const
 
     int drawX = screenX;
     int drawY = topY;
+
 
     Dokev::DrawTexture(texture, drawX, drawY, Dokev::ColorPalette::WHITE);
 }

@@ -32,7 +32,7 @@ void MapManager::SpawnResources()
     GridCell** viewArray = map.GetViewArray(0);
     if (!viewArray) return;
 
-    const float spawnChance = 0.5f;  //50% chance atm
+    const float spawnChance = 0.2f;  //20% chance atm
 
     for (int y = 0; y < GRID_SIZE_Y; ++y)
     {
