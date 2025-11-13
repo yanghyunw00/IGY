@@ -82,6 +82,11 @@ set(SOURCE_CODE
     Game/Human.hpp Game/Human.cpp
     Game/pathFinding.hpp Game/pathFinding.cpp
     Game/Road.hpp Game/Road.cpp
+    Game/Resource.hpp Game/Resource.cpp
+    Game/Wood.hpp Game/Wood.cpp
+    Game/Stone.hpp Game/Stone.cpp
+    Game/Steel.hpp Game/Steel.cpp
+    Game/ResourceManager.hpp
 
 
    # Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
