@@ -89,9 +89,9 @@ set(SOURCE_CODE
     Game/ResourceManager.hpp
 
 
-   # Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
-   # Game/Building.hpp Game/Building.cpp
-   # Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
+    Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
+    Game/Building.hpp Game/Building.cpp
+    Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
     
 
 

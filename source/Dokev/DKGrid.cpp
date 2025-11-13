@@ -5,6 +5,7 @@
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
+
 #include "DKGrid.hpp"
 #include <algorithm>
 #include <cmath>

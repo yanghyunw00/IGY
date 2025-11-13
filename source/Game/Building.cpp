@@ -8,7 +8,7 @@
 
 #include "Building.hpp"
 
-Building::Building(vec2 pos, int w, int h)
+Building::Building(Math::fvec2 pos, int w, int h)
     : gridPosition(pos)
     , width(w)
     , height(h)
@@ -18,14 +18,17 @@ Building::Building(vec2 pos, int w, int h)
     , cost(0)
 {
     texture = Dokev::LoadTexture("Assets/images/textures/MissingTexture.png");
+    progress = 1.0f; // TODO: after finishing time manager fix this to 0
 }
+
+Building::~Building() = default;
 
 int Building::GetCost() const
 {
     return cost;
 }
 
-vec2 Building::GetGrid() const
+Math::fvec2 Building::GetGrid() const
 {
     return gridPosition;
 }
@@ -43,4 +46,14 @@ unsigned int Building::GetMaxCapacity() const
 unsigned int Building::GetCurrentCapacity() const
 {
     return current_capacity;
+}
+
+float Building::GetProgress() const
+{
+    return progress;
+}
+
+BuildingType Building::GetBuildingType() const
+{
+    return buildingType;
 }
