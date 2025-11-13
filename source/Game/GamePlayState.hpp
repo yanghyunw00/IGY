@@ -25,6 +25,7 @@
 #include <memory>
 #include "Dokev/DKRenderState.hpp"
 #include "Dokev/DKGameState.hpp"
+#include "Game/ResourceManager.hpp"
 
 class GamePlayState : public Dokev::GameState
 {
@@ -35,6 +36,8 @@ public:
     void          Draw() const override;
     void          DrawImGui();
     gsl::czstring GetName() const override;
+    void          SaveGame(const std::string& filename);
+    void          LoadGame(const std::string& filename);
 
 private:
     Dokev::Texture2D testTexture;
@@ -42,7 +45,7 @@ private:
     Dokev::Texture2D noiseTexture2;
 
     //Iso grid
-    int index = 1;
+    int index = 0;
 
     Dokev::Camera camera;
     Dokev::Mouse mouse;
@@ -60,4 +63,6 @@ private:
 
     // World editor
     Dokev::GameWorldEditor worldEditor;
+    bool saveGameRequested = false;
+    bool loadGameRequested = false;
 };

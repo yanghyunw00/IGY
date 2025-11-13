@@ -10,6 +10,7 @@
 #include <vector>
 
 class MapManager;
+class ResourceManager;
 
 namespace Dokev
 {
@@ -23,10 +24,14 @@ namespace Dokev
 
         void Initialize(MapManager* mapManagerPtr, Camera* cameraPtr,
                        int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr,
-                       GameObjectManager* gameObjectManager);
+                       GameObjectManager* gameObjectManager, ResourceManager* resourceManagerPtr);
 
         void UpdateInput();
         void DrawImGui();
+        bool IsSaveRequested() const { return saveGameRequested; }
+        bool IsLoadRequested() const { return loadGameRequested; }
+        void ClearSaveRequest() { saveGameRequested = false; }
+        void ClearLoadRequest() { loadGameRequested = false; }
 
     private:
         MapManager* mapManager = nullptr;
@@ -35,7 +40,10 @@ namespace Dokev
         float* immigrationTimer = nullptr;
         float* immigrationInterval = nullptr;
         GameObjectManager* goManager = nullptr;
+        ResourceManager* resourceManager = nullptr;
 
         bool vsyncEnabled = true;
+        bool saveGameRequested = false;
+        bool loadGameRequested = false;
     };
 }
