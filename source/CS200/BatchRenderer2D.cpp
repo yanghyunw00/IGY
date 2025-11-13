@@ -65,6 +65,7 @@ namespace CS200
 
     void CS200::BatchRenderer2D::BeginScene(const Math::TransformationMatrix& view_projection)
     {
+        (void)view_projection;
     }
 
     void CS200::BatchRenderer2D::EndScene()
@@ -73,6 +74,11 @@ namespace CS200
 
     void CS200::BatchRenderer2D::DrawQuad(const Math::TransformationMatrix& transform, OpenGL::TextureHandle texture, Math::vec2 texture_coord_bl, Math::vec2 texture_coord_tr, CS200::RGBA tintColor)
     {
+        (void) transform;
+        (void) texture;
+        (void) texture_coord_bl;
+        (void) texture_coord_tr;
+        (void) tintColor;
     }
 }
 

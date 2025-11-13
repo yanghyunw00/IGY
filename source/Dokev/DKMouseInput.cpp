@@ -52,9 +52,9 @@ namespace Dokev
         return position;
     }
 
-    Math::vec2 Mouse::GetPositionFloat() const
+    Math::fvec2 Mouse::GetPositionFloat() const
     {
-        return Math::vec2{ static_cast<double>(position.x), static_cast<double>(position.y) };
+        return Math::fvec2{ static_cast<float>(position.x), static_cast<float>(position.y) };
     }
 
     Math::ivec2 Mouse::GetDelta() const

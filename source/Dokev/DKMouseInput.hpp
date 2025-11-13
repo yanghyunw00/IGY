@@ -37,7 +37,7 @@ namespace Dokev
 
         Math::ivec2 GetPosition() const;
 
-        Math::vec2 GetPositionFloat() const;
+        Math::fvec2 GetPositionFloat() const;
 
         Math::ivec2 GetDelta() const;
 

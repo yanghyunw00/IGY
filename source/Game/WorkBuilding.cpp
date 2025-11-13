@@ -8,6 +8,7 @@
  */
 
 #include "WorkBuilding.hpp"
+#include "CS200/RGBA.hpp"
 
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10)
 {
@@ -19,13 +20,19 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
 
     switch(bt)
     {
-        case BuildingType::Farm:
-        texture = Dokev::LoadTexture("Assets/images/textures/farm.png");
+        case BuildingType::WOOD_WORKSHOP:
+        texture = Dokev::LoadTexture("Assets/images/textures/work.png");
         max_capacity = 10;
         cost = 0;
         break;
 
-        case BuildingType::Office:
+        case BuildingType::ROCK_WORKSHOP:
+        texture = Dokev::LoadTexture("Assets/images/textures/work.png");
+        max_capacity = 10;
+        cost = 0;
+        break;
+
+        case BuildingType::STEEL_WORKSHOP:
         texture = Dokev::LoadTexture("Assets/images/textures/work.png");
         max_capacity = 10;
         cost = 0;
@@ -73,7 +80,24 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
     int drawX = screenX + TILE_WIDTH_HALF;
     int drawY = topY;
 
-    texture.Draw(drawX, drawY);
+    CS200::RGBA tint = CS200::WHITE;
+    switch (buildingType)
+    {
+        case BuildingType::WOOD_WORKSHOP:
+            tint = CS200::pack_color({0.6f, 0.4f, 0.2f, 1.0f});
+            break;
+        case BuildingType::ROCK_WORKSHOP:
+            tint = CS200::pack_color({0.5f, 0.5f, 0.5f, 1.0f});
+            break;
+        case BuildingType::STEEL_WORKSHOP:
+            tint = CS200::pack_color({0.7f, 0.7f, 0.8f, 1.0f});
+            break;
+        default:
+            tint = CS200::WHITE;
+            break;
+    }
+
+    texture.Draw(drawX, drawY, tint);
 }
 
 void WorkBuilding::AddWorker(int count)

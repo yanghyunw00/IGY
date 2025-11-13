@@ -17,7 +17,7 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
 
     switch (bt)
     {
-        case BuildingType::SmallHouse:
+        case BuildingType::HOME:
             texture      = Dokev::LoadTexture("Assets/images/textures/home.png");
             max_capacity = 10;
             cost         = 0;

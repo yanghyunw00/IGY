@@ -19,6 +19,7 @@
 #include "Dokev/DKGameObjectManager.hpp"
 #include "Dokev/DKGameWorldEditor.hpp"
 #include "Dokev/DKMapManager.hpp"
+#include "Dokev/DKUIManager.hpp"
 
 #include "Engine/Vec2.hpp"
 #include <array>
@@ -65,4 +66,7 @@ private:
     Dokev::GameWorldEditor worldEditor;
     bool saveGameRequested = false;
     bool loadGameRequested = false;
+
+    // UI Manager
+    Dokev::UIManager uiManager;
 };

@@ -51,6 +51,7 @@ set(SOURCE_CODE
     Dokev/DKAnimationSprite.hpp Dokev/DKAnimationSprite.cpp
     Dokev/DKCamera.hpp Dokev/DKCamera.cpp
     Dokev/DKCityMetrics.hpp
+    Dokev/DKCollision.hpp Dokev/DKCollision.cpp
     Dokev/DKColor.hpp Dokev/DKColor.cpp
     Dokev/DKComponent.hpp
     Dokev/DKComponentManager.hpp Dokev/DKComponentManager.cpp
@@ -70,11 +71,13 @@ set(SOURCE_CODE
     Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
     Dokev/DKTexture.hpp Dokev/DKTexture.cpp
     Dokev/DKTileManager.hpp Dokev/DKTileManager.cpp
+    Dokev/DKUIManager.hpp Dokev/DKUIManager.cpp
     Dokev/DKUtility.hpp Dokev/DKUtility.cpp
 
 
 
 
+    Game/BuildingType.hpp
     Game/GamePlayState.hpp Game/GamePlayState.cpp
     Game/DEMO.hpp Game/DEMO.cpp
     Game/GridCell.hpp

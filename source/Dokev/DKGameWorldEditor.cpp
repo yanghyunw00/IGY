@@ -284,13 +284,13 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new ResidentBuilding(pos, 1, 1, BuildingType::SmallHouse));
+                    goManager->AddBuilding(new ResidentBuilding(pos, 1, 1, BuildingType::HOME));
                 }
 
                 ImGui::Spacing();
 
                 ImGui::Text("Work Buildings: ");
-                if (ImGui::Button("Add Farm"))
+                if (ImGui::Button("Add Wood Workshop"))
                 {
                     auto map = mapManager->GetMap();
 
@@ -314,10 +314,10 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::Farm));
+                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::WOOD_WORKSHOP));
                 }
 
-                if (ImGui::Button("Add Office"))
+                if (ImGui::Button("Add Rock Workshop"))
                 {
                     auto map = mapManager->GetMap();
 
@@ -341,7 +341,34 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::Office));
+                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::ROCK_WORKSHOP));
+                }
+
+                if (ImGui::Button("Add Steel Workshop"))
+                {
+                    auto map = mapManager->GetMap();
+
+                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+
+                    const int maxAttemps = 100;
+                    bool      isfound    = false;
+
+                    for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
+                    {
+                        int gridX = rand() % GRID_SIZE_X;
+                        int gridY = rand() % GRID_SIZE_Y;
+
+                        GridCell** viewArray = map->GetViewArray(1);
+                        GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
+                        double     height    = cell->getHeight();
+
+                        if (height >= 75.0f)
+                        {
+                            pos     = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
+                            isfound = true;
+                        }
+                    }
+                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP));
                 }
                 ImGui::TreePop();
             }

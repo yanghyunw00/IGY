@@ -92,6 +92,9 @@ void GamePlayState::Load()
                           &immigrationTimer, &immigrationInterval,
                           GetGSComponent<Dokev::GameObjectManager>().get(),
                           GetGSComponent<ResourceManager>().get());
+
+    // Initialize UI Manager
+    uiManager.Initialize();
 }
 
 void GamePlayState::Update(double dt)
@@ -139,6 +142,39 @@ void GamePlayState::Update(double dt)
         immigrationTimer = 0.0f;
         //GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Human::CreateImmigrant()));
     }
+
+    mouse.Update();
+    auto windowSize = Engine::GetWindow().GetSize();
+    Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
+    mouseScreenPos.y = static_cast<float>(windowSize.y) - mouseScreenPos.y;
+    bool mouseClicked = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+
+    auto previousUISelection = uiManager.GetSelectedBuilding();
+    uiManager.Update(mouseScreenPos, mouseClicked);
+
+    if (mouseClicked && uiManager.GetSelectedBuilding() == previousUISelection)
+    {
+        auto mapMgr = GetGSComponent<MapManager>();
+        if (mapMgr && mapMgr->GetMap())
+        {
+            mapMgr->GetMap()->IsometricDrawMouseAtlas(index, selected_renderer);
+
+            GLubyte pixel[4] = { 0 };
+            glBindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
+
+            Math::ivec2 mouseScreen = mouse.GetPosition();
+            mouseScreen.y = windowSize.y - mouseScreen.y;
+
+            glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y),
+                        1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
+            float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.0f;
+
+        }
+    }
 }
 
 void GamePlayState::Draw() const
@@ -146,6 +182,7 @@ void GamePlayState::Draw() const
     CS200::RenderingAPI::Clear();
 
     auto& renderer2d = Engine::GetRenderer2D(selected_renderer);
+    auto& renderer2d_IMMEDIATE = Engine::GetRenderer2D(Dokev::RenderState::IMMEDIATE);
 
     auto windowSize = Engine::GetWindow().GetSize();
     auto ndcMatrix  = CS200::build_ndc_matrix(windowSize);
@@ -153,6 +190,7 @@ void GamePlayState::Draw() const
     auto cameraTransform = camera.GetViewMatrix();
 
     renderer2d.BeginScene(cameraTransform * ndcMatrix);
+    renderer2d_IMMEDIATE.BeginScene(cameraTransform * ndcMatrix);
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -189,6 +227,12 @@ void GamePlayState::Draw() const
         building->Draw(index, mapMgr->GetMap());
     }
 
+    renderer2d.EndScene();
+    renderer2d_IMMEDIATE.EndScene();
+
+    auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
+    renderer2d.BeginScene(ndcMatrixUI);
+    uiManager.Draw(GetGSComponent<ResourceManager>().get());
     renderer2d.EndScene();
 }
 

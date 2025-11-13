@@ -11,18 +11,7 @@
  #include "Dokev/DKTexture.hpp"
  #include "Dokev/DKGameObject.hpp"
  #include "GridMap.hpp"
-
- enum class BuildingType
- {
-    // WORK
-    Farm = 1,
-    Office,
-
-
-    // RESIDENT
-    SmallHouse = 100
-    
- };
+ #include "BuildingType.hpp"
 
 class Building : public Dokev::GameObject
 {

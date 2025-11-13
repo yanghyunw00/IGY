@@ -54,6 +54,7 @@ void DEMO::Update(double dt)
 
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
 
+    (void) dt;
     updateInput();
 
 }
