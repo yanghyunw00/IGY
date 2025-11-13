@@ -13,5 +13,4 @@ enum class GameObjectType {
     Human,
     Building,
     Grid
-    //추가할때마다 추가하기
 };

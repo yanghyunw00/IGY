@@ -81,8 +81,8 @@ EMSCRIPTEN_BINDINGS(main_window)
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     Engine& engine = Engine::Instance();
-    engine.Start("Team - doodoobird");
-    engine.GetGameStateManager().PushState<DEMO>();
+    engine.Start("Team - Antartic Monkeys");
+    engine.GetGameStateManager().PushState<GamePlayState>();
 
 #if !defined(__EMSCRIPTEN__)
     while (engine.HasGameEnded() == false)
@@ -98,3 +98,4 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 #endif
     return 0;
 }
+ 

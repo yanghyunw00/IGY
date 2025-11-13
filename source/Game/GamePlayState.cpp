@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file GamePlayState.cpp
  * \author Hyunwoo Yang
  * \author
@@ -10,12 +10,20 @@
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
-#include "Engine/Path.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKImage.hpp"
+#include "Dokev/DKParticles.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Dokev/DKTexture.hpp"
+#include "Dokev/DKGameObjectManager.hpp"
+#include "Human.hpp"
+#include "GridMap.hpp"
+#include "Building.hpp"
+#include "ResidentBuilding.hpp"
+#include "WorkBuilding.hpp"
+
+#include "Engine/Path.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Input.hpp"
@@ -31,10 +39,25 @@
 #include <iomanip>
 #include <numbers>
 #include <sstream>
+#include "Game/Resource.hpp"
+#include "Game/ResourceManager.hpp"
+#include <fstream>
+#include <nlohmann/json.hpp>
+#include "Game/Wood.hpp"
+#include "Game/Stone.hpp"
+#include "Game/Steel.hpp"
+#include "Game/Road.hpp"
+
+using json = nlohmann::json;
+
+NLOHMANN_JSON_SERIALIZE_ENUM( ResourceType, {
+    {ResourceType::Wood, "Wood"},
+    {ResourceType::Stone, "Stone"},
+    {ResourceType::Steel, "Steel"}
+})
 
 void GamePlayState::Load()
 {
-
     CS200::RenderingAPI::SetClearColor(0x252525FF);
 
     auto perlin   = Dokev::GenImagePerlinNoise(256, 256, 0, 0, 0.01f);
@@ -42,9 +65,17 @@ void GamePlayState::Load()
     noiseTexture  = Dokev::LoadTextureFromImage(perlin);
     noiseTexture2 = Dokev::LoadTextureFromImage(perlin2);
 
-    map.ResetPerlinTexture();
-    map.ResetIsoGridMapArray();
-    map.InitializePathFinding();
+    // Initialize MapManager component
+    AddGSComponent<MapManager>();
+    GetGSComponent<MapManager>()->Initialize();
+
+    // Initialize ResourceManager
+    AddGSComponent<ResourceManager>();
+
+    // Initialize GameObjectManager component
+    AddGSComponent<Dokev::GameObjectManager>();
+    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(5.0f, 5.0f)));
+    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(78.0f, 13.0f)));
 
     camera.SetZoom(0.3f);
 
@@ -57,62 +88,56 @@ void GamePlayState::Load()
         printf("Failed to load smoke animation: %s\n", e.what());
     }
 
-    smokeEmitter = std::make_unique<Dokev::ParticleEmitter>(assets::locate_asset("Assets/images/Smoke.spt"), 20);
-    smokeEmitter->SetMaxLife(1.0); 
-
-    m_goManager = std::make_unique<GameObjectManager>();
-
-    human.reserve(100);
-    human.push_back(Human(Math::fvec2(5.0f, 5.0f)));
-    human.push_back(Human(Math::fvec2(78.0f, 13.0f)));;
-
-    road = std::make_unique<Road>();
-
-    // Initialize world editor
-    worldEditor.Initialize(&map, &camera, &human, road.get(), &index, &immigrationTimer, &immigrationInterval);
+    worldEditor.Initialize(GetGSComponent<MapManager>().get(), &camera, &index,
+                          &immigrationTimer, &immigrationInterval,
+                          GetGSComponent<Dokev::GameObjectManager>().get(),
+                          GetGSComponent<ResourceManager>().get());
 }
 
-void GamePlayState::Update()
+void GamePlayState::Update(double dt)
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     worldEditor.UpdateInput();
     const auto& input = Engine::GetInput();
-
-    //나중에
-    //m_goManager->Update(dt);
     
-    
-    smokeSprite.Update(environment.DeltaTime);
-
-    if (smokeEmitter)
+    if (worldEditor.IsSaveRequested())
     {
-        smokeEmitter->Update(environment.DeltaTime);
+        SaveGame("savegame.json");
+        worldEditor.ClearSaveRequest();
+    }
+    if (worldEditor.IsLoadRequested())
+    {
+        LoadGame("savegame.json");
+        worldEditor.ClearLoadRequest();
     }
 
-    // Emit particles when pressing p
+    UpdateGSComponents(dt);
+
+    // Update all humans
+    auto mapMgr = GetGSComponent<MapManager>();
+    auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
+    for (auto& human : humans)
+    {
+        human->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+    }
+    GetGSComponent<Dokev::GameObjectManager>()->Refresh();
+
+    smokeEmitter.Update(environment.DeltaTime);
+
     if (input.KeyJustPressed(CS230::Input::Keys::P))
     {
-        if (smokeEmitter)
-        {
-            // Emit particles at camera center (world space)
-            Math::vec2 emit_pos = camera.GetPosition();
-            Math::vec2 emit_vel(0.0, 0.0);
-            Math::vec2 direction(0.0, 200.0);
-            smokeEmitter->Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
-            printf("Emitted particles at (%.1f, %.1f)! Active: %d\n", emit_pos.x, emit_pos.y, smokeEmitter->GetActiveCount());
-        }
-    }
-    for (auto& h : human)
-    {
-        h.Update(static_cast<float>(environment.DeltaTime), &map);
+        Math::vec2 emit_pos = camera.GetPosition();
+        Math::vec2 emit_vel(0.0, 0.0);
+        Math::vec2 direction(0.0, 200.0);
+        smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
     }
 
     // Auto immigration system
-    immigrationTimer += static_cast<float>(environment.DeltaTime);
+    immigrationTimer += static_cast<float>(dt);
     if (immigrationTimer >= immigrationInterval)
     {
         immigrationTimer = 0.0f;
-        human.push_back(Human::CreateImmigrant());
+        //GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Human::CreateImmigrant()));
     }
 }
 
@@ -131,10 +156,15 @@ void GamePlayState::Draw() const
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    auto mapMgr = GetGSComponent<MapManager>();
+    mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer);
 
-    
-    map.IsometricDrawMap(index,selected_renderer);
-
+    const auto& resources = mapMgr->GetResources();
+    //resource
+    for (const auto& resource : resources)
+    {
+        resource->Draw(index, mapMgr->GetMap());
+    }
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
     // Draw smoke animation at position (200, 200)
@@ -143,16 +173,20 @@ void GamePlayState::Draw() const
     // smokeSprite.Draw(smokeTransform);
 
     // Draw particles
-    if (smokeEmitter)
+    smokeEmitter.Draw(cameraTransform * ndcMatrix);
+
+    // Draw all humans
+    auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
+    for (const auto& human : humans)
     {
-        smokeEmitter->Draw(cameraTransform * ndcMatrix);
+        human->Draw(index, mapMgr->GetMap());
     }
-    
-    // Draw human
-    int currentView = (index % 4) + 1;
-    for (auto& h : human)
+
+    // Draw all buildings
+    auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+    for(const auto& building : buildings)
     {
-        h.Draw(currentView, &map);
+        building->Draw(index, mapMgr->GetMap());
     }
 
     renderer2d.EndScene();
@@ -163,7 +197,6 @@ void GamePlayState::DrawImGui()
     worldEditor.DrawImGui();
 }
 
-
 void GamePlayState::Unload()
 {
     Engine::GetLogger().LogEvent("GamePlayState: Unloaded");
@@ -172,4 +205,183 @@ void GamePlayState::Unload()
 gsl::czstring GamePlayState::GetName() const
 {
     return "IGY";
+}
+
+void GamePlayState::SaveGame(const std::string& filename)
+{
+    json j;
+    Engine::GetLogger().LogEvent("Saving game to " + filename);
+
+    // 1. Save Player Resources
+    auto resourceMgr = GetGSComponent<ResourceManager>();
+    if (resourceMgr)
+    {
+        j["PlayerResources"] = {
+            {"Wood", resourceMgr->totalWood},
+            {"Stone", resourceMgr->totalStone},
+            {"Steel", resourceMgr->totalSteel}
+        };
+    }
+
+    auto mapMgr = GetGSComponent<MapManager>();
+    if (mapMgr)
+    {
+        // 2. Save Map Resources
+        json& j_map_resources = j["MapResources"];
+        for (const auto& res : mapMgr->GetResources())
+        {
+            j_map_resources.push_back({
+                {"Type", res->GetType()},
+                {"X", res->GetGridX()},
+                {"Y", res->GetGridY()},
+                {"CurrentAmount", res->GetCurrentAmount()}
+            });
+        }
+
+        // 3. Save Road Info (based on TileManager)
+        json& j_roads = j["Roads"];
+        auto tileMgr = mapMgr->GetMap()->GetTileManager();
+        if (tileMgr)
+        {
+            auto roadTiles = tileMgr->GetTilesOfType(Dokev::TileType::ROAD);
+            for (const auto& pos : roadTiles)
+            {
+                j_roads.push_back({pos.x, pos.y});
+            }
+        }
+    }
+
+    // 4. Save Human Info
+    auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
+    if (gameObjMgr)
+    {
+        json& j_humans = j["Humans"];
+        for (const auto& human : gameObjMgr->GetHumans())
+        {
+            j_humans.push_back({
+                {"Position", {human->GetGridPosition().x, human->GetGridPosition().y}},
+                {"State", human->GetState()}, 
+                {"Happiness", human->GetHappiness()}
+            });
+        }
+    }
+    
+    // 5. Save Camera Position
+    j["Camera"] = {
+        {"Position", {camera.GetPosition().x, camera.GetPosition().y}},
+        {"Zoom", camera.GetZoom()}
+    };
+
+    // Write to file
+    try
+    {
+        std::ofstream o(filename);
+        o << std::setw(4) << j << std::endl;
+    }
+    catch (const std::exception& e)
+    {
+        Engine::GetLogger().LogError("Failed to save game: " + std::string(e.what()));
+    }
+}
+
+void GamePlayState::LoadGame(const std::string& filename)
+{
+    json j;
+    Engine::GetLogger().LogEvent("Loading game from " + filename);
+
+    // Read file
+    try
+    {
+        std::ifstream i(filename);
+        if (!i.is_open())
+        {
+            Engine::GetLogger().LogError("Save file not found: " + filename);
+            return;
+        }
+        i >> j;
+    }
+    catch (const std::exception& e)
+    {
+        Engine::GetLogger().LogError("Failed to load/parse game file: " + std::string(e.what()));
+        return;
+    }
+
+    // --- Reset State ---
+    GetGSComponent<Dokev::GameObjectManager>()->Unload(); 
+    
+    auto mapMgr = GetGSComponent<MapManager>();
+    if (mapMgr)
+    {
+        // Clear existing map-bound entities
+        mapMgr->GetResources().clear(); 
+        mapMgr->GetRoad()->removeAllRoad(*mapMgr->GetMap());
+    }
+    else
+    {
+        return; // Stop loading if MapManager doesn't exist
+    }
+
+
+    // 1. Load Player Resources
+    auto resourceMgr = GetGSComponent<ResourceManager>();
+    if (resourceMgr && j.contains("PlayerResources"))
+    {
+        resourceMgr->SetResources(
+            j["PlayerResources"].value("Wood", 0),
+            j["PlayerResources"].value("Stone", 0),
+            j["PlayerResources"].value("Steel", 0)
+        );
+    }
+
+    // 2. Load Map Resources
+    if (j.contains("MapResources"))
+    {
+        auto& resources = mapMgr->GetResources(); 
+        for (const auto& resData : j["MapResources"])
+        {
+            ResourceType type = resData.at("Type").get<ResourceType>();
+            int x = resData.at("X").get<int>();
+            int y = resData.at("Y").get<int>();
+            int amount = resData.at("CurrentAmount").get<int>();
+
+            if (type == ResourceType::Wood)
+                resources.push_back(std::make_unique<Wood>(x, y, amount));
+            else if (type == ResourceType::Stone)
+                resources.push_back(std::make_unique<Stone>(x, y, amount));
+            else if (type == ResourceType::Steel)
+                resources.push_back(std::make_unique<Steel>(x, y, amount));
+        }
+    }
+
+    // 3. Load Road Info
+    if (j.contains("Roads"))
+    {
+        auto road = mapMgr->GetRoad();
+        auto map = mapMgr->GetMap();
+        for (const auto& pos : j["Roads"])
+        {
+            road->addRoad(pos[0].get<int>(), pos[1].get<int>(), *map);
+        }
+    }
+
+    // 4. Load Human Info
+    auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
+    if (gameObjMgr && j.contains("Humans"))
+    {
+        for (const auto& humanData : j["Humans"])
+        {
+            Math::fvec2 pos = {humanData["Position"][0].get<float>(), humanData["Position"][1].get<float>()};
+            Human* newHuman = new Human(pos);
+            gameObjMgr->AddHuman(newHuman);
+        }
+    }
+    
+    // 5. Load Camera Position
+    if (j.contains("Camera"))
+    {
+        camera.SetPosition({j["Camera"]["Position"][0].get<double>(), j["Camera"]["Position"][1].get<double>()});
+        camera.SetZoom(j["Camera"].value("Zoom", 0.3f));
+    }
+    
+    Engine::GetLogger().LogEvent("Game loaded successfully.");
 }

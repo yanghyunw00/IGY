@@ -15,35 +15,37 @@
 #include "Dokev/DKMouseInput.hpp"
 #include "Dokev/DKAnimationSprite.hpp"
 #include "Dokev/DKParticleEmitter.hpp"
+#include "Dokev/DKParticles.hpp"
 #include "Dokev/DKGameObjectManager.hpp"
 #include "Dokev/DKGameWorldEditor.hpp"
+#include "Dokev/DKMapManager.hpp"
+
 #include "Engine/Vec2.hpp"
-#include "GridMap.hpp"
-#include "Human.hpp"
-#include "Road.hpp"
 #include <array>
 #include <memory>
 #include "Dokev/DKRenderState.hpp"
+#include "Dokev/DKGameState.hpp"
+#include "Game/ResourceManager.hpp"
 
-class GamePlayState : public CS230::GameState
+class GamePlayState : public Dokev::GameState
 {
 public:
     void          Load() override;
-    void          Update() override;
+    void          Update(double dt) override;
     void          Unload() override;
     void          Draw() const override;
-    void          DrawImGui() override;
+    void          DrawImGui();
     gsl::czstring GetName() const override;
+    void          SaveGame(const std::string& filename);
+    void          LoadGame(const std::string& filename);
 
 private:
     Dokev::Texture2D testTexture;
     Dokev::Texture2D noiseTexture;
     Dokev::Texture2D noiseTexture2;
 
-    GridMap map;
-
     //Iso grid
-    int index = 1;
+    int index = 0;
 
     Dokev::Camera camera;
     Dokev::Mouse mouse;
@@ -52,21 +54,15 @@ private:
     Dokev::AnimatedSprite smokeSprite;
 
     // Particle emitter demo
-    std::unique_ptr<Dokev::ParticleEmitter> smokeEmitter;
-
-    // Human pathfinding demo
-    std::vector<Human> human;
-
-    // Road system
-    std::unique_ptr<Road> road;
+    Dokev::ParticleEmitter<Dokev::Smoke> smokeEmitter;
 
     // Immigration system
     float immigrationTimer = 0.0f;
     float immigrationInterval = 5.0f;
     Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED;
 
-    std::unique_ptr<GameObjectManager> m_goManager;
-
     // World editor
     Dokev::GameWorldEditor worldEditor;
+    bool saveGameRequested = false;
+    bool loadGameRequested = false;
 };

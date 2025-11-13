@@ -2,6 +2,7 @@
  * \file
  * \author Rudy Castan
  * \author Jonathan Holmes
+ * \author Hyunseok Choi
  * \date 2025 Fall
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
@@ -23,7 +24,8 @@ namespace CS230
     void GameStateManager::Update()
     {
         mToClear.clear();
-        mGameStateStack.back()->Update();
+        const auto& environment = Engine::GetWindowEnvironment();
+        mGameStateStack.back()->Update(environment.DeltaTime);
     }
 
     void GameStateManager::Draw()

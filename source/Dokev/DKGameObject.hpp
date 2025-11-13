@@ -6,53 +6,26 @@
  * \copyright DigiPen Institute of Technology
  */
 #pragma once
-#include "DKComponent.hpp"
-#include <memory>
-#include <typeindex>
-#include <unordered_map>
-#include <vector>
+#include "DKGameObjectTypes.hpp"
+#include <string>
 
 namespace Dokev
 {
     class GameObject
     {
     public:
-        template <typename T, typename... TArgs>
-        std::shared_ptr<T> AddComponent(TArgs&&... args);
+        virtual ~GameObject() = default;
 
-        template <typename T>
-        std::shared_ptr<T> GetComponent();
+        virtual std::string    TypeName() = 0;
+        virtual GameObjectType Type()     = 0;
 
-        template <typename T>
-        bool HasComponent();
-        
-        //virtual void Draw() = 0;
-        //virtual void Update([[maybe_unused] double dt]) = 0;
-        //virtual ~GameObject() {}
-        //virtual std::string TypeName() = 0;
-        //virtual GameObjectType Type() = 0;
+        virtual bool IsDestroy() const { return !m_isActive; }
+        virtual void Destroy() { m_isActive = false; }
 
-        
-        template <typename T>
-        void RemoveComponent();
+        bool IsActive() const { return m_isActive; }
+        void SetActive(bool active) { m_isActive = active; }
 
-        bool IsActive() const
-        {
-            return m_isActive;
-        }
-
-        void SetActive(bool active)
-        {
-            m_isActive = active;
-        }
-
-        void Destroy()
-        {
-            m_isActive = false;
-        }
-
-    private:
-        std::unordered_map<std::type_index, std::shared_ptr<IComponent>> m_components;
-        bool                                                             m_isActive = true;
+    protected:
+        bool m_isActive = true;
     };
 }

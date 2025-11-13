@@ -8,11 +8,27 @@
 
 #include "ResidentBuilding.hpp"
 
-ResidentBuilding::ResidentBuilding(vec2 pos, int w, int h) : Building(pos, w, h), satisfaction(1.0f), taxrate(10)
+ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), satisfaction(1.0f), taxrate(10)
 {
     max_capacity     = 50;
     current_capacity = 0;
     cost             = 100;
+    buildingType     = bt;
+
+    switch (bt)
+    {
+        case BuildingType::SmallHouse:
+            texture      = Dokev::LoadTexture("Assets/images/textures/home.png");
+            max_capacity = 10;
+            cost         = 0;
+            break;
+
+        default:
+            texture      = Dokev::LoadTexture("Assets/images/textures/MissingTexture.png");
+            max_capacity = 0;
+            cost         = 0;
+            break;
+    }
 }
 
 ResidentBuilding::~ResidentBuilding()
@@ -20,14 +36,36 @@ ResidentBuilding::~ResidentBuilding()
     // TODO
 }
 
-void ResidentBuilding::Update([[maybe_unused]]float dt)
+void ResidentBuilding::Update([[maybe_unused]] float dt)
 {
     // TODO
 }
 
-void ResidentBuilding::Draw()
+void ResidentBuilding::Draw(int viewIndex, const GridMap* map)
 {
-    // TODO
+    Math::fvec2 transformedPos = map->TransformPathPointForView(Math::fvec2(gridPosition.x, gridPosition.y), viewIndex);
+
+    float gridX_float = transformedPos.x;
+    float gridY_float = transformedPos.y;
+
+    int gridX_int = static_cast<int>(gridX_float);
+    int gridY_int = static_cast<int>(gridY_float);
+
+    GridCell** viewArray = map->GetViewArray(viewIndex);
+
+    float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
+
+    int originX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH/2;
+    int originY = 0;
+
+    int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
+    int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
+    int topY = static_cast<int>(height) - screenY;
+    
+    int drawX = screenX + TILE_WIDTH_HALF;
+    int drawY = topY;
+
+    texture.Draw(drawX, drawY);
 }
 
 void ResidentBuilding::AddResident(int count)
@@ -41,7 +79,7 @@ void ResidentBuilding::AddResident(int count)
 
 void ResidentBuilding::RemoveResident(int count)
 {
-    if(count > static_cast<int>(current_capacity))
+    if (count > static_cast<int>(current_capacity))
     {
         current_capacity = 0;
     }

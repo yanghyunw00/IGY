@@ -22,7 +22,7 @@
 #include <vector>
 
 
-GridMap::GridMap() : currentView(1), pathFinder(nullptr), showPath(false)   
+GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 {
     PlainsTexture     = Dokev::LoadTexture("Assets/images/textures/IsoPlains.png");
     WaterTexture      = Dokev::LoadTexture("Assets/images/textures/IsoWater.png");
@@ -148,7 +148,7 @@ void GridMap::InitializeIsoView()
 
 void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) const
 {
-    currentView = (index % 4) + 1;
+    currentView = index % 4;
 
     GridCell* const* selectedView = nullptr;
     switch (index % 4)
@@ -328,10 +328,10 @@ GridCell** GridMap::GetViewArray(int viewIndex) const
 {
     switch (viewIndex)
     {
-        case 1: return view1;
-        case 2: return view2;
-        case 3: return view3;
-        case 4: return view4;
+        case 0: return view1;
+        case 1: return view2;
+        case 2: return view3;
+        case 3: return view4;
         default: return view1;
     }
 }
@@ -493,15 +493,15 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
 
     switch (viewIndex)
     {
-        case 1:
+        case 0:
             return point;
-        case 2:
+        case 1:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, newX, newY);
             return { newX, newY };
-        case 3:
+        case 2:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY);
             return { newX, newY };
-        case 4:
+        case 3:
             rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY);
             return { newX, newY };
         default:

@@ -9,34 +9,41 @@
 #include <memory>
 #include <vector>
 
-class GridMap;
-class Human;
-class Road;
+class MapManager;
+class ResourceManager;
 
 namespace Dokev
 {
     class Camera;
+    class GameObjectManager;
 
     class GameWorldEditor
     {
     public:
         GameWorldEditor() = default;
 
-        void Initialize(GridMap* mapPtr, Camera* cameraPtr, std::vector<Human>* humanPtr, Road* roadPtr,
-                       int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr);
+        void Initialize(MapManager* mapManagerPtr, Camera* cameraPtr,
+                       int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr,
+                       GameObjectManager* gameObjectManager, ResourceManager* resourceManagerPtr);
 
         void UpdateInput();
         void DrawImGui();
+        bool IsSaveRequested() const { return saveGameRequested; }
+        bool IsLoadRequested() const { return loadGameRequested; }
+        void ClearSaveRequest() { saveGameRequested = false; }
+        void ClearLoadRequest() { loadGameRequested = false; }
 
     private:
-        GridMap* map = nullptr;
+        MapManager* mapManager = nullptr;
         Camera* camera = nullptr;
-        std::vector<Human>* humans = nullptr;
-        Road* road = nullptr;
         int* rotationIndex = nullptr;
         float* immigrationTimer = nullptr;
         float* immigrationInterval = nullptr;
+        GameObjectManager* goManager = nullptr;
+        ResourceManager* resourceManager = nullptr;
 
         bool vsyncEnabled = true;
+        bool saveGameRequested = false;
+        bool loadGameRequested = false;
     };
 }

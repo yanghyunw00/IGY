@@ -47,26 +47,31 @@ set(SOURCE_CODE
     OpenGL/Texture.hpp OpenGL/Texture.cpp
     OpenGL/VertexArray.cpp OpenGL/VertexArray.hpp
 
-    Dokev/DKShapes.hpp Dokev/DKShapes.cpp
-    Dokev/DKTexture.hpp Dokev/DKTexture.cpp
-    Dokev/DKImage.hpp Dokev/DKImage.cpp
-    Dokev/DKMath.hpp Dokev/DKMath.cpp
-    Dokev/DKUtility.hpp Dokev/DKUtility.cpp
-    Dokev/DKColor.hpp Dokev/DKColor.cpp
-    Dokev/DKGrid.hpp Dokev/DKGrid.cpp
-    Dokev/DKParticle.hpp Dokev/DKParticle.cpp
-    Dokev/DKCamera.hpp Dokev/DKCamera.cpp
     Dokev/DKAnimation.hpp Dokev/DKAnimation.cpp
     Dokev/DKAnimationSprite.hpp Dokev/DKAnimationSprite.cpp
-    Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp
-    Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
-    Dokev/DKParticleEmitter.hpp Dokev/DKParticleEmitter.cpp  
+    Dokev/DKCamera.hpp Dokev/DKCamera.cpp
+    Dokev/DKCityMetrics.hpp
+    Dokev/DKColor.hpp Dokev/DKColor.cpp
+    Dokev/DKComponent.hpp
+    Dokev/DKComponentManager.hpp Dokev/DKComponentManager.cpp
+    Dokev/DKGameObject.hpp
     Dokev/DKGameObjectManager.hpp Dokev/DKGameObjectManager.cpp
-    Dokev/DKGameObject.hpp Dokev/DKGameObject.cpp
-    Dokev/DKComponent.hpp Dokev/DKComponent.cpp
     Dokev/DKGameObjectTypes.hpp
+    Dokev/DKGameState.hpp
     Dokev/DKGameWorldEditor.hpp Dokev/DKGameWorldEditor.cpp
-    Dokev/DKTileManager.hpp Dokev/DKTileManager.cpp 
+    Dokev/DKGrid.hpp Dokev/DKGrid.cpp
+    Dokev/DKImage.hpp Dokev/DKImage.cpp
+    Dokev/DKMath.hpp Dokev/DKMath.cpp
+    Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp
+    Dokev/DKMapManager.hpp Dokev/DKMapManager.cpp
+    Dokev/DKParticleEmitter.hpp Dokev/DKParticleEmitter.cpp
+    Dokev/DKParticles.hpp
+    Dokev/DKShapes.hpp Dokev/DKShapes.cpp
+    Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
+    Dokev/DKTexture.hpp Dokev/DKTexture.cpp
+    Dokev/DKTileManager.hpp Dokev/DKTileManager.cpp
+    Dokev/DKUtility.hpp Dokev/DKUtility.cpp
+
 
 
 
@@ -75,14 +80,19 @@ set(SOURCE_CODE
     Game/GridCell.hpp
     Game/CustomCell.hpp Game/CustomCell.cpp
     Game/GridMap.hpp Game/GridMap.cpp
-    Game/Road.hpp Game/Road.cpp
-    Game/pathFinding.hpp Game/pathFinding.cpp
     Game/Human.hpp Game/Human.cpp
+    Game/pathFinding.hpp Game/pathFinding.cpp
+    Game/Road.hpp Game/Road.cpp
+    Game/Resource.hpp Game/Resource.cpp
+    Game/Wood.hpp Game/Wood.cpp
+    Game/Stone.hpp Game/Stone.cpp
+    Game/Steel.hpp Game/Steel.cpp
+    Game/ResourceManager.hpp
 
 
-   # Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
-   # Game/Building.hpp Game/Building.cpp
-   # Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
+    Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
+    Game/Building.hpp Game/Building.cpp
+    Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
     
 
 

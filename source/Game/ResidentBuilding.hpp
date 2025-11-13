@@ -16,11 +16,13 @@ protected:
     float taxrate;
 
 public:
-    ResidentBuilding(vec2 pos, int w, int h);
+    ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
     ~ResidentBuilding() override;
 
     void Update([[maybe_unused]] float dt) override;
-    void Draw() override;
+    void Draw(int viewIndex, const GridMap* map) override;
+
+    std::string TypeName() override {return "ResidentBuilding";}
 
     // Residence function
     void AddResident(int count);
@@ -28,4 +30,6 @@ public:
     int GetTaxIncome() const;
     float GetSatisfaction() const;
     bool IsFull() const;
+
+
 };

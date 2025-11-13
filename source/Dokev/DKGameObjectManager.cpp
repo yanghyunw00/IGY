@@ -6,24 +6,49 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKGameObjectManager.hpp"
+#include "Game/Human.hpp"
+#include "Game/Building.hpp"
 
 namespace Dokev
 {
-    GameObject* GameObjectManager::CreateGameObject()
+    void GameObjectManager::AddHuman(Human* human)
     {
-        auto  obj    = std::make_unique<GameObject>();
-        auto* objPtr = obj.get();
-        m_gameObjects.push_back(std::move(obj));
-        return objPtr;
+        m_humans.push_back(std::unique_ptr<Human>(human));
     }
 
-    std::vector<std::unique_ptr<GameObject>>& GameObjectManager::GetGameObjects()
+    std::vector<std::unique_ptr<Human>>& GameObjectManager::GetHumans()
     {
-        return m_gameObjects;
+        return m_humans;
+    }
+
+    void GameObjectManager::AddBuilding(Building* building)
+    {
+        m_buildings.push_back(std::unique_ptr<Building>(building));
+    }
+
+    std::vector<std::unique_ptr<Building>>& GameObjectManager::GetBuildings()
+    {
+        return m_buildings;
     }
 
     void GameObjectManager::Refresh()
     {
-        m_gameObjects.erase(std::remove_if(m_gameObjects.begin(), m_gameObjects.end(), [](const auto& obj) { return !obj->IsActive(); }), m_gameObjects.end());
+        m_humans.erase(
+            std::remove_if(m_humans.begin(), m_humans.end(),
+                [](const auto& obj) { return obj->IsDestroy(); }),
+            m_humans.end()
+        );
+
+      m_buildings.erase(
+          std::remove_if(m_buildings.begin(), m_buildings.end(),
+              [](const auto& obj) { return obj->IsDestroy(); }),
+          m_buildings.end()
+      );
+    }
+
+    void GameObjectManager::Unload()
+    {
+        m_humans.clear();
+        m_buildings.clear();
     }
 }
