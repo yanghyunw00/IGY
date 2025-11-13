@@ -57,6 +57,12 @@ namespace Dokev
         void DrawPro(Math::vec2 position, float rotation, Math::vec2 scale,
                      Math::vec2 origin, CS200::RGBA tint = CS200::WHITE) const;
 
+
+        void setTexture(std::shared_ptr<CS230::Texture> texture_doodoobird)
+        {
+            texture = texture_doodoobird;
+        }
+
     private:
         std::shared_ptr<CS230::Texture> texture;
     };

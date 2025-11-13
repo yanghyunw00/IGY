@@ -144,6 +144,7 @@ void GamePlayState::Update(double dt)
 void GamePlayState::Draw() const
 {
     CS200::RenderingAPI::Clear();
+
     auto& renderer2d = Engine::GetRenderer2D(selected_renderer);
 
     auto windowSize = Engine::GetWindow().GetSize();

@@ -62,6 +62,40 @@ namespace Math
         matrix[2][1] = 0;
     }
 
+    TransformationMatrix TransformationMatrix::Inverse() const
+    {
+        TransformationMatrix inv;
+        double a  = matrix[0][0];
+        double b  = matrix[0][1];
+        double tx = matrix[0][2];
+        double c  = matrix[1][0];
+        double d  = matrix[1][1];
+        double ty = matrix[1][2];
+
+        double det = a * d - b * c;
+        if (std::fabs(det) < 1e-10)
+        {
+            inv.Reset();
+            return inv;
+        }
+
+        double invDet = 1.0 / det;
+
+        inv.matrix[0][0] = d * invDet;
+        inv.matrix[0][1] = -b * invDet;
+        inv.matrix[0][2] = (b * ty - d * tx) * invDet;
+
+        inv.matrix[1][0] = -c * invDet;
+        inv.matrix[1][1] = a * invDet;
+        inv.matrix[1][2] = (c * tx - a * ty) * invDet;
+
+        inv.matrix[2][0] = 0.0;
+        inv.matrix[2][1] = 0.0;
+        inv.matrix[2][2] = 1.0;
+
+        return inv;
+    }
+
     TranslationMatrix::TranslationMatrix(ivec2 translate)
     {
         matrix[0][0] = 1;
