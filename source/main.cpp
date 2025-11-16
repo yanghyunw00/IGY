@@ -29,6 +29,7 @@
 
 #include "Game/GamePlayState.hpp"
 #include "Game/DEMO.hpp"
+#include "Game/MainMenu.hpp"
 namespace
 {
     [[maybe_unused]] int  gWindowWidth  = 1200;
@@ -82,7 +83,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
     Engine& engine = Engine::Instance();
     engine.Start("Team - Antartic Monkeys");
-    engine.GetGameStateManager().PushState<GamePlayState>();
+    engine.GetGameStateManager().PushState<MainMenu>();
 
 #if !defined(__EMSCRIPTEN__)
     while (engine.HasGameEnded() == false)
