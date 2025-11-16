@@ -10,6 +10,7 @@
 
 #include "GridMap.hpp"
 #include "Dokev/DKTexture.hpp"
+#include "Engine/Path.hpp"
 #include "Engine/Vec2.hpp"
 
 #pragma once
@@ -28,7 +29,7 @@ private:
 public:
 	Road()
 	{
-		roadTexture = LoadTexture("Assets/images/textures/road.png");
+		roadTexture = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
 	};
 
 	~Road()

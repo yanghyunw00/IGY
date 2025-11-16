@@ -7,6 +7,7 @@
  */
 
 #include "ResidentBuilding.hpp"
+#include "Engine/Path.hpp"
 
 ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), satisfaction(1.0f), taxrate(10)
 {
@@ -18,13 +19,13 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
     switch (bt)
     {
         case BuildingType::HOME:
-            texture      = Dokev::LoadTexture("Assets/images/textures/home.png");
+            texture      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
             max_capacity = 10;
             cost         = 0;
             break;
 
         default:
-            texture      = Dokev::LoadTexture("Assets/images/textures/MissingTexture.png");
+            texture      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
             max_capacity = 0;
             cost         = 0;
             break;

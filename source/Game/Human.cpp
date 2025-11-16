@@ -21,7 +21,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     startPosition  = currentGridPos;
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
-    humanTexture   = Dokev::LoadTexture("Assets/images/textures/Human.png");
+    humanTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
 }
 
 void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)

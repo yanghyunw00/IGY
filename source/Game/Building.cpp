@@ -7,6 +7,7 @@
  */
 
 #include "Building.hpp"
+#include "Engine/Path.hpp"
 
 Building::Building(Math::fvec2 pos, int w, int h)
     : gridPosition(pos)
@@ -17,7 +18,7 @@ Building::Building(Math::fvec2 pos, int w, int h)
     , current_capacity(0)
     , cost(0)
 {
-    texture = Dokev::LoadTexture("Assets/images/textures/MissingTexture.png");
+    texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
     progress = 1.0f; // TODO: after finishing time manager fix this to 0
 }
 

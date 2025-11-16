@@ -9,6 +9,7 @@
 
 #include "WorkBuilding.hpp"
 #include "CS200/RGBA.hpp"
+#include "Engine/Path.hpp"
 
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10)
 {
@@ -21,25 +22,25 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
     switch(bt)
     {
         case BuildingType::WOOD_WORKSHOP:
-        texture = Dokev::LoadTexture("Assets/images/textures/work.png");
+        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::ROCK_WORKSHOP:
-        texture = Dokev::LoadTexture("Assets/images/textures/work.png");
+        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::STEEL_WORKSHOP:
-        texture = Dokev::LoadTexture("Assets/images/textures/work.png");
+        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
         max_capacity = 10;
         cost = 0;
         break;
 
         default:
-            texture = Dokev::LoadTexture("Assets/images/textures/MissingTexture.png");
+            texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
             max_capacity = 0;
             cost = 0;
             break;

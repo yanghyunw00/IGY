@@ -5,9 +5,9 @@
 class ResourceManager : public IComponent
 {
 public:
-    int totalWood = 0;
-    int totalStone = 0;
-    int totalSteel = 0;
+    int totalWood = 5;
+    int totalStone = 5;
+    int totalSteel = 5;
 
     void AddResource(ResourceType type, int amount)
     {
@@ -24,5 +24,10 @@ public:
         totalWood = wood;
         totalStone = stone;
         totalSteel = steel;
+    }
+
+    int GetTotalResources() const
+    {
+        return totalWood + totalStone + totalSteel;
     }
 };

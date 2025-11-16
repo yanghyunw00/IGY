@@ -264,7 +264,7 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
@@ -294,7 +294,7 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
@@ -321,7 +321,7 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
@@ -348,7 +348,7 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;

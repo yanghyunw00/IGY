@@ -14,7 +14,7 @@
 
 class Human;
 class Building;
-
+class Resources;
 namespace Dokev
 {
     class GameObjectManager : public IComponent
