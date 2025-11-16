@@ -96,7 +96,7 @@ set(SOURCE_CODE
     Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
     Game/Building.hpp Game/Building.cpp
     Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
-    
+    Game/MainMenu.hpp Game/MainMenu.cpp
 
 
 
