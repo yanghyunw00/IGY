@@ -10,8 +10,9 @@
 #include "WorkBuilding.hpp"
 #include "CS200/RGBA.hpp"
 #include "Engine/Path.hpp"
+#include "ResourceManager.hpp"
 
-WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10)
+WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(0.3f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {
     max_capacity     = 20;
     current_capacity = 0;
@@ -54,7 +55,28 @@ WorkBuilding::~WorkBuilding()
 
 void WorkBuilding::Update([[maybe_unused]] float dt)
 {
-    // TODO
+    if (HasWorker() && resourceManager != nullptr && productionTimer.Update(dt))
+    {
+        int amountToProduce = static_cast<int>(current_capacity * productionRate);
+
+        switch (buildingType)
+        {
+            case BuildingType::WOOD_WORKSHOP:
+                resourceManager->AddResource(ResourceType::Wood, amountToProduce);
+                break;
+
+            case BuildingType::ROCK_WORKSHOP:
+                resourceManager->AddResource(ResourceType::Stone, amountToProduce);
+                break;
+
+            case BuildingType::STEEL_WORKSHOP:
+                resourceManager->AddResource(ResourceType::Steel, amountToProduce);
+                break;
+
+            default:
+                break;
+        }
+    }
 }
 
 void WorkBuilding::Draw(int viewIndex, const GridMap* map)
@@ -140,4 +162,9 @@ bool WorkBuilding::IsFull() const
 bool WorkBuilding::HasWorker() const
 {
     return current_capacity > 0;
+}
+
+void WorkBuilding::SetResourceManager(ResourceManager* rm)
+{
+    resourceManager = rm;
 }

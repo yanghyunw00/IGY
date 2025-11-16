@@ -125,6 +125,13 @@ void GamePlayState::Update(double dt)
     }
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 
+    // Update all buildings
+    auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+    for (auto& building : buildings)
+    {
+        building->Update(static_cast<float>(dt));
+    }
+
     smokeEmitter.Update(environment.DeltaTime);
 
     if (input.KeyJustPressed(CS230::Input::Keys::P))
@@ -167,7 +174,7 @@ void GamePlayState::Update(double dt)
     auto previousUISelection = uiManager.GetSelectedBuilding();
     uiManager.Update(mouseScreenPos, mouseClicked);
 
-    if (mouseClicked && uiManager.GetSelectedBuilding() == previousUISelection)
+    if (mouseClicked)
     {
         if (mapMgr && mapMgr->GetMap())
         {

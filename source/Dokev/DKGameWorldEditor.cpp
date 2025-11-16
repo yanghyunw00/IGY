@@ -314,7 +314,10 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::WOOD_WORKSHOP));
+                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::WOOD_WORKSHOP);
+                    workshop->SetResourceManager(resourceManager);
+                    workshop->AddWorker(1);
+                    goManager->AddBuilding(workshop);
                 }
 
                 if (ImGui::Button("Add Rock Workshop"))
@@ -341,7 +344,10 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::ROCK_WORKSHOP));
+                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::ROCK_WORKSHOP);
+                    workshop->SetResourceManager(resourceManager);
+                    workshop->AddWorker(1);
+                    goManager->AddBuilding(workshop);
                 }
 
                 if (ImGui::Button("Add Steel Workshop"))
@@ -368,7 +374,10 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP));
+                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP);
+                    workshop->SetResourceManager(resourceManager);
+                    workshop->AddWorker(1); 
+                    goManager->AddBuilding(workshop);
                 }
                 ImGui::TreePop();
             }
