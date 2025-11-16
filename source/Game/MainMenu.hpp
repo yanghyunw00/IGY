@@ -1,3 +1,11 @@
+/**
+ * \file MainMenu.hpp
+ * \brief Displays the main screen
+ * \author Youngwoo Lee(youngwoo.lee)
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #pragma once
  #include "Dokev/DKTexture.hpp"
  #include "Engine/Texture.hpp"

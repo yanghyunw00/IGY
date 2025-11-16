@@ -1,6 +1,10 @@
 /**
-* \author Youngwoo Lee
-*/ 
+ * \file MainMenu.cpp
+ * \brief Displays the main screen
+ * \author Youngwoo Lee(youngwoo.lee)
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 
  #include "MainMenu.hpp"
  #include "GamePlayState.hpp"
