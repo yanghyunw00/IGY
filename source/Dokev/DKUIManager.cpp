@@ -6,7 +6,6 @@
  * \copyright DigiPen Institute of Technology
  */
 
- //UI outline  - 
 
 #include "DKUIManager.hpp"
 #include "DKCollision.hpp"
