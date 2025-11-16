@@ -6,31 +6,31 @@
  * \copyright DigiPen Institute of Technology
  */
 
-#include <GL/glew.h>
 #include "GridMap.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGrid.hpp"
 #include "Dokev/DKUtility.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
-#include "Engine/Window.hpp"
-#include "Engine/TextureManager.hpp"
+#include "Engine/Path.hpp"
 #include "Engine/Texture.hpp"
+#include "Engine/TextureManager.hpp"
+#include "Engine/Window.hpp"
+#include <GL/glew.h>
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
 
-
 GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 {
-    PlainsTexture     = Dokev::LoadTexture("Assets/images/textures/IsoPlains.png");
-    WaterTexture      = Dokev::LoadTexture("Assets/images/textures/IsoWater.png");
-    MountainTexture   = Dokev::LoadTexture("Assets/images/textures/IsoMountains.png");
-    SnowTexture       = Dokev::LoadTexture("Assets/images/textures/IsoPeak.png");
-    Max_Height        = Dokev::LoadTexture("Assets/images/textures/Max_Height.png"); 
-    RoadTexture       = Dokev::LoadTexture("Assets/images/textures/road.png");
-    IsoMouseAtlas     = Dokev::LoadTexture("Assets/images/textures/IsoMouseAtlas.png");
+    PlainsTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPlains.png").string());
+    WaterTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater.png").string());
+    MountainTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
+    SnowTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPeak.png").string());
+    Max_Height      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
+    RoadTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
+    IsoMouseAtlas   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
     IsoGridTexture[0] = WaterTexture;
     IsoGridTexture[1] = PlainsTexture;
@@ -44,7 +44,7 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 
     if (!IsoGridMapArray.empty())
     {
-        //isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
+        // isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
         isoOriginX = 0;
         isoOriginY = static_cast<int>(IsoGridMapArray[0].getHeight());
         std::cout << "isoOrigin set: X=" << isoOriginX << ", Y=" << isoOriginY << std::endl;
@@ -63,7 +63,7 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 
     glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
-    //this texture will save the colors
+    // this texture will save the colors
     glGenTextures(1, &mouseAtlasTex);
     glBindTexture(GL_TEXTURE_2D, mouseAtlasTex);
 
@@ -74,17 +74,16 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // Attach it as color attachment 0
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mouseAtlasTex, 0);// this makes it so that anything drawn goes to the texture
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mouseAtlasTex, 0); // this makes it so that anything drawn goes to the texture
 
     // Specify draw buffer list (only one)
     GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
     glDrawBuffers(1, drawBuffers);
-    //“This FBO has 1 color output, and it’s color attachment 0.”
+    // “This FBO has 1 color output, and it’s color attachment 0.”
 
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0);
-
 };
 
 void GridMap::ReGenerateMap()
@@ -147,7 +146,7 @@ void GridMap::InitializeIsoView()
     }
 }
 
-void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) const
+void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer) const
 {
     currentView = index % 4;
 
@@ -176,15 +175,13 @@ void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) c
 
             if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
             {
+                int screenX = originX + (x - y) * TILE_WIDTH_HALF;
+                int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
 
 
-                int    screenX = originX + (x - y) * TILE_WIDTH_HALF;
-                int    screenY = originY + (x + y) * TILE_HEIGHT_HALF;
-
-
-                int    count   = y * GRID_SIZE_X + x;
-                double height  = selectedView[count]->getHeight();
-                int    topY    = static_cast<int>(height) - screenY;
+                int    count  = y * GRID_SIZE_X + x;
+                double height = selectedView[count]->getHeight();
+                int    topY   = static_cast<int>(height) - screenY;
 
                 int originalX = selectedView[count]->x;
                 int originalY = selectedView[count]->y;
@@ -206,25 +203,25 @@ void GridMap::IsometricDrawMap(int index,Dokev::RenderState selected_renderer) c
                         current_texture = 1;
                     if (height < 75)
                         current_texture = 0;
-                    Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
-                    Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE,selected_renderer);
+                    Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                 }
-
             }
         }
     }
 }
-//takes in an index for the selected "view" to genereate the mouse atlas.
-//intializes the member variable array IsoAtlasTexture with the texture created. later unpack the rgba values in the texture to get the grid.
+
+// takes in an index for the selected "view" to genereate the mouse atlas.
+// intializes the member variable array IsoAtlasTexture with the texture created. later unpack the rgba values in the texture to get the grid.
 void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer) const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
     //
-    //glViewport(0, 0, 1200, 800);
+    // glViewport(0, 0, 1200, 800);
     //
     ////// Clear to black (ID = 0 = nothing)
-    //glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    //glClear(GL_COLOR_BUFFER_BIT);
+    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    // glClear(GL_COLOR_BUFFER_BIT);
     //
     ////// You can disable blending to avoid color blending artifacts
     ////glDisable(GL_BLEND);
@@ -260,20 +257,19 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
 
             if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
             {
+                int screenX = originX + (x - y) * TILE_WIDTH_HALF;
+                int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
 
 
-                int    screenX = originX + (x - y) * TILE_WIDTH_HALF;
-                int    screenY = originY + (x + y) * TILE_HEIGHT_HALF;
-
-
-                int    count   = y * GRID_SIZE_X + x;
-                double height  = selectedView[count]->getHeight();
-                int    topY    = static_cast<int>(height) - screenY;
+                int    count  = y * GRID_SIZE_X + x;
+                double height = selectedView[count]->getHeight();
+                int    topY   = static_cast<int>(height) - screenY;
 
                 int originalX = selectedView[count]->x;
                 int originalY = selectedView[count]->y;
 
-                Dokev::TileType tileType = tileManager->GetTileType(originalX, originalY);// why not retrieve the memory where they are all contiguous? like maybe a struct so there are fewer cache misses?
+                Dokev::TileType tileType =
+                    tileManager->GetTileType(originalX, originalY); // why not retrieve the memory where they are all contiguous? like maybe a struct so there are fewer cache misses?
 
 
                 /*if (tileType == Dokev::TileType::ROAD)
@@ -281,29 +277,27 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
                     Dokev::DrawTexture(RoadTexture, screenX, topY, Dokev::ColorPalette::WHITE, Dokev::RenderState::IMMEDIATE);
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, Dokev::RenderState::IMMEDIATE);
                 }*/
-                
-                
-                    int current_texture = 3;
-                    if (height < 205)
-                        current_texture = 2;
-                    if (height < 150)
-                        current_texture = 1;
-                    if (height < 75)
-                        current_texture = 0;
 
 
-                    std::array<float,4> result;
-                    result[0] = static_cast<float>(x) / (GRID_SIZE_X-1);
-                    result[1] = static_cast<float>(y) / (GRID_SIZE_Y-1);
-                    result[2] = 0;
-                    result[3] = 255;
+                int current_texture = 3;
+                if (height < 205)
+                    current_texture = 2;
+                if (height < 150)
+                    current_texture = 1;
+                if (height < 75)
+                    current_texture = 0;
 
-                    CS200::RGBA drawtint = CS200::pack_color(result);
 
-                    //Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, drawtint ,Dokev::RenderState::IMMEDIATE);
-                    Dokev::DrawTexture(IsoMouseAtlas, screenX, topY, drawtint, Dokev::RenderState::IMMEDIATE);
-                
+                std::array<float, 4> result;
+                result[0] = static_cast<float>(x) / (GRID_SIZE_X - 1);
+                result[1] = static_cast<float>(y) / (GRID_SIZE_Y - 1);
+                result[2] = 0;
+                result[3] = 255;
 
+                CS200::RGBA drawtint = CS200::pack_color(result);
+
+                // Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, drawtint ,Dokev::RenderState::IMMEDIATE);
+                Dokev::DrawTexture(IsoMouseAtlas, screenX, topY, drawtint, Dokev::RenderState::IMMEDIATE);
             }
         }
     }
@@ -494,18 +488,10 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
 
     switch (viewIndex)
     {
-        case 0:
-            return point;
-        case 1:
-            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, newX, newY);
-            return { newX, newY };
-        case 2:
-            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY);
-            return { newX, newY };
-        case 3:
-            rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY);
-            return { newX, newY };
-        default:
-            return point;
+        case 0: return point;
+        case 1: rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, newX, newY); return { newX, newY };
+        case 2: rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, newX, newY); return { newX, newY };
+        case 3: rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY); return { newX, newY };
+        default: return point;
     }
 }

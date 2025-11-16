@@ -66,6 +66,14 @@ namespace Dokev
         constexpr CS200::RGBA DARKGRAY  = 0x505050FF;
         constexpr CS200::RGBA BLACK     = 0x000000FF;
         constexpr CS200::RGBA BLANK     = 0x00000000;
+
+        // UI Box Colors
+        constexpr CS200::RGBA BOX_INSIDE_DEFAULT  = 0x4C4C4CCC; // dark gray
+        constexpr CS200::RGBA BOX_INSIDE_SELECTED = 0x339933E5; // green
+        constexpr CS200::RGBA BOX_INSIDE_HOVERED  = 0x7F7F7FE5; // gray
+        constexpr CS200::RGBA BOX_OUTLINE_SELECTED = 0x4CCC4CFF; // bright green
+        constexpr CS200::RGBA BOX_OUTLINE_DEFAULT  = 0x999999FF; // light gray
+        constexpr CS200::RGBA TOOLTIP_BACKGROUND   = 0x191919E5; // black
     }
 
     CS200::RGBA ColorLerp(CS200::RGBA color1, CS200::RGBA color2, float t);

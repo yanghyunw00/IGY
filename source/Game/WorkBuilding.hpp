@@ -10,16 +10,21 @@
 #pragma once
 
 #include "Building.hpp"
+#include "Dokev/DKTimeManager.hpp"
 
 class WorkBuilding : public Building
 {
 protected:
     float productionRate;
     int   resourceProduce;
+    Dokev::Timer productionTimer;
+    class ResourceManager* resourceManager;
 
 public:
     WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
     ~WorkBuilding() override;
+
+    void SetResourceManager(ResourceManager* rm);
 
     void Update([[maybe_unused]] float dt) override;
     void Draw(int viewIndex, const GridMap* map) override;

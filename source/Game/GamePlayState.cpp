@@ -125,6 +125,13 @@ void GamePlayState::Update(double dt)
     }
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 
+    // Update all buildings
+    auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+    for (auto& building : buildings)
+    {
+        building->Update(static_cast<float>(dt));
+    }
+
     smokeEmitter.Update(environment.DeltaTime);
 
     if (input.KeyJustPressed(CS230::Input::Keys::P))
@@ -136,11 +143,26 @@ void GamePlayState::Update(double dt)
     }
 
     // Auto immigration system
-    immigrationTimer += static_cast<float>(dt);
-    if (immigrationTimer >= immigrationInterval)
+    auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
+    auto resourceMgr = GetGSComponent<ResourceManager>();
+
+    size_t humanCount = gameObjMgr->GetHumans().size();
+    size_t homeCount = 0;
+
+    for (const auto& building : gameObjMgr->GetBuildings())
     {
-        immigrationTimer = 0.0f;
-        //GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Human::CreateImmigrant()));
+        if (building->GetBuildingType() == BuildingType::HOME)
+        {
+            homeCount++;
+        }
+    }
+
+    int totalResources = resourceMgr->GetTotalResources();
+    int requiredResources = static_cast<int>(humanCount) * 100;
+
+    if (humanCount < homeCount && totalResources >= requiredResources)
+    {
+        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
     }
 
     mouse.Update();
@@ -152,9 +174,8 @@ void GamePlayState::Update(double dt)
     auto previousUISelection = uiManager.GetSelectedBuilding();
     uiManager.Update(mouseScreenPos, mouseClicked);
 
-    if (mouseClicked && uiManager.GetSelectedBuilding() == previousUISelection)
+    if (mouseClicked)
     {
-        auto mapMgr = GetGSComponent<MapManager>();
         if (mapMgr && mapMgr->GetMap())
         {
             mapMgr->GetMap()->IsometricDrawMouseAtlas(index, selected_renderer);
@@ -256,7 +277,7 @@ void GamePlayState::SaveGame(const std::string& filename)
     json j;
     Engine::GetLogger().LogEvent("Saving game to " + filename);
 
-    // 1. Save Player Resources
+    //  Save Player Resources
     auto resourceMgr = GetGSComponent<ResourceManager>();
     if (resourceMgr)
     {
@@ -270,7 +291,7 @@ void GamePlayState::SaveGame(const std::string& filename)
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)
     {
-        // 2. Save Map Resources
+        //  Save Map Resources
         json& j_map_resources = j["MapResources"];
         for (const auto& res : mapMgr->GetResources())
         {
@@ -282,7 +303,7 @@ void GamePlayState::SaveGame(const std::string& filename)
             });
         }
 
-        // 3. Save Road Info (based on TileManager)
+        //  Save Road Info (based on TileManager)
         json& j_roads = j["Roads"];
         auto tileMgr = mapMgr->GetMap()->GetTileManager();
         if (tileMgr)
@@ -295,7 +316,7 @@ void GamePlayState::SaveGame(const std::string& filename)
         }
     }
 
-    // 4. Save Human Info
+    //  Save Human Info
     auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
     if (gameObjMgr)
     {
@@ -310,7 +331,7 @@ void GamePlayState::SaveGame(const std::string& filename)
         }
     }
     
-    // 5. Save Camera Position
+    //  Save Camera Position
     j["Camera"] = {
         {"Position", {camera.GetPosition().x, camera.GetPosition().y}},
         {"Zoom", camera.GetZoom()}
@@ -366,7 +387,7 @@ void GamePlayState::LoadGame(const std::string& filename)
     }
 
 
-    // 1. Load Player Resources
+    //  Load Player Resources
     auto resourceMgr = GetGSComponent<ResourceManager>();
     if (resourceMgr && j.contains("PlayerResources"))
     {
@@ -377,7 +398,7 @@ void GamePlayState::LoadGame(const std::string& filename)
         );
     }
 
-    // 2. Load Map Resources
+    //  Load Map Resources
     if (j.contains("MapResources"))
     {
         auto& resources = mapMgr->GetResources(); 
@@ -397,7 +418,7 @@ void GamePlayState::LoadGame(const std::string& filename)
         }
     }
 
-    // 3. Load Road Info
+    //  Load Road Info
     if (j.contains("Roads"))
     {
         auto road = mapMgr->GetRoad();
@@ -408,7 +429,7 @@ void GamePlayState::LoadGame(const std::string& filename)
         }
     }
 
-    // 4. Load Human Info
+    //  Load Human Info
     auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
     if (gameObjMgr && j.contains("Humans"))
     {
@@ -420,7 +441,7 @@ void GamePlayState::LoadGame(const std::string& filename)
         }
     }
     
-    // 5. Load Camera Position
+    //  Load Camera Position
     if (j.contains("Camera"))
     {
         camera.SetPosition({j["Camera"]["Position"][0].get<double>(), j["Camera"]["Position"][1].get<double>()});

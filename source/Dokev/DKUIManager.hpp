@@ -9,7 +9,9 @@
 #pragma once
 
 #include "DKTexture.hpp"
+#include "DKColor.hpp"
 #include "Engine/Vec2.hpp"
+#include "Engine/Font.hpp"
 #include "CS200/RGBA.hpp"
 #include "Game/BuildingType.hpp"
 #include <vector>
@@ -26,7 +28,7 @@ namespace Dokev
         Math::fvec2 position;
         Math::fvec2 size;
         std::string name;
-        CS200::RGBA tint = CS200::WHITE;
+        CS200::RGBA tint = Dokev::ColorPalette::WHITE;
         bool isHovered = false;
         bool isSelected = false;
     };
@@ -46,7 +48,7 @@ namespace Dokev
     private:
         void CreateBuildingButtons();
         void DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
-        void DrawBuildingButton(const BuildingButton& button) const;
+        void DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr) const;
         void DrawResources(ResourceManager* resourceMgr) const;
 
         std::vector<BuildingButton> buildingButtons;
@@ -56,10 +58,11 @@ namespace Dokev
         Texture2D rockIcon;
         Texture2D steelIcon;
 
-        // UI Layout constants
+        std::unique_ptr<CS230::Font> outlined;
+
         static constexpr float BUTTON_WIDTH = 100.0f;
         static constexpr float BUTTON_HEIGHT = 100.0f;
         static constexpr float BUTTON_SPACING = 10.0f;
-        static constexpr float UI_MARGIN = 20.0f;
+        static constexpr float UI_SPACING = 20.0f;
     };
 }

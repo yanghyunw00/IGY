@@ -264,7 +264,7 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
@@ -294,7 +294,7 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
@@ -314,14 +314,17 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::WOOD_WORKSHOP));
+                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::WOOD_WORKSHOP);
+                    workshop->SetResourceManager(resourceManager);
+                    workshop->AddWorker(1);
+                    goManager->AddBuilding(workshop);
                 }
 
                 if (ImGui::Button("Add Rock Workshop"))
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
@@ -341,14 +344,17 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::ROCK_WORKSHOP));
+                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::ROCK_WORKSHOP);
+                    workshop->SetResourceManager(resourceManager);
+                    workshop->AddWorker(1);
+                    goManager->AddBuilding(workshop);
                 }
 
                 if (ImGui::Button("Add Steel Workshop"))
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(rand() % (GRID_SIZE_X - 1), rand() % (GRID_SIZE_Y - 1));
+                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
@@ -368,7 +374,10 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP));
+                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP);
+                    workshop->SetResourceManager(resourceManager);
+                    workshop->AddWorker(1); 
+                    goManager->AddBuilding(workshop);
                 }
                 ImGui::TreePop();
             }

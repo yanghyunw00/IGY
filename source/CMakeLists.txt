@@ -71,6 +71,7 @@ set(SOURCE_CODE
     Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
     Dokev/DKTexture.hpp Dokev/DKTexture.cpp
     Dokev/DKTileManager.hpp Dokev/DKTileManager.cpp
+    Dokev/DKTimeManager.hpp Dokev/DKTimeManager.cpp
     Dokev/DKUIManager.hpp Dokev/DKUIManager.cpp
     Dokev/DKUtility.hpp Dokev/DKUtility.cpp
 
