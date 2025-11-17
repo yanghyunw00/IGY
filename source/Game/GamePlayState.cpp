@@ -33,6 +33,7 @@
 #include "OpenGL/GL.hpp"
 #include <GL/glew.h>
 #include <SDL.h>
+#include <algorithm>
 #include <cmath>
 #include <filesystem>
 #include <imgui.h>
@@ -49,6 +50,26 @@
 #include "Game/Road.hpp"
 
 using json = nlohmann::json;
+
+namespace
+{
+    Math::fvec2 ConvertViewTileToGrid(Math::fvec2 tileCoord, int rotationIndex, const GridMap* map)
+    {
+        if (!map)
+        {
+            return tileCoord;
+        }
+
+        int rotation = ((rotationIndex % 4) + 4) % 4;
+        if (rotation == 0)
+        {
+            return tileCoord;
+        }
+
+        int inverseRotation = (4 - rotation) % 4;
+        return map->TransformPathPointForView(tileCoord, inverseRotation);
+    }
+}
 
 NLOHMANN_JSON_SERIALIZE_ENUM( ResourceType, {
     {ResourceType::Wood, "Wood"},
@@ -194,6 +215,139 @@ void GamePlayState::Update(double dt)
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
             float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.0f;
 
+            auto selectedBuild = uiManager.GetSelectedBuilding();
+            if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
+            {
+                auto attemptPlacement = [&]()
+                {
+                    auto* map = mapMgr->GetMap();
+                    if (!map)
+                    {
+                        return;
+                    }
+
+                    Math::fvec2 gridCoord = ConvertViewTileToGrid({ tileX, tileY }, index, map);
+                    int gridX             = std::clamp(static_cast<int>(std::round(gridCoord.x)), 0, GRID_SIZE_X - 1);
+                    int gridY             = std::clamp(static_cast<int>(std::round(gridCoord.y)), 0, GRID_SIZE_Y - 1);
+
+                    auto* tileMgr = map->GetTileManager();
+                    if (!tileMgr)
+                    {
+                        return;
+                    }
+
+                    GridCell** viewArray = map->GetViewArray(0);
+                    if (!viewArray)
+                    {
+                        return;
+                    }
+
+                    GridCell* clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
+                    if (!clickedCell || clickedCell->getWater())
+                    {
+                        return;
+                    }
+
+                    if (!resourceMgr || !gameObjMgr)
+                    {
+                        return;
+                    }
+
+                    auto consumeResources = [&](int wood, int stone, int steel) -> bool
+                    {
+                        if (resourceMgr->totalWood < wood || resourceMgr->totalStone < stone || resourceMgr->totalSteel < steel)
+                            return false;
+
+                        resourceMgr->totalWood -= wood;
+                        resourceMgr->totalStone -= stone;
+                        resourceMgr->totalSteel -= steel;
+                        return true;
+                    };
+
+                    bool placed = false;
+                    switch (selectedBuild)
+                    {
+                        case BuildingType::ROAD:
+                        {
+                            auto* road = mapMgr->GetRoad();
+                            if (!road || !tileMgr->CanPlaceTile(gridX, gridY))
+                                break;
+                            if (!consumeResources(2, 0, 0))
+                                break;
+                            road->addRoad(gridX, gridY, *map);
+                            placed = true;
+                            break;
+                        }
+                        case BuildingType::HOME:
+                        {
+                            if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                break;
+                            if (!consumeResources(5, 3, 2))
+                                break;
+
+                            auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::HOME);
+                            gameObjMgr->AddBuilding(building);
+                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                            placed = true;
+                            break;
+                        }
+                        case BuildingType::WOOD_WORKSHOP:
+                        {
+                            if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                break;
+                            if (!consumeResources(3, 2, 0))
+                                break;
+
+                            auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::WOOD_WORKSHOP);
+                            workshop->SetResourceManager(resourceMgr.get());
+                            workshop->AddWorker(1);
+                            gameObjMgr->AddBuilding(workshop);
+                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                            placed = true;
+                            break;
+                        }
+                        case BuildingType::ROCK_WORKSHOP:
+                        {
+                            if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                break;
+                            if (!consumeResources(5, 0, 2))
+                                break;
+
+                            auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::ROCK_WORKSHOP);
+                            workshop->SetResourceManager(resourceMgr.get());
+                            workshop->AddWorker(1);
+                            gameObjMgr->AddBuilding(workshop);
+                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                            placed = true;
+                            break;
+                        }
+                        case BuildingType::STEEL_WORKSHOP:
+                        {
+                            if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                break;
+                            if (!consumeResources(3, 5, 0))
+                                break;
+
+                            auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::STEEL_WORKSHOP);
+                            workshop->SetResourceManager(resourceMgr.get());
+                            workshop->AddWorker(1);
+                            gameObjMgr->AddBuilding(workshop);
+                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                            placed = true;
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+
+                    if (placed)
+                    {
+                        uiManager.SetSelectedBuilding(BuildingType::NONE);
+                    }
+                };
+
+                attemptPlacement();
+            }
         }
     }
 }
