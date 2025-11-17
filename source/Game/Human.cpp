@@ -218,9 +218,9 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawY = topY;
 
     // For Debugging stuffas
-    Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
-    Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
-    // humanTexture.Draw(drawX, drawY);
+   // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
+   // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+    humanTexture.Draw(drawX, drawY);
 }
 
 void Human::ChangeState(HumanState newState)
