@@ -178,7 +178,6 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer) 
                 int screenX = originX + (x - y) * TILE_WIDTH_HALF;
                 int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
 
-
                 int    count  = y * GRID_SIZE_X + x;
                 double height = selectedView[count]->getHeight();
                 int    topY   = static_cast<int>(height) - screenY;
@@ -187,7 +186,6 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer) 
                 int originalY = selectedView[count]->y;
 
                 Dokev::TileType tileType = tileManager->GetTileType(originalX, originalY);
-
 
                 if (tileType == Dokev::TileType::ROAD)
                 {

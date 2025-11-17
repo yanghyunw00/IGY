@@ -69,6 +69,7 @@ set(SOURCE_CODE
     Dokev/DKParticles.hpp
     Dokev/DKShapes.hpp Dokev/DKShapes.cpp
     Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
+    Dokev/DKSystemInfo.hpp Dokev/DKSystemInfo.cpp
     Dokev/DKTexture.hpp Dokev/DKTexture.cpp
     Dokev/DKTileManager.hpp Dokev/DKTileManager.cpp
     Dokev/DKTimeManager.hpp Dokev/DKTimeManager.cpp
@@ -79,6 +80,7 @@ set(SOURCE_CODE
 
 
     Game/BuildingType.hpp
+    Game/BuildingCostManager.hpp Game/BuildingCostManager.cpp
     Game/GamePlayState.hpp Game/GamePlayState.cpp
     Game/DEMO.hpp Game/DEMO.cpp
     Game/GridCell.hpp

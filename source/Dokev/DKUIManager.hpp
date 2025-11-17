@@ -20,6 +20,7 @@
 
 
 class ResourceManager;
+class BuildingCostManager;
 class Dokev::CityMetrics;
 
 namespace Dokev
@@ -43,7 +44,8 @@ namespace Dokev
 
         void Initialize();
         void Update(Math::fvec2 mousePos, bool mouseClicked);
-        void Draw(ResourceManager* resourceMgr, CityMetrics* cm) const;
+
+        void Draw(ResourceManager* resourceMgr, CityMetrics* cm, BuildingCostManager* costMgr = nullptr) const;
 
         BuildingType GetSelectedBuilding() const { return selectedBuilding; }
         void SetSelectedBuilding(BuildingType type) { selectedBuilding = type; }
@@ -51,7 +53,7 @@ namespace Dokev
     private:
         void CreateBuildingButtons();
         void DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
-        void DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr) const;
+        void DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr) const;
         void DrawResources(ResourceManager* resourceMgr) const;
         void DrawHappiness(CityMetrics* cm) const;
 
