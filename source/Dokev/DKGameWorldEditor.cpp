@@ -9,6 +9,7 @@
 #include "DKCamera.hpp"
 #include "DKGameObjectManager.hpp"
 #include "DKMapManager.hpp"
+#include "DKSystemInfo.hpp"
 
 #include "../Game/Building.hpp"
 #include "../Game/GridMap.hpp"
@@ -124,6 +125,14 @@ namespace Dokev
             ImGui::Text("FPS: %d", env.FPS);
             ImGui::Text("Frame time: %.2f ms", static_cast<float>(env.DeltaTime * 1000.0));
 
+            // Memory usage
+            auto memInfo = Dokev::SystemInfo::GetMemoryInfo();
+            ImGui::Text("Memory: %.1f / %.1f MB (%.1f%%)",
+                memInfo.GetUsedPhysicalMB(),
+                memInfo.GetTotalPhysicalMB(),
+                memInfo.GetUsagePercent());
+            ImGui::Text("Process: %.1f MB", memInfo.GetProcessUsageMB());
+
             ImGui::Spacing();
             ImGui::Spacing();
 
@@ -170,7 +179,7 @@ namespace Dokev
                     *rotationIndex = (*rotationIndex - 1 + 4) % 4;
                 }
 
-                if (ImGui::Button("Roatate Map to Left"))
+                if (ImGui::Button("Rotate Map to Left"))
                 {
                     *rotationIndex = (*rotationIndex + 1) % 4;
                 }
@@ -386,7 +395,7 @@ namespace Dokev
         ImGui::Separator();
 
         // HUMAN CONTROLS Section
-        if (ImGui::TreeNode("Human CONTORLS"))
+        if (ImGui::TreeNode("Human CONTROLS"))
         {
             if (goManager)
             {

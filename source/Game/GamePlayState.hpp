@@ -27,6 +27,7 @@
 #include "Dokev/DKRenderState.hpp"
 #include "Dokev/DKGameState.hpp"
 #include "Game/ResourceManager.hpp"
+#include "Game/BuildingCostManager.hpp"
 
 class GamePlayState : public Dokev::GameState
 {
@@ -69,4 +70,7 @@ private:
 
     // UI Manager
     Dokev::UIManager uiManager;
+
+    // Building cost manager
+    BuildingCostManager buildingCostManager;
 };

@@ -15,6 +15,7 @@
 #include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
 #include "Game/ResourceManager.hpp"
+#include "Game/BuildingCostManager.hpp"
 #include <cmath>
 #include <string>
 
@@ -107,13 +108,13 @@ namespace Dokev
         }
     }
 
-    void UIManager::Draw(ResourceManager* resourceMgr) const
+    void UIManager::Draw(ResourceManager* resourceMgr, BuildingCostManager* costMgr) const
     {
         DrawResources(resourceMgr);
 
         for (const auto& button : buildingButtons)
         {
-            DrawBuildingButton(button, resourceMgr);
+            DrawBuildingButton(button, resourceMgr, costMgr);
         }
     }
 
@@ -184,7 +185,7 @@ namespace Dokev
         DrawRectangle(static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(size.x), static_cast<int>(size.y), color);
     }
 
-    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr) const
+    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr) const
     {
         CS200::RGBA boxColor = Dokev::ColorPalette::BOX_INSIDE_DEFAULT;
 
@@ -239,13 +240,16 @@ namespace Dokev
                                static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight),
                                2.0f, Dokev::ColorPalette::LIGHTGRAY);
 
-            if (outlined && resourceMgr)
+            if (outlined && resourceMgr && costMgr)
             {
+                // Get cost from JSON
+                BuildingCost cost = costMgr->GetCost(button.type);
+
                 // building name
                 float nameYPos = 25.0f;
-                if (button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
-                    button.type == BuildingType::STEEL_WORKSHOP) nameYPos = 40.0f;
-                if (button.type == BuildingType::HOME) nameYPos = 55.0f;
+                int resourceCount = (cost.wood > 0 ? 1 : 0) + (cost.stone > 0 ? 1 : 0) + (cost.steel > 0 ? 1 : 0);
+                if (resourceCount == 2) nameYPos = 40.0f;
+                if (resourceCount == 3) nameYPos = 55.0f;
 
                 if (auto nameTexture = outlined->PrintToTexture(button.name, Dokev::ColorPalette::WHITE))
                 {
@@ -253,104 +257,34 @@ namespace Dokev
                                     Math::ScaleMatrix(Math::vec2{0.35, 0.35}), Dokev::ColorPalette::WHITE);
                 }
 
-                // resource requirement
-                if (button.type == BuildingType::ROAD)
+                // Draw resource requirements dynamically
+                float yOffset = 5.0f;
+                if (cost.wood > 0)
                 {
-                    int currentWood = resourceMgr->totalWood;
-                    int requiredWood = 2;
-                    std::string requirementText = "Wood: " + std::to_string(currentWood) + " / " + std::to_string(requiredWood);
-                    if (auto textTexture = outlined->PrintToTexture(requirementText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 5.0f}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
-                    }
-                }
-                else if (button.type == BuildingType::WOOD_WORKSHOP)
-                {
-                    int currentWood = resourceMgr->totalWood;
-                    int requiredWood = 3;
-                    std::string woodText = "Wood: " + std::to_string(currentWood) + " / " + std::to_string(requiredWood);
+                    std::string woodText = "Wood: " + std::to_string(resourceMgr->totalWood) + " / " + std::to_string(cost.wood);
                     if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
                     {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 5.0f}) *
+                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + yOffset}) *
                                         Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
                     }
-
-                    int currentRock = resourceMgr->totalStone;
-                    int requiredRock = 2;
-                    std::string rockText = "Rock: " + std::to_string(currentRock) + " / " + std::to_string(requiredRock);
+                    yOffset += 15.0f;
+                }
+                if (cost.stone > 0)
+                {
+                    std::string rockText = "Rock: " + std::to_string(resourceMgr->totalStone) + " / " + std::to_string(cost.stone);
                     if (auto textTexture = outlined->PrintToTexture(rockText, Dokev::ColorPalette::WHITE))
                     {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 20.0f}) *
+                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + yOffset}) *
                                         Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
                     }
+                    yOffset += 15.0f;
                 }
-                else if (button.type == BuildingType::ROCK_WORKSHOP)
+                if (cost.steel > 0)
                 {
-                    int currentWood = resourceMgr->totalWood;
-                    int requiredWood = 5;
-                    std::string woodText = "Wood: " + std::to_string(currentWood) + " / " + std::to_string(requiredWood);
-                    if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 5.0f}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
-                    }
-
-                    int currentSteel = resourceMgr->totalSteel;
-                    int requiredSteel = 2;
-                    std::string steelText = "Steel: " + std::to_string(currentSteel) + " / " + std::to_string(requiredSteel);
+                    std::string steelText = "Steel: " + std::to_string(resourceMgr->totalSteel) + " / " + std::to_string(cost.steel);
                     if (auto textTexture = outlined->PrintToTexture(steelText, Dokev::ColorPalette::WHITE))
                     {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 20.0f}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
-                    }
-                }
-                else if (button.type == BuildingType::STEEL_WORKSHOP)
-                {
-                    int currentRock = resourceMgr->totalStone;
-                    int requiredRock = 5;
-                    std::string rockText = "Rock: " + std::to_string(currentRock) + " / " + std::to_string(requiredRock);
-                    if (auto textTexture = outlined->PrintToTexture(rockText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 5.0f}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
-                    }
-
-                    int currentWood = resourceMgr->totalWood;
-                    int requiredWood = 3;
-                    std::string woodText = "Wood: " + std::to_string(currentWood) + " / " + std::to_string(requiredWood);
-                    if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 20.0f}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
-                    }
-                }
-                else if (button.type == BuildingType::HOME)
-                {
-                    int currentWood = resourceMgr->totalWood;
-                    int requiredWood = 5;
-                    std::string woodText = "Wood: " + std::to_string(currentWood) + " / " + std::to_string(requiredWood);
-                    if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 5.0f}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
-                    }
-
-                    int currentRock = resourceMgr->totalStone;
-                    int requiredRock = 3;
-                    std::string rockText = "Rock: " + std::to_string(currentRock) + " / " + std::to_string(requiredRock);
-                    if (auto textTexture = outlined->PrintToTexture(rockText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 20.0f}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
-                    }
-
-                    int currentSteel = resourceMgr->totalSteel;
-                    int requiredSteel = 2;
-                    std::string steelText = "Steel: " + std::to_string(currentSteel) + " / " + std::to_string(requiredSteel);
-                    if (auto textTexture = outlined->PrintToTexture(steelText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + 35.0f}) *
+                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + yOffset}) *
                                         Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
                     }
                 }

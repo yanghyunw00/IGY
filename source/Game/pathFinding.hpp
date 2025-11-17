@@ -48,7 +48,7 @@ public:
 	std::vector<Math::fvec2> FindPath(Math::fvec2 start, Math::fvec2 end);
 	std::vector<Math::fvec2> FindPath(int startX, int startY, int endX, int endY);
 
-	// Each tile for futrue...
+	// Each tile for future...
 	void SetHeightMap(const std::vector<double>& heights);
 	void SetWalkable(int x, int y, bool walkable);
 	void SetCostMap(const std::vector<float>& costs);

@@ -217,7 +217,7 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF;
     int drawY = topY;
 
-    // For Debugging stuffas
+    // For Debugging stuffs
    // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
    // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
     humanTexture.Draw(drawX, drawY);
@@ -443,7 +443,7 @@ Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
     }
     else
     {
-        // 교차로 -> 랜더ㅕㅁ선택
+        // 교차로 -> 랜덤선택
         outFoundRoad = true;
         int randomIndex = rand() % nextMoveOptions.size();
         return nextMoveOptions[randomIndex];

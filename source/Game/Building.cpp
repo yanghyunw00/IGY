@@ -1,6 +1,6 @@
 /**
  * \file Building.cpp
- * \brief Base class for all building objcect
+ * \brief Base class for all building object
  * \author Dongyun Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology

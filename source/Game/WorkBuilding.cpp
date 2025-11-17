@@ -10,7 +10,7 @@
 #include "WorkBuilding.hpp"
 #include "CS200/RGBA.hpp"
 #include "Engine/Path.hpp"
-#include "ResourceManager.hpp"ㅈㅇㅈ
+#include "ResourceManager.hpp"
 
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {

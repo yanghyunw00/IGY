@@ -110,6 +110,9 @@ void GamePlayState::Load()
 
     // Initialize UI Manager
     uiManager.Initialize();
+
+    // Load building costs from JSON
+    buildingCostManager.LoadFromFile("Assets/resources/building_costs.json");
 }
 
 void GamePlayState::Update(double dt)
@@ -256,14 +259,15 @@ void GamePlayState::Update(double dt)
                         return;
                     }
 
-                    auto consumeResources = [&](int wood, int stone, int steel) -> bool
+                    auto consumeResources = [&](BuildingType type) -> bool
                     {
-                        if (resourceMgr->totalWood < wood || resourceMgr->totalStone < stone || resourceMgr->totalSteel < steel)
+                        BuildingCost cost = buildingCostManager.GetCost(type);
+                        if (resourceMgr->totalWood < cost.wood || resourceMgr->totalStone < cost.stone || resourceMgr->totalSteel < cost.steel)
                             return false;
 
-                        resourceMgr->totalWood -= wood;
-                        resourceMgr->totalStone -= stone;
-                        resourceMgr->totalSteel -= steel;
+                        resourceMgr->totalWood -= cost.wood;
+                        resourceMgr->totalStone -= cost.stone;
+                        resourceMgr->totalSteel -= cost.steel;
                         return true;
                     };
 
@@ -275,7 +279,7 @@ void GamePlayState::Update(double dt)
                                 auto* road = mapMgr->GetRoad();
                                 if (!road || !tileMgr->CanPlaceTile(gridX, gridY))
                                     break;
-                                if (!consumeResources(2, 0, 0))
+                                if (!consumeResources(BuildingType::ROAD))
                                     break;
                                 road->addRoad(gridX, gridY, *map);
                                 placed = true;
@@ -285,7 +289,7 @@ void GamePlayState::Update(double dt)
                             {
                                 if (!tileMgr->CanPlaceTile(gridX, gridY))
                                     break;
-                                if (!consumeResources(5, 3, 2))
+                                if (!consumeResources(BuildingType::HOME))
                                     break;
 
                                 auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::HOME);
@@ -298,7 +302,7 @@ void GamePlayState::Update(double dt)
                             {
                                 if (!tileMgr->CanPlaceTile(gridX, gridY))
                                     break;
-                                if (!consumeResources(3, 2, 0))
+                                if (!consumeResources(BuildingType::WOOD_WORKSHOP))
                                     break;
 
                                 auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::WOOD_WORKSHOP);
@@ -313,7 +317,7 @@ void GamePlayState::Update(double dt)
                             {
                                 if (!tileMgr->CanPlaceTile(gridX, gridY))
                                     break;
-                                if (!consumeResources(5, 0, 2))
+                                if (!consumeResources(BuildingType::ROCK_WORKSHOP))
                                     break;
 
                                 auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::ROCK_WORKSHOP);
@@ -328,7 +332,7 @@ void GamePlayState::Update(double dt)
                             {
                                 if (!tileMgr->CanPlaceTile(gridX, gridY))
                                     break;
-                                if (!consumeResources(3, 5, 0))
+                                if (!consumeResources(BuildingType::STEEL_WORKSHOP))
                                     break;
 
                                 auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::STEEL_WORKSHOP);
@@ -409,7 +413,7 @@ void GamePlayState::Draw() const
 
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
     renderer2d.BeginScene(ndcMatrixUI);
-    uiManager.Draw(GetGSComponent<ResourceManager>().get());
+    uiManager.Draw(GetGSComponent<ResourceManager>().get(), const_cast<BuildingCostManager*>(&buildingCostManager));
     renderer2d.EndScene();
 }
 
