@@ -282,7 +282,7 @@ void GamePlayState::Update(double dt)
                         {
                             if (!tileMgr->CanPlaceTile(gridX, gridY))
                                 break;
-                            if (!consumeResources(0, 0, 0))
+                            if (!consumeResources(5, 3, 2))
                                 break;
 
                             auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::HOME);
@@ -295,7 +295,7 @@ void GamePlayState::Update(double dt)
                         {
                             if (!tileMgr->CanPlaceTile(gridX, gridY))
                                 break;
-                            if (!consumeResources(0, 0, 0))
+                            if (!consumeResources(3, 2, 0))
                                 break;
 
                             auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::WOOD_WORKSHOP);
@@ -310,7 +310,7 @@ void GamePlayState::Update(double dt)
                         {
                             if (!tileMgr->CanPlaceTile(gridX, gridY))
                                 break;
-                            if (!consumeResources(0, 0, 0))
+                            if (!consumeResources(5, 0, 2))
                                 break;
 
                             auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::ROCK_WORKSHOP);
@@ -325,7 +325,7 @@ void GamePlayState::Update(double dt)
                         {
                             if (!tileMgr->CanPlaceTile(gridX, gridY))
                                 break;
-                            if (!consumeResources(0, 0, 0))
+                            if (!consumeResources(3, 5, 0))
                                 break;
 
                             auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::STEEL_WORKSHOP);
