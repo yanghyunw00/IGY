@@ -10,9 +10,9 @@
 #include "WorkBuilding.hpp"
 #include "CS200/RGBA.hpp"
 #include "Engine/Path.hpp"
-#include "ResourceManager.hpp"
+#include "ResourceManager.hpp"ㅈㅇㅈ
 
-WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(0.3f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
+WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {
     max_capacity     = 20;
     current_capacity = 0;

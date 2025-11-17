@@ -7,47 +7,49 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "GamePlayState.hpp"
+#include "Building.hpp"
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/DKColor.hpp"
+#include "Dokev/DKGameObjectManager.hpp"
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKParticles.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Dokev/DKTexture.hpp"
-#include "Dokev/DKGameObjectManager.hpp"
-#include "Human.hpp"
 #include "GridMap.hpp"
-#include "Building.hpp"
+#include "Human.hpp"
 #include "ResidentBuilding.hpp"
 #include "WorkBuilding.hpp"
 
-#include "Engine/Path.hpp"
+
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Input.hpp"
 #include "Engine/Logger.hpp"
 #include "Engine/Matrix.hpp"
+#include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
+#include "Game/Resource.hpp"
+#include "Game/ResourceManager.hpp"
+#include "Game/Road.hpp"
+#include "Game/Steel.hpp"
+#include "Game/Stone.hpp"
+#include "Game/Wood.hpp"
 #include "OpenGL/GL.hpp"
 #include <GL/glew.h>
 #include <SDL.h>
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
+#include <fstream>
 #include <imgui.h>
 #include <iomanip>
+#include <nlohmann/json.hpp>
 #include <numbers>
 #include <sstream>
-#include "Game/Resource.hpp"
-#include "Game/ResourceManager.hpp"
-#include <fstream>
-#include <nlohmann/json.hpp>
-#include "Game/Wood.hpp"
-#include "Game/Stone.hpp"
-#include "Game/Steel.hpp"
-#include "Game/Road.hpp"
+
 
 using json = nlohmann::json;
 
@@ -71,10 +73,11 @@ namespace
     }
 }
 
-NLOHMANN_JSON_SERIALIZE_ENUM( ResourceType, {
-    {ResourceType::Wood, "Wood"},
-    {ResourceType::Stone, "Stone"},
-    {ResourceType::Steel, "Steel"}
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    ResourceType, {
+                      {  ResourceType::Wood,  "Wood" },
+                      { ResourceType::Stone, "Stone" },
+                      { ResourceType::Steel, "Steel" }
 })
 
 void GamePlayState::Load()
@@ -100,19 +103,10 @@ void GamePlayState::Load()
 
     camera.SetZoom(0.3f);
 
-    try
-    {
-        smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
-    }
-    catch (const std::exception& e)
-    {
-        printf("Failed to load smoke animation: %s\n", e.what());
-    }
+    smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
-    worldEditor.Initialize(GetGSComponent<MapManager>().get(), &camera, &index,
-                          &immigrationTimer, &immigrationInterval,
-                          GetGSComponent<Dokev::GameObjectManager>().get(),
-                          GetGSComponent<ResourceManager>().get());
+    worldEditor.Initialize(
+        GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get());
 
     // Initialize UI Manager
     uiManager.Initialize();
@@ -122,8 +116,7 @@ void GamePlayState::Update(double dt)
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     worldEditor.UpdateInput();
-    const auto& input = Engine::GetInput();
-    
+
     if (worldEditor.IsSaveRequested())
     {
         SaveGame("savegame.json");
@@ -138,7 +131,7 @@ void GamePlayState::Update(double dt)
     UpdateGSComponents(dt);
 
     // Update all humans
-    auto mapMgr = GetGSComponent<MapManager>();
+    auto  mapMgr = GetGSComponent<MapManager>();
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
     for (auto& human : humans)
     {
@@ -155,20 +148,21 @@ void GamePlayState::Update(double dt)
 
     smokeEmitter.Update(environment.DeltaTime);
 
-    if (input.KeyJustPressed(CS230::Input::Keys::P))
-    {
-        Math::vec2 emit_pos = camera.GetPosition();
-        Math::vec2 emit_vel(0.0, 0.0);
-        Math::vec2 direction(0.0, 200.0);
-        smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
-    }
+    //const auto& input = Engine::GetInput();
+    // if (input.KeyJustPressed(CS230::Input::Keys::P))
+    // {
+    //     Math::vec2 emit_pos = camera.GetPosition();
+    //     Math::vec2 emit_vel(0.0, 0.0);
+    //     Math::vec2 direction(0.0, 200.0);
+    //     smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
+    // }
 
     // Auto immigration system
-    auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
+    auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
     auto resourceMgr = GetGSComponent<ResourceManager>();
 
     size_t humanCount = gameObjMgr->GetHumans().size();
-    size_t homeCount = 0;
+    size_t homeCount  = 0;
 
     for (const auto& building : gameObjMgr->GetBuildings())
     {
@@ -178,7 +172,7 @@ void GamePlayState::Update(double dt)
         }
     }
 
-    int totalResources = resourceMgr->GetTotalResources();
+    int totalResources    = resourceMgr->GetTotalResources();
     int requiredResources = static_cast<int>(humanCount) * 100;
 
     if (humanCount < homeCount && totalResources >= requiredResources)
@@ -186,11 +180,21 @@ void GamePlayState::Update(double dt)
         gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
     }
 
+    //finish condition
+    if (gameObjMgr->GetHumans().size() > 10)
+    {
+        SDL_Event e{};
+        e.type         = SDL_WINDOWEVENT;
+        e.window.event = SDL_WINDOWEVENT_CLOSE;
+        SDL_PushEvent(&e);
+        return;
+    }
+
     mouse.Update();
-    auto windowSize = Engine::GetWindow().GetSize();
+    auto        windowSize     = Engine::GetWindow().GetSize();
     Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
-    mouseScreenPos.y = static_cast<float>(windowSize.y) - mouseScreenPos.y;
-    bool mouseClicked = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+    mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
+    bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
 
     auto previousUISelection = uiManager.GetSelectedBuilding();
     uiManager.Update(mouseScreenPos, mouseClicked);
@@ -205,10 +209,9 @@ void GamePlayState::Update(double dt)
             glBindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
 
             Math::ivec2 mouseScreen = mouse.GetPosition();
-            mouseScreen.y = windowSize.y - mouseScreen.y;
+            mouseScreen.y           = windowSize.y - mouseScreen.y;
 
-            glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y),
-                        1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -227,8 +230,8 @@ void GamePlayState::Update(double dt)
                     }
 
                     Math::fvec2 gridCoord = ConvertViewTileToGrid({ tileX, tileY }, index, map);
-                    int gridX             = std::clamp(static_cast<int>(std::round(gridCoord.x)), 0, GRID_SIZE_X - 1);
-                    int gridY             = std::clamp(static_cast<int>(std::round(gridCoord.y)), 0, GRID_SIZE_Y - 1);
+                    int         gridX     = std::clamp(static_cast<int>(std::round(gridCoord.x)), 0, GRID_SIZE_X - 1);
+                    int         gridY     = std::clamp(static_cast<int>(std::round(gridCoord.y)), 0, GRID_SIZE_Y - 1);
 
                     auto* tileMgr = map->GetTileManager();
                     if (!tileMgr)
@@ -268,76 +271,75 @@ void GamePlayState::Update(double dt)
                     switch (selectedBuild)
                     {
                         case BuildingType::ROAD:
-                        {
-                            auto* road = mapMgr->GetRoad();
-                            if (!road || !tileMgr->CanPlaceTile(gridX, gridY))
+                            {
+                                auto* road = mapMgr->GetRoad();
+                                if (!road || !tileMgr->CanPlaceTile(gridX, gridY))
+                                    break;
+                                if (!consumeResources(2, 0, 0))
+                                    break;
+                                road->addRoad(gridX, gridY, *map);
+                                placed = true;
                                 break;
-                            if (!consumeResources(2, 0, 0))
-                                break;
-                            road->addRoad(gridX, gridY, *map);
-                            placed = true;
-                            break;
-                        }
+                            }
                         case BuildingType::HOME:
-                        {
-                            if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                break;
-                            if (!consumeResources(5, 3, 2))
-                                break;
+                            {
+                                if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                    break;
+                                if (!consumeResources(5, 3, 2))
+                                    break;
 
-                            auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::HOME);
-                            gameObjMgr->AddBuilding(building);
-                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
-                            placed = true;
-                            break;
-                        }
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::HOME);
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::WOOD_WORKSHOP:
-                        {
-                            if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                break;
-                            if (!consumeResources(3, 2, 0))
-                                break;
+                            {
+                                if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                    break;
+                                if (!consumeResources(3, 2, 0))
+                                    break;
 
-                            auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::WOOD_WORKSHOP);
-                            workshop->SetResourceManager(resourceMgr.get());
-                            workshop->AddWorker(1);
-                            gameObjMgr->AddBuilding(workshop);
-                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
-                            placed = true;
-                            break;
-                        }
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::WOOD_WORKSHOP);
+                                workshop->SetResourceManager(resourceMgr.get());
+                                workshop->AddWorker(1);
+                                gameObjMgr->AddBuilding(workshop);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::ROCK_WORKSHOP:
-                        {
-                            if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                break;
-                            if (!consumeResources(5, 0, 2))
-                                break;
+                            {
+                                if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                    break;
+                                if (!consumeResources(5, 0, 2))
+                                    break;
 
-                            auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::ROCK_WORKSHOP);
-                            workshop->SetResourceManager(resourceMgr.get());
-                            workshop->AddWorker(1);
-                            gameObjMgr->AddBuilding(workshop);
-                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
-                            placed = true;
-                            break;
-                        }
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::ROCK_WORKSHOP);
+                                workshop->SetResourceManager(resourceMgr.get());
+                                workshop->AddWorker(1);
+                                gameObjMgr->AddBuilding(workshop);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::STEEL_WORKSHOP:
-                        {
-                            if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                break;
-                            if (!consumeResources(3, 5, 0))
-                                break;
+                            {
+                                if (!tileMgr->CanPlaceTile(gridX, gridY))
+                                    break;
+                                if (!consumeResources(3, 5, 0))
+                                    break;
 
-                            auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::STEEL_WORKSHOP);
-                            workshop->SetResourceManager(resourceMgr.get());
-                            workshop->AddWorker(1);
-                            gameObjMgr->AddBuilding(workshop);
-                            tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
-                            placed = true;
-                            break;
-                        }
-                        default:
-                            break;
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::STEEL_WORKSHOP);
+                                workshop->SetResourceManager(resourceMgr.get());
+                                workshop->AddWorker(1);
+                                gameObjMgr->AddBuilding(workshop);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
+                        default: break;
                     }
 
                     if (placed)
@@ -356,7 +358,7 @@ void GamePlayState::Draw() const
 {
     CS200::RenderingAPI::Clear();
 
-    auto& renderer2d = Engine::GetRenderer2D(selected_renderer);
+    auto& renderer2d           = Engine::GetRenderer2D(selected_renderer);
     auto& renderer2d_IMMEDIATE = Engine::GetRenderer2D(Dokev::RenderState::IMMEDIATE);
 
     auto windowSize = Engine::GetWindow().GetSize();
@@ -373,7 +375,7 @@ void GamePlayState::Draw() const
     mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer);
 
     const auto& resources = mapMgr->GetResources();
-    //resource
+    // resource
     for (const auto& resource : resources)
     {
         resource->Draw(index, mapMgr->GetMap());
@@ -397,7 +399,7 @@ void GamePlayState::Draw() const
 
     // Draw all buildings
     auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
-    for(const auto& building : buildings)
+    for (const auto& building : buildings)
     {
         building->Draw(index, mapMgr->GetMap());
     }
@@ -436,9 +438,9 @@ void GamePlayState::SaveGame(const std::string& filename)
     if (resourceMgr)
     {
         j["PlayerResources"] = {
-            {"Wood", resourceMgr->totalWood},
-            {"Stone", resourceMgr->totalStone},
-            {"Steel", resourceMgr->totalSteel}
+            {  "Wood",  resourceMgr->totalWood },
+            { "Stone", resourceMgr->totalStone },
+            { "Steel", resourceMgr->totalSteel }
         };
     }
 
@@ -450,22 +452,22 @@ void GamePlayState::SaveGame(const std::string& filename)
         for (const auto& res : mapMgr->GetResources())
         {
             j_map_resources.push_back({
-                {"Type", res->GetType()},
-                {"X", res->GetGridX()},
-                {"Y", res->GetGridY()},
-                {"CurrentAmount", res->GetCurrentAmount()}
+                {          "Type",          res->GetType() },
+                {             "X",         res->GetGridX() },
+                {             "Y",         res->GetGridY() },
+                { "CurrentAmount", res->GetCurrentAmount() }
             });
         }
 
         //  Save Road Info (based on TileManager)
         json& j_roads = j["Roads"];
-        auto tileMgr = mapMgr->GetMap()->GetTileManager();
+        auto  tileMgr = mapMgr->GetMap()->GetTileManager();
         if (tileMgr)
         {
             auto roadTiles = tileMgr->GetTilesOfType(Dokev::TileType::ROAD);
             for (const auto& pos : roadTiles)
             {
-                j_roads.push_back({pos.x, pos.y});
+                j_roads.push_back({ pos.x, pos.y });
             }
         }
     }
@@ -478,17 +480,17 @@ void GamePlayState::SaveGame(const std::string& filename)
         for (const auto& human : gameObjMgr->GetHumans())
         {
             j_humans.push_back({
-                {"Position", {human->GetGridPosition().x, human->GetGridPosition().y}},
-                {"State", human->GetState()}, 
-                {"Happiness", human->GetHappiness()}
+                {  "Position", { human->GetGridPosition().x, human->GetGridPosition().y } },
+                {     "State",                                          human->GetState() },
+                { "Happiness",                                      human->GetHappiness() }
             });
         }
     }
-    
+
     //  Save Camera Position
     j["Camera"] = {
-        {"Position", {camera.GetPosition().x, camera.GetPosition().y}},
-        {"Zoom", camera.GetZoom()}
+        { "Position", { camera.GetPosition().x, camera.GetPosition().y } },
+        {     "Zoom",                                   camera.GetZoom() }
     };
 
     // Write to file
@@ -526,13 +528,13 @@ void GamePlayState::LoadGame(const std::string& filename)
     }
 
     // --- Reset State ---
-    GetGSComponent<Dokev::GameObjectManager>()->Unload(); 
-    
+    GetGSComponent<Dokev::GameObjectManager>()->Unload();
+
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)
     {
         // Clear existing map-bound entities
-        mapMgr->GetResources().clear(); 
+        mapMgr->GetResources().clear();
         mapMgr->GetRoad()->removeAllRoad(*mapMgr->GetMap());
     }
     else
@@ -545,23 +547,19 @@ void GamePlayState::LoadGame(const std::string& filename)
     auto resourceMgr = GetGSComponent<ResourceManager>();
     if (resourceMgr && j.contains("PlayerResources"))
     {
-        resourceMgr->SetResources(
-            j["PlayerResources"].value("Wood", 0),
-            j["PlayerResources"].value("Stone", 0),
-            j["PlayerResources"].value("Steel", 0)
-        );
+        resourceMgr->SetResources(j["PlayerResources"].value("Wood", 0), j["PlayerResources"].value("Stone", 0), j["PlayerResources"].value("Steel", 0));
     }
 
     //  Load Map Resources
     if (j.contains("MapResources"))
     {
-        auto& resources = mapMgr->GetResources(); 
+        auto& resources = mapMgr->GetResources();
         for (const auto& resData : j["MapResources"])
         {
-            ResourceType type = resData.at("Type").get<ResourceType>();
-            int x = resData.at("X").get<int>();
-            int y = resData.at("Y").get<int>();
-            int amount = resData.at("CurrentAmount").get<int>();
+            ResourceType type   = resData.at("Type").get<ResourceType>();
+            int          x      = resData.at("X").get<int>();
+            int          y      = resData.at("Y").get<int>();
+            int          amount = resData.at("CurrentAmount").get<int>();
 
             if (type == ResourceType::Wood)
                 resources.push_back(std::make_unique<Wood>(x, y, amount));
@@ -576,7 +574,7 @@ void GamePlayState::LoadGame(const std::string& filename)
     if (j.contains("Roads"))
     {
         auto road = mapMgr->GetRoad();
-        auto map = mapMgr->GetMap();
+        auto map  = mapMgr->GetMap();
         for (const auto& pos : j["Roads"])
         {
             road->addRoad(pos[0].get<int>(), pos[1].get<int>(), *map);
@@ -589,18 +587,18 @@ void GamePlayState::LoadGame(const std::string& filename)
     {
         for (const auto& humanData : j["Humans"])
         {
-            Math::fvec2 pos = {humanData["Position"][0].get<float>(), humanData["Position"][1].get<float>()};
-            Human* newHuman = new Human(pos);
+            Math::fvec2 pos      = { humanData["Position"][0].get<float>(), humanData["Position"][1].get<float>() };
+            Human*      newHuman = new Human(pos);
             gameObjMgr->AddHuman(newHuman);
         }
     }
-    
+
     //  Load Camera Position
     if (j.contains("Camera"))
     {
-        camera.SetPosition({j["Camera"]["Position"][0].get<double>(), j["Camera"]["Position"][1].get<double>()});
+        camera.SetPosition({ j["Camera"]["Position"][0].get<double>(), j["Camera"]["Position"][1].get<double>() });
         camera.SetZoom(j["Camera"].value("Zoom", 0.3f));
     }
-    
+
     Engine::GetLogger().LogEvent("Game loaded successfully.");
 }

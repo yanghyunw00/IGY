@@ -23,7 +23,7 @@ void MapManager::Initialize()
     map.ResetPerlinTexture();
     map.ResetIsoGridMapArray();
     map.InitializePathFinding();
-   // SpawnResources();
+   //spawnResources();
 }
 
 void MapManager::SpawnResources()
