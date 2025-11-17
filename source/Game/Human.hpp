@@ -91,9 +91,7 @@ public:
     void Draw(int viewIndex, const GridMap* map) const;
 
 
-    // MOVEMENT & PATHFINDING
     void FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source = CommandSource::Autonomous);
-    void StopMovement();
     bool IsMoving() const { return isMoving; }
 
     // AI BEHAVIOR
