@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DKTexture.hpp"
+#include "DKCityMetrics.hpp"
 #include "DKColor.hpp"
 #include "Engine/Vec2.hpp"
 #include "Engine/Font.hpp"
@@ -17,8 +18,10 @@
 #include <vector>
 #include <string>
 
+
 class ResourceManager;
 class BuildingCostManager;
+class Dokev::CityMetrics;
 
 namespace Dokev
 {
@@ -41,7 +44,8 @@ namespace Dokev
 
         void Initialize();
         void Update(Math::fvec2 mousePos, bool mouseClicked);
-        void Draw(ResourceManager* resourceMgr, BuildingCostManager* costMgr = nullptr) const;
+
+        void Draw(ResourceManager* resourceMgr, CityMetrics* cm, BuildingCostManager* costMgr = nullptr) const;
 
         BuildingType GetSelectedBuilding() const { return selectedBuilding; }
         void SetSelectedBuilding(BuildingType type) { selectedBuilding = type; }
@@ -51,6 +55,7 @@ namespace Dokev
         void DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
         void DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr) const;
         void DrawResources(ResourceManager* resourceMgr) const;
+        void DrawHappiness(CityMetrics* cm) const;
 
         std::vector<BuildingButton> buildingButtons;
         BuildingType selectedBuilding = BuildingType::NONE;
@@ -58,7 +63,8 @@ namespace Dokev
         Texture2D woodIcon;
         Texture2D rockIcon;
         Texture2D steelIcon;
-
+        Texture2D happyIcon;
+        
         std::unique_ptr<CS230::Font> outlined;
 
         static constexpr float BUTTON_WIDTH = 100.0f;

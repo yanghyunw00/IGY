@@ -89,7 +89,9 @@ namespace Dokev
 
         double rad = static_cast<double>(rotation) * PI / 180.0;
 
+        //Math::vec2 scaleVec{ scale, scale };
         Math::vec2 scaleVec{ 1.0, 1.0 };
+
 
         auto transform = Math::TranslationMatrix(center) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scaleVec);
 

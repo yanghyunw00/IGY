@@ -50,7 +50,7 @@ set(SOURCE_CODE
     Dokev/DKAnimation.hpp Dokev/DKAnimation.cpp
     Dokev/DKAnimationSprite.hpp Dokev/DKAnimationSprite.cpp
     Dokev/DKCamera.hpp Dokev/DKCamera.cpp
-    Dokev/DKCityMetrics.hpp
+    Dokev/DKCityMetrics.hpp Dokev/DKCityMetrics.cpp
     Dokev/DKCollision.hpp Dokev/DKCollision.cpp
     Dokev/DKColor.hpp Dokev/DKColor.cpp
     Dokev/DKComponent.hpp
