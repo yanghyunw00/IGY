@@ -101,7 +101,7 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
     int topY = static_cast<int>(height) - screenY;
     
     int drawX = screenX + TILE_WIDTH_HALF - texture.GetWidth() / 2;
-    int drawY = topY;
+    int drawY = topY + TILE_HEIGHT * 2;
 
     CS200::RGBA tint = CS200::WHITE;
     switch (buildingType)
