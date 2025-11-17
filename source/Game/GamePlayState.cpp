@@ -12,6 +12,7 @@
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
 #include "CS200/RenderingAPI.hpp"
+#include "Dokev/DKCityMetrics.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGameObjectManager.hpp"
 #include "Dokev/DKImage.hpp"
@@ -22,6 +23,7 @@
 #include "Human.hpp"
 #include "ResidentBuilding.hpp"
 #include "WorkBuilding.hpp"
+
 
 
 #include "Engine/Engine.hpp"
@@ -38,6 +40,7 @@
 #include "Game/Stone.hpp"
 #include "Game/Wood.hpp"
 #include "OpenGL/GL.hpp"
+
 #include <GL/glew.h>
 #include <SDL.h>
 #include <algorithm>
@@ -96,6 +99,9 @@ void GamePlayState::Load()
     // Initialize ResourceManager
     AddGSComponent<ResourceManager>();
 
+    // Initialize CityMetrics
+    AddGSComponent<CityMetrics>();
+
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
     GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(5.0f, 5.0f)));
@@ -130,6 +136,12 @@ void GamePlayState::Update(double dt)
 
     UpdateGSComponents(dt);
 
+    auto cityMetrics = GetGSComponent<CityMetrics>();
+    if (cityMetrics)
+    {
+        cityMetrics->Update(static_cast<float>(dt));
+    }
+
     // Update all humans
     auto  mapMgr = GetGSComponent<MapManager>();
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
@@ -148,14 +160,14 @@ void GamePlayState::Update(double dt)
 
     smokeEmitter.Update(environment.DeltaTime);
 
-    //const auto& input = Engine::GetInput();
-    // if (input.KeyJustPressed(CS230::Input::Keys::P))
-    // {
-    //     Math::vec2 emit_pos = camera.GetPosition();
-    //     Math::vec2 emit_vel(0.0, 0.0);
-    //     Math::vec2 direction(0.0, 200.0);
-    //     smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
-    // }
+    // const auto& input = Engine::GetInput();
+    //  if (input.KeyJustPressed(CS230::Input::Keys::P))
+    //  {
+    //      Math::vec2 emit_pos = camera.GetPosition();
+    //      Math::vec2 emit_vel(0.0, 0.0);
+    //      Math::vec2 direction(0.0, 200.0);
+    //      smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
+    //  }
 
     // Auto immigration system
     auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
@@ -172,6 +184,7 @@ void GamePlayState::Update(double dt)
         }
     }
 
+    // immigration condition
     int totalResources    = resourceMgr->GetTotalResources();
     int requiredResources = static_cast<int>(humanCount) * 100;
 
@@ -180,8 +193,8 @@ void GamePlayState::Update(double dt)
         gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
     }
 
-    //finish condition
-    if (gameObjMgr->GetHumans().size() > 10)
+    // end condition
+    if (gameObjMgr->GetHumans().size() > 10 || cityMetrics->GetHappiness() <= 10.0f)
     {
         SDL_Event e{};
         e.type         = SDL_WINDOWEVENT;
@@ -190,6 +203,52 @@ void GamePlayState::Update(double dt)
         return;
     }
 
+    // Happiness system based on population, workplaces, and homes
+    size_t workplaceCount = 0;
+    for (const auto& building : gameObjMgr->GetBuildings())
+    {
+        BuildingType type = building->GetBuildingType();
+        if (type == BuildingType::WOOD_WORKSHOP || type == BuildingType::ROCK_WORKSHOP || type == BuildingType::STEEL_WORKSHOP)
+        {
+            workplaceCount++;
+        }
+    }
+
+    float happinessChangeRate = 0.0f;
+
+    if (homeCount > humanCount)
+    {
+        // 사람이 거주지보다 많음- 만족도 천천히 증가
+        happinessChangeRate = 1.0f;
+    }
+    else if (workplaceCount == 0 && homeCount > 0)
+    {
+        // 거주지만 있음 - 만족도 빠르게 증가 (최상)
+        happinessChangeRate = 1.5f;
+    }
+    else if (humanCount >= workplaceCount && homeCount == 0)
+    {
+        // 사람이 워크샾보다 많고 거주지 없음 - 만족도 빠르게 감소
+        happinessChangeRate = -2.0f;
+    }
+    else if (workplaceCount > humanCount && humanCount > homeCount)
+    {
+        // 워크샾이 사람보다 많고 거주지도 부족함 - 만족도 매우 빠르게 감소 (최악)
+        happinessChangeRate = -1.5f;
+    }
+    else if (workplaceCount > humanCount && homeCount > 0)
+    {
+        // 워크샾이 사람보다 많고 거주지는 있음 - 만족도 천천히 감소
+        happinessChangeRate = -1.0f;
+    }
+
+    if (cityMetrics)
+    {
+        cityMetrics->SetHappinessChangeRate(happinessChangeRate);
+    }
+
+
+    // mouse hovering & building instructure
     mouse.Update();
     auto        windowSize     = Engine::GetWindow().GetSize();
     Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
@@ -409,7 +468,7 @@ void GamePlayState::Draw() const
 
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
     renderer2d.BeginScene(ndcMatrixUI);
-    uiManager.Draw(GetGSComponent<ResourceManager>().get());
+    uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get());
     renderer2d.EndScene();
 }
 
