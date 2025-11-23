@@ -54,7 +54,7 @@ void DEMO::Update(double dt)
 
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
 
-    (void) dt;
+    camera.UpdateZoomInterpolation(dt);
     updateInput();
 
 }
@@ -188,12 +188,10 @@ void DEMO::updateInput()
     // int currentView = (index % 4) + 1;
 
 
-    if (input.KeyDown(CS230::Input::Keys::Q))
-        camera.AdjustZoom(0.95f);
-    if (input.KeyDown(CS230::Input::Keys::E))
-        camera.AdjustZoom(1.05f);
-
-    camera.ClampZoom(0.1f, 5.0f);
+    if (input.KeyJustPressed(CS230::Input::Keys::Q))
+        camera.ZoomOut();
+    if (input.KeyJustPressed(CS230::Input::Keys::E))
+        camera.ZoomIn();
 
     constexpr double camera_speed = 1.0;
 
@@ -221,10 +219,26 @@ void DEMO::updateInput()
     if (input.KeyJustPressed(CS230::Input::Keys::Z))
     {
         index = (index - 1 + 4) % 4;
+
+        Math::vec2 currentPos = camera.GetPosition();
+        float zoom = camera.GetZoom();
+
+        float x = currentPos.x / zoom;
+        float y = currentPos.y / zoom;
+
+        camera.SetPosition({-y * zoom, x * zoom});
     }
     else if (input.KeyJustPressed(CS230::Input::Keys::C))
     {
         index = (index + 1) % 4;
+
+        Math::vec2 currentPos = camera.GetPosition();
+        float zoom = camera.GetZoom();
+
+        float x = currentPos.x / zoom;
+        float y = currentPos.y / zoom;
+
+        camera.SetPosition({y * zoom, -x * zoom});
     }
     mouse.Update();
     if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))

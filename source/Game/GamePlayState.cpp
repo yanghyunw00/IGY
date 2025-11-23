@@ -124,6 +124,7 @@ void GamePlayState::Load()
 void GamePlayState::Update(double dt)
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
+    camera.UpdateZoomInterpolation(dt);
     worldEditor.UpdateInput();
 
     if (worldEditor.IsSaveRequested())

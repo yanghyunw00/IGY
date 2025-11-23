@@ -36,10 +36,23 @@ namespace Dokev
 
         void ClampZoom(float minZoom, float maxZoom);
 
+        void ZoomIn();
+
+        void ZoomOut();
+
+        void UpdateZoomInterpolation(double dt);
+
+        void RotatePositionAroundCenter(Math::vec2 center, bool clockwise);
+
+        void TransformPositionForViewChange(int oldView, int newView);
+
         void Reset();
 
     private:
         Math::vec2 position{ 0.0, 0.0 };
         float      zoom{ 1.0f };
+        int        zoomLevel{ 1 };
+        float      targetZoom{ 1.0f };
+        float      zoomSpeed{ 5.0f };
     };
 }
