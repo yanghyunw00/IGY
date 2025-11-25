@@ -92,31 +92,15 @@ namespace Dokev
             }
         }
 
-        if (rotationIndex && camera)
+        if (rotationIndex)
         {
             if (input.KeyJustPressed(CS230::Input::Keys::Z))
             {
                 *rotationIndex = (*rotationIndex - 1 + 4) % 4;
-
-                Math::vec2 currentPos = camera->GetPosition();
-                float zoom = camera->GetZoom();
-
-                float x = currentPos.x / zoom;
-                float y = currentPos.y / zoom;
-
-                camera->SetPosition({-y * zoom, x * zoom});
             }
             else if (input.KeyJustPressed(CS230::Input::Keys::C))
             {
                 *rotationIndex = (*rotationIndex + 1) % 4;
-
-                Math::vec2 currentPos = camera->GetPosition();
-                float zoom = camera->GetZoom();
-
-                float x = currentPos.x / zoom;
-                float y = currentPos.y / zoom;
-
-                camera->SetPosition({y * zoom, -x * zoom});
             }
         }
     }

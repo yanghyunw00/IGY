@@ -474,7 +474,8 @@ void GamePlayState::Draw() const
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
     renderer2d.BeginScene(ndcMatrixUI);
 
-    uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), const_cast<BuildingCostManager*>(&buildingCostManager));
+    int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
+    uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
     renderer2d.EndScene();
 }
 

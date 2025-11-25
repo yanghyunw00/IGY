@@ -33,6 +33,7 @@ namespace Dokev
         rockIcon  = LoadTexture(assets::locate_asset("Assets/resources/rock_1.png").string());
         steelIcon = LoadTexture(assets::locate_asset("Assets/resources/steel_1.png").string());
         happyIcon = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
+        humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/human.png").string());
         outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/Font_Outlined.png").string());
     }
 
@@ -110,9 +111,9 @@ namespace Dokev
     }
 
 
-    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm,  BuildingCostManager* costMgr) const
+    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr) const
     {
-        DrawResources(resourceMgr);
+        DrawResources(resourceMgr, humanCount);
         DrawHappiness(cm);
 
         for (const auto& button : buildingButtons)
@@ -121,24 +122,23 @@ namespace Dokev
         }
     }
 
-    void UIManager::DrawResources(ResourceManager* resourceMgr) const
+    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount) const
     {
         if (!resourceMgr)
             return;
 
         auto  windowSize = Engine::GetWindow().GetSize();
         float startX     = static_cast<float>(windowSize.x) - BUTTON_WIDTH - UI_SPACING - 50;
-        float resourceY  = static_cast<float>(windowSize.y) - 120.0f;
+        float resourceY  = static_cast<float>(windowSize.y) - 150.0f;
 
-        float size        = 32.0f;
-        float height      = size + 5.0f;
-        float textOffsetX = size + 50.0f;
-        float paddingY    = -15;
+        float size        = 24.0f;
+        float height      = size + 3.0f;
+        float textOffsetX = size + 35.0f;
+        float paddingY    = -10;
 
         float currentX = startX;
         float currentY = resourceY;
 
-        // Wood
         if (woodIcon.IsValid())
         {
             woodIcon.DrawEx(static_cast<int>(currentX), static_cast<int>(currentY), 0.0f, size / woodIcon.GetWidth(), Dokev::ColorPalette::WHITE);
@@ -148,12 +148,11 @@ namespace Dokev
             std::string woodText = std::to_string(resourceMgr->totalWood);
             if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.7, 0.7 }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.5, 0.5 }), Dokev::ColorPalette::WHITE);
             }
         }
         currentY -= height;
 
-        // Stone
         if (rockIcon.IsValid())
         {
             rockIcon.DrawEx(static_cast<int>(currentX), static_cast<int>(currentY), 0.0f, size / rockIcon.GetWidth(), Dokev::ColorPalette::WHITE);
@@ -163,12 +162,11 @@ namespace Dokev
             std::string stoneText = std::to_string(resourceMgr->totalStone);
             if (auto textTexture = outlined->PrintToTexture(stoneText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.7, 0.7 }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.5, 0.5 }), Dokev::ColorPalette::WHITE);
             }
         }
         currentY -= height;
 
-        // Steel
         if (steelIcon.IsValid())
         {
             steelIcon.DrawEx(static_cast<int>(currentX), static_cast<int>(currentY), 0.0f, size / steelIcon.GetWidth(), Dokev::ColorPalette::WHITE);
@@ -178,7 +176,21 @@ namespace Dokev
             std::string steelText = std::to_string(resourceMgr->totalSteel);
             if (auto textTexture = outlined->PrintToTexture(steelText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.7, 0.7 }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.5, 0.5 }), Dokev::ColorPalette::WHITE);
+            }
+        }
+        currentY -= height + 5.0f;
+
+        if (humanIcon.IsValid())
+        {
+            humanIcon.DrawEx(static_cast<int>(currentX), static_cast<int>(currentY), 0.0f, size / humanIcon.GetWidth(), Dokev::ColorPalette::WHITE);
+        }
+        if (outlined)
+        {
+            std::string humanText = std::to_string(humanCount);
+            if (auto textTexture = outlined->PrintToTexture(humanText, Dokev::ColorPalette::WHITE))
+            {
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.5, 0.5 }), Dokev::ColorPalette::WHITE);
             }
         }
     }

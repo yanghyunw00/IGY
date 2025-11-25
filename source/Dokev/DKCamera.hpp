@@ -42,10 +42,6 @@ namespace Dokev
 
         void UpdateZoomInterpolation(double dt);
 
-        void RotatePositionAroundCenter(Math::vec2 center, bool clockwise);
-
-        void TransformPositionForViewChange(int oldView, int newView);
-
         void Reset();
 
     private:

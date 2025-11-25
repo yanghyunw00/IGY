@@ -83,17 +83,12 @@ namespace Dokev
             return;
         }
 
-        const auto size = texture->GetSize();
-
-        Math::vec2 center{ static_cast<double>(posX) + static_cast<double>(size.x) * 0.5 * scale, static_cast<double>(posY) + static_cast<double>(size.y) * 0.5 * scale };
+        Math::vec2 position{ static_cast<double>(posX), static_cast<double>(posY) };
 
         double rad = static_cast<double>(rotation) * PI / 180.0;
+        Math::vec2 scaleVec{ scale, scale };
 
-        //Math::vec2 scaleVec{ scale, scale };
-        Math::vec2 scaleVec{ 1.0, 1.0 };
-
-
-        auto transform = Math::TranslationMatrix(center) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scaleVec);
+        auto transform = Math::TranslationMatrix(position) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scaleVec);
 
         texture->Draw(transform, tint);
     }
@@ -105,15 +100,9 @@ namespace Dokev
             return;
         }
 
-        const auto size = texture->GetSize();
-
-        Math::vec2 center{ position.x + static_cast<double>(size.x) * 0.5 * scale.x, position.y + static_cast<double>(size.y) * 0.5 * scale.y };
-
         double rad = static_cast<double>(rotation) * PI / 180.0;
 
-        Math::vec2 scaleVec{ 1.0, 1.0 };
-
-        auto transform = Math::TranslationMatrix(center) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scaleVec);
+        auto transform = Math::TranslationMatrix(position) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scale);
 
         texture->Draw(transform, tint);
     }

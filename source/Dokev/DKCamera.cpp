@@ -102,61 +102,6 @@ namespace Dokev
         }
     }
 
-    void Camera::RotatePositionAroundCenter(Math::vec2 center, bool clockwise)
-    {
-        Math::vec2 relativePos = position - center;
-
-        Math::vec2 rotatedPos;
-        if (clockwise)
-        {
-            rotatedPos = Math::vec2(relativePos.y, -relativePos.x);
-        }
-        else
-        {
-            rotatedPos = Math::vec2(-relativePos.y, relativePos.x);
-        }
-
-        position = center + rotatedPos;
-    }
-
-    void Camera::TransformPositionForViewChange(int oldView, int newView)
-    {
-        constexpr float GRID_SIZE_X_HALF = 45.0f;
-        constexpr float GRID_SIZE_Y_HALF = 45.0f;
-
-        float x = position.x;
-        float y = position.y;
-
-        int rotationDiff = (oldView - newView + 4) % 4;
-        int angleDeg = rotationDiff * 90;
-
-        float dx = x - GRID_SIZE_X_HALF;
-        float dy = y - GRID_SIZE_Y_HALF;
-        float newX, newY;
-
-        switch (angleDeg)
-        {
-            case 0:
-                return;
-            case 90:
-                newX = GRID_SIZE_X_HALF - dy;
-                newY = GRID_SIZE_Y_HALF + dx;
-                break;
-            case 180:
-                newX = GRID_SIZE_X_HALF - dx;
-                newY = GRID_SIZE_Y_HALF - dy;
-                break;
-            case 270:
-                newX = GRID_SIZE_X_HALF + dy;
-                newY = GRID_SIZE_Y_HALF - dx;
-                break;
-            default:
-                return;
-        }
-
-        position = Math::vec2(newX, newY);
-    }
-
     void Camera::Reset()
     {
         position = { 0.0, 0.0 };
