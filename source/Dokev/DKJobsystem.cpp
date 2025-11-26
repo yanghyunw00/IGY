@@ -1,4 +1,4 @@
-#include "JobSystem.hpp"
+#include "DKJobsystem.hpp"
 
 
 void JobSystem::DoJob(JobSystem::Job job)
@@ -33,7 +33,10 @@ void JobSystem::WorkerThread()
         if(has_job)
         {
             current_job();
-            --numberOfJobs;
+            {
+                std::unique_lock<std::mutex> lock(m);
+                --numberOfJobs;
+            }
         }
     }
 }
@@ -58,7 +61,10 @@ void JobSystem::WaitUntilDone()
         if(has_job)
         {
             current_job();
-            --numberOfJobs;
+            {
+                std::unique_lock<std::mutex> lock(m);
+                --numberOfJobs;
+            }
         }
         else
         {

@@ -20,6 +20,13 @@ protected:
     Dokev::Timer productionTimer;
     class ResourceManager* resourceManager;
 
+    // Static texture cache to prevent memory leaks
+    static Dokev::Texture2D workshopTexture;
+    static Dokev::Texture2D missingTexture;
+    static bool texturesLoaded;
+
+    static void LoadTextures();
+
 public:
     WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
     ~WorkBuilding() override;

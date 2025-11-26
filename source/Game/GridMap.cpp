@@ -10,6 +10,7 @@
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGrid.hpp"
 #include "Dokev/DKUtility.hpp"
+#include "Dokev/DKMetaProgramming.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
 #include "Engine/Path.hpp"
@@ -101,6 +102,7 @@ void GridMap::ResetIsoGridMapArray()
 {
     m_gridCells.assign(GRID_SIZE_Y, std::vector<GridCell>(GRID_SIZE_X));
 
+    // GetImageColor가 thread-safe하지 않을 수 있으므로 순차 처리
     for (int y = 0; y < GRID_SIZE_Y; ++y)
     {
         for (int x = 0; x < GRID_SIZE_X; ++x)
@@ -123,24 +125,24 @@ void GridMap::InitializeIsoView()
         for (int x = 0; x < GRID_SIZE_X; ++x)
         {
             // 원본 뷰
-            view1[y * GRID_SIZE_X + x] = &m_gridCells[y][x];
+            view1[Dokev::Meta::grid_to_index(x, y, GRID_SIZE_X)] = &m_gridCells[y][x];
 
             // 90도 회전
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, new_x, new_y);
-            int rotIndex90 = static_cast<int>(new_y) * GRID_SIZE_X + static_cast<int>(new_x);
-            if (rotIndex90 >= 0 && rotIndex90 < GRID_SIZE_X * GRID_SIZE_Y)
+            size_t rotIndex90 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
+            if (rotIndex90 < GRID_SIZE_X * GRID_SIZE_Y)
                 view2[rotIndex90] = &m_gridCells[y][x];
 
             // 180도 회전
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, new_x, new_y);
-            int rotIndex180 = static_cast<int>(new_y) * GRID_SIZE_X + static_cast<int>(new_x);
+            size_t rotIndex180 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
             if (rotIndex180 >= 0 && rotIndex180 < GRID_SIZE_X * GRID_SIZE_Y)
                 view3[rotIndex180] = &m_gridCells[y][x];
 
             // 270도 회전
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, new_x, new_y);
-            int rotIndex270 = static_cast<int>(new_y) * GRID_SIZE_X + static_cast<int>(new_x);
-            if (rotIndex270 >= 0 && rotIndex270 < GRID_SIZE_X * GRID_SIZE_Y)
+            size_t rotIndex270 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
+            if (rotIndex270 < GRID_SIZE_X * GRID_SIZE_Y)
                 view4[rotIndex270] = &m_gridCells[y][x];
         }
     }
@@ -164,6 +166,7 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer) 
         Engine::GetLogger().LogError("selectedView is null or m_gridCells is empty!");
         return;
     }
+
     // int offsetupper = static_cast<int>(selectedView[0]->getHeight());
     int originX = 0;
     int originY = 0;
@@ -214,15 +217,6 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer) 
 void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer) const
 {
     glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
-    //
-    // glViewport(0, 0, 1200, 800);
-    //
-    ////// Clear to black (ID = 0 = nothing)
-    // glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    // glClear(GL_COLOR_BUFFER_BIT);
-    //
-    ////// You can disable blending to avoid color blending artifacts
-    ////glDisable(GL_BLEND);
 
     currentView = (index % 4) + 1;
 
@@ -437,7 +431,7 @@ void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
         {
             continue;
         }
-        float       currentHeight = static_cast<float>(selectedView[y * GRID_SIZE_X + x]->getHeight());
+        float       currentHeight = static_cast<float>(selectedView[Dokev::Meta::grid_to_index(x, y, GRID_SIZE_X)]->getHeight());
         Math::fvec2 worPos        = Dokev::Grid::WorldToIsometric(static_cast<float>(x), static_cast<float>(y), currentHeight, originX, originY, TILE_WIDTH_HALF, TILE_HEIGHT_HALF);
         Dokev::DrawCircle(static_cast<int>(worPos.x), static_cast<int>(worPos.y), 5, color);
 
@@ -451,7 +445,7 @@ void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
                 continue;
             }
 
-            float nextHeight = static_cast<float>(selectedView[nextY * GRID_SIZE_X + nextX]->getHeight());
+            float nextHeight = static_cast<float>(selectedView[Dokev::Meta::grid_to_index(nextX, nextY, GRID_SIZE_X)]->getHeight());
 
             Math::fvec2 nextPos = Dokev::Grid::WorldToIsometric(static_cast<float>(nextX), static_cast<float>(nextY), nextHeight, originX, originY, TILE_WIDTH_HALF, TILE_HEIGHT_HALF);
 

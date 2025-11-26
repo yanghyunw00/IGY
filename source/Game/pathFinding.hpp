@@ -71,4 +71,6 @@ private:
 
     //save all nodes to here
 	std::vector<std::vector<Node>> allNodes;
+
+	std::vector<std::vector<bool>> closedSet;
 };

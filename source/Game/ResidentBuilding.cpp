@@ -9,8 +9,24 @@
 #include "ResidentBuilding.hpp"
 #include "Engine/Path.hpp"
 
+Dokev::Texture2D ResidentBuilding::homeTexture;
+Dokev::Texture2D ResidentBuilding::missingTexture;
+bool ResidentBuilding::texturesLoaded = false;
+
+void ResidentBuilding::LoadTextures()
+{
+    if (!texturesLoaded)
+    {
+        homeTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+        missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        texturesLoaded = true;
+    }
+}
+
 ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), satisfaction(1.0f), taxrate(10)
 {
+    LoadTextures(); 
+
     max_capacity     = 50;
     current_capacity = 0;
     cost             = 100;
@@ -19,13 +35,13 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
     switch (bt)
     {
         case BuildingType::HOME:
-            texture      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+            texture      = homeTexture; 
             max_capacity = 10;
             cost         = 0;
             break;
 
         default:
-            texture      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+            texture      = missingTexture;
             max_capacity = 0;
             cost         = 0;
             break;

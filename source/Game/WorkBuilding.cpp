@@ -12,8 +12,24 @@
 #include "Engine/Path.hpp"
 #include "ResourceManager.hpp"
 
+Dokev::Texture2D WorkBuilding::workshopTexture;
+Dokev::Texture2D WorkBuilding::missingTexture;
+bool WorkBuilding::texturesLoaded = false;
+
+void WorkBuilding::LoadTextures()
+{
+    if (!texturesLoaded)
+    {
+        workshopTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        texturesLoaded = true;
+    }
+}
+
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {
+    LoadTextures(); 
+
     max_capacity     = 20;
     current_capacity = 0;
     cost             = 150;
@@ -23,25 +39,25 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
     switch(bt)
     {
         case BuildingType::WOOD_WORKSHOP:
-        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        texture = workshopTexture; 
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::ROCK_WORKSHOP:
-        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        texture = workshopTexture; 
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::STEEL_WORKSHOP:
-        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        texture = workshopTexture; 
         max_capacity = 10;
         cost = 0;
         break;
 
         default:
-            texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+            texture = missingTexture; 
             max_capacity = 0;
             cost = 0;
             break;

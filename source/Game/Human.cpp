@@ -214,8 +214,8 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
     int topY    = static_cast<int>(height) - screenY;
 
-    int drawX = screenX + TILE_WIDTH_HALF;
-    int drawY = topY;
+    int drawX = screenX + TILE_WIDTH_HALF - humanTexture.GetWidth() / 2;
+    int drawY = topY + TILE_HEIGHT_HALF;
 
     // For Debugging stuffs
    // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);

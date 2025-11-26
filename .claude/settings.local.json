@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./cs200_fun.exe)",
+      "Bash(cmake --build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

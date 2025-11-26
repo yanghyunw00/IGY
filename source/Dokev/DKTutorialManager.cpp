@@ -54,7 +54,7 @@ namespace Dokev
         TutorialStep step2;
         step2.text = "Here you can check your resources and population";
         step2.completionType = CompletionType::TIME_PASSED;
-        step2.duration = 3.0f;
+        step2.duration = 2.0f;
         step2.highlightType = HighlightType::CIRCLE;
         step2.highlightPos = Math::fvec2(static_cast<float>(windowSize.x) - 150.0f, static_cast<float>(windowSize.y) - 200.0f);
         step2.highlightSize = Math::fvec2(200.0f, 200.0f);
@@ -63,34 +63,35 @@ namespace Dokev
         steps.push_back(step2);
 
         TutorialStep step3;
-        step3.text = "Now let's build a structure!";
-        step3.completionType = CompletionType::BUTTON_CLICKED;
-        step3.highlightType = HighlightType::RECTANGLE;
-        step3.highlightPos = Math::fvec2(static_cast<float>(windowSize.x) - 120.0f, 20.0f);
-        step3.highlightSize = Math::fvec2(100.0f, 100.0f);
-        step3.showArrow = true;
-        step3.arrowPos = Math::fvec2(static_cast<float>(windowSize.x) - 70.0f, 70.0f);
+        step3.text = "Use WASD to move camera, Q/E to zoom in/out";
+        step3.completionType = CompletionType::TIME_PASSED;
+        step3.duration = 3.0f;
+        step3.highlightType = HighlightType::NONE;
+        step3.showArrow = false;
         step3.blockInput = false;
         steps.push_back(step3);
 
         TutorialStep step4;
-        step4.text = "Click anywhere on the map to place it!";
-        step4.completionType = CompletionType::BUILDING_PLACED;
-        step4.highlightType = HighlightType::FULL_SCREEN;
-        step4.showArrow = false;
+        step4.text = "Now let's build a Wood Workshop to gather resources!";
+        step4.completionType = CompletionType::BUTTON_CLICKED;
+        step4.highlightType = HighlightType::RECTANGLE;
+        step4.highlightPos = Math::fvec2(static_cast<float>(windowSize.x) - 120.0f, 130.0f);
+        step4.highlightSize = Math::fvec2(100.0f, 100.0f);
+        step4.showArrow = true;
+        step4.arrowPos = Math::fvec2(static_cast<float>(windowSize.x) - 70.0f, 150.0f);
         step4.blockInput = false;
         steps.push_back(step4);
 
         TutorialStep step5;
-        step5.text = "Building placed successfully!";
-        step5.completionType = CompletionType::CLICK_ANYWHERE;
-        step5.highlightType = HighlightType::NONE;
+        step5.text = "Click on the map to place your Wood Workshop!";
+        step5.completionType = CompletionType::BUILDING_PLACED;
+        step5.highlightType = HighlightType::FULL_SCREEN;
         step5.showArrow = false;
         step5.blockInput = false;
         steps.push_back(step5);
 
         TutorialStep step6;
-        step6.text = "Each building produces specific resources!";
+        step6.text = "Building placed successfully!";
         step6.completionType = CompletionType::CLICK_ANYWHERE;
         step6.highlightType = HighlightType::NONE;
         step6.showArrow = false;
@@ -98,12 +99,20 @@ namespace Dokev
         steps.push_back(step6);
 
         TutorialStep step7;
-        step7.text = "Build houses and roads to attract citizens. Create your city!";
+        step7.text = "Each building produces specific resources!";
         step7.completionType = CompletionType::CLICK_ANYWHERE;
         step7.highlightType = HighlightType::NONE;
         step7.showArrow = false;
         step7.blockInput = false;
         steps.push_back(step7);
+
+        TutorialStep step8;
+        step8.text = "Build houses and roads to attract citizens.\n Create your city!";
+        step8.completionType = CompletionType::CLICK_ANYWHERE;
+        step8.highlightType = HighlightType::NONE;
+        step8.showArrow = false;
+        step8.blockInput = false;
+        steps.push_back(step8);
     }
 
     void TutorialManager::Update(float dt, bool clicked, bool skipPressed)
@@ -189,7 +198,6 @@ namespace Dokev
         {
             // Pulse effect
             float pulse = 1.0f + 0.1f * std::sin(currentStepTime * 3.0f);
-            float radius = width / 2.0f * pulse;
 
             DrawRectangle(x, y, width, height, ColorPalette::TUTORIAL_HIGHLIGHT);
         }

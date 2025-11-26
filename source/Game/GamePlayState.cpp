@@ -16,6 +16,8 @@
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGameObjectManager.hpp"
 #include "Dokev/DKImage.hpp"
+#include "Dokev/DKJobsystemManager.hpp"
+#include "Dokev/DKMetaProgramming.hpp"
 #include "Dokev/DKParticles.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Dokev/DKTexture.hpp"
@@ -149,20 +151,28 @@ void GamePlayState::Update(double dt)
         cityMetrics->Update(static_cast<float>(dt));
     }
 
-    // Update all humans
+    // Update all humans 
     auto  mapMgr = GetGSComponent<MapManager>();
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
-    for (auto& human : humans)
+
+    if (!humans.empty())
     {
-        human->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+        for (auto& human : humans)
+        {
+            human->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+        }
     }
+
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 
-    // Update all buildings
     auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
-    for (auto& building : buildings)
+
+    if (!buildings.empty())
     {
-        building->Update(static_cast<float>(dt));
+        for (auto& building : buildings)
+        {
+            building->Update(static_cast<float>(dt));
+        }
     }
 
     smokeEmitter.Update(environment.DeltaTime);
@@ -185,7 +195,7 @@ void GamePlayState::Update(double dt)
 
     for (const auto& building : gameObjMgr->GetBuildings())
     {
-        if (building->GetBuildingType() == BuildingType::HOME)
+        if (Dokev::Meta::is_residential_type(building->GetBuildingType()))
         {
             homeCount++;
         }
@@ -215,7 +225,7 @@ void GamePlayState::Update(double dt)
     for (const auto& building : gameObjMgr->GetBuildings())
     {
         BuildingType type = building->GetBuildingType();
-        if (type == BuildingType::WOOD_WORKSHOP || type == BuildingType::ROCK_WORKSHOP || type == BuildingType::STEEL_WORKSHOP)
+        if (Dokev::Meta::is_workshop_type(type))
         {
             workplaceCount++;
         }
