@@ -75,6 +75,8 @@ set(SOURCE_CODE
     Dokev/DKTimeManager.hpp Dokev/DKTimeManager.cpp
     Dokev/DKUIManager.hpp Dokev/DKUIManager.cpp
     Dokev/DKUtility.hpp Dokev/DKUtility.cpp
+    Dokev/DKTutorialManager.hpp Dokev/DKTutorialManager.cpp
+    Dokev/DkTutorialStep.hpp Dokev/DkTutorialStep.cpp  
 
 
 

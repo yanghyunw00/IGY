@@ -117,6 +117,9 @@ void GamePlayState::Load()
     // Initialize UI Manager
     uiManager.Initialize();
 
+    // Initialize Tutorial Manager
+    tutorialManager.Initialize(&uiManager);
+
     // Load building costs from JSON
     buildingCostManager.LoadFromFile("Assets/resources/building_costs.json");
 }
@@ -261,6 +264,20 @@ void GamePlayState::Update(double dt)
 
     auto previousUISelection = uiManager.GetSelectedBuilding();
     uiManager.Update(mouseScreenPos, mouseClicked);
+
+    // Check if button was clicked
+    auto currentSelection = uiManager.GetSelectedBuilding();
+    bool buttonClicked = (previousUISelection != currentSelection) && (currentSelection != BuildingType::NONE);
+
+    // Update tutorial
+    const auto& input = Engine::GetInput();
+    bool skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
+    tutorialManager.Update(static_cast<float>(dt), mouseClicked, skipPressed);
+
+    if (buttonClicked)
+    {
+        tutorialManager.OnButtonClicked();
+    }
 
     if (mouseClicked)
     {
@@ -409,6 +426,7 @@ void GamePlayState::Update(double dt)
                     if (placed)
                     {
                         uiManager.SetSelectedBuilding(BuildingType::NONE);
+                        tutorialManager.OnBuildingPlaced();
                     }
                 };
 
@@ -476,6 +494,9 @@ void GamePlayState::Draw() const
 
     int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
+
+    tutorialManager.Draw();
+
     renderer2d.EndScene();
 }
 

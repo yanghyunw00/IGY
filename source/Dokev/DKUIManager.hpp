@@ -56,6 +56,7 @@ namespace Dokev
         void DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr) const;
         void DrawResources(ResourceManager* resourceMgr, int humanCount) const;
         void DrawHappiness(CityMetrics* cm) const;
+        std::string FormatNumber(int value) const;
 
         std::vector<BuildingButton> buildingButtons;
         BuildingType selectedBuilding = BuildingType::NONE;
@@ -71,6 +72,10 @@ namespace Dokev
         static constexpr float BUTTON_WIDTH = 100.0f;
         static constexpr float BUTTON_HEIGHT = 100.0f;
         static constexpr float BUTTON_SPACING = 10.0f;
-        static constexpr float UI_SPACING = 20.0f;
+        static constexpr float UI_SPACING = 20.0f; //ui spacing, between draw ui sfuff
+        static constexpr double FONT_SCALE = 0.7;  // for font scaling
+        static constexpr double ICON_SCALE = 0.8;  // for icon scaling
+        static constexpr int ICON_SPACING = 40; // when draw icon, startx - icon spacing 
+
     };
 }

@@ -20,6 +20,7 @@
 #include "Dokev/DKGameWorldEditor.hpp"
 #include "Dokev/DKMapManager.hpp"
 #include "Dokev/DKUIManager.hpp"
+#include "Dokev/DKTutorialManager.hpp"
 
 #include "Engine/Vec2.hpp"
 #include <array>
@@ -70,6 +71,9 @@ private:
 
     // UI Manager
     Dokev::UIManager uiManager;
+
+    // Tutorial Manager
+    Dokev::TutorialManager tutorialManager;
 
     // Building cost manager
     BuildingCostManager buildingCostManager;
