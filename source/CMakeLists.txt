@@ -77,6 +77,9 @@ set(SOURCE_CODE
     Dokev/DKUtility.hpp Dokev/DKUtility.cpp
     Dokev/DKTutorialManager.hpp Dokev/DKTutorialManager.cpp
     Dokev/DkTutorialStep.hpp Dokev/DkTutorialStep.cpp  
+    Dokev/DKJobsystem.hpp Dokev/DKJobsystem.cpp
+    Dokev/DKJobsystemManager.hpp
+
 
 
 
