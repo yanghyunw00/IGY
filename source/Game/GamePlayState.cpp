@@ -16,7 +16,6 @@
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGameObjectManager.hpp"
 #include "Dokev/DKImage.hpp"
-#include "Dokev/DKJobsystemManager.hpp"
 #include "Dokev/DKMetaProgramming.hpp"
 #include "Dokev/DKParticles.hpp"
 #include "Dokev/DKShapes.hpp"
@@ -264,7 +263,6 @@ void GamePlayState::Update(double dt)
         cityMetrics->SetHappinessChangeRate(happinessChangeRate);
     }
 
-
     // mouse hovering & building instructure
     mouse.Update();
     auto        windowSize     = Engine::GetWindow().GetSize();
@@ -307,6 +305,8 @@ void GamePlayState::Update(double dt)
 
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
             float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.0f;
+
+            mouseSelection.Update(tileX,tileY);
 
             auto selectedBuild = uiManager.GetSelectedBuilding();
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
@@ -506,6 +506,7 @@ void GamePlayState::Draw() const
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
 
     tutorialManager.Draw();
+    mouseSelection.Draw();
 
     renderer2d.EndScene();
 }

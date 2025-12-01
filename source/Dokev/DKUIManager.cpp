@@ -243,19 +243,16 @@ namespace Dokev
 
         if (button.texture.IsValid())
         {
-            float PADDINGX = 30.0f;
-            float PADDINGY = 20.0f;
 
-            float imageScale    = 0.7f;
             int   textureWidth  = button.texture.GetWidth();
             int   textureHeight = button.texture.GetHeight();
 
-            float scaledWidth  = textureWidth * imageScale;
-            float scaledHeight = textureHeight * imageScale;
+            float scaledWidth  = textureWidth *  static_cast<float>(ICON_SCALE);
+            float scaledHeight = textureHeight * static_cast<float>(ICON_SCALE);
 
-            Math::fvec2 imagePos = Math::fvec2(button.position.x - PADDINGX + (button.size.x - scaledWidth) / 2.0f, button.position.y - PADDINGY + (button.size.y - scaledHeight) / 2.0f);
+            Math::fvec2 imagePos = Math::fvec2(button.position.x + (button.size.x - scaledWidth) / 2.0f, button.position.y + (button.size.y - scaledHeight) / 2.0f);
 
-            button.texture.DrawEx(static_cast<int>(imagePos.x), static_cast<int>(imagePos.y), 0.0f, imageScale, button.tint);
+            button.texture.DrawEx(static_cast<int>(imagePos.x), static_cast<int>(imagePos.y), 0.0f, static_cast<float>(ICON_SCALE), button.tint);
         }
 
         // Draw required resources

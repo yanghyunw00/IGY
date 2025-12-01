@@ -18,11 +18,11 @@
 #include "Dokev/DKRenderState.hpp"
 #include "OpenGL/GL.hpp"
 
-#define GRID_SIZE_Y 91
-#define GRID_SIZE_X 91
+#define GRID_SIZE_Y 67
+#define GRID_SIZE_X 67
 
-#define GRID_SIZE_Y_HALF (45)
-#define GRID_SIZE_X_HALF (45)
+#define GRID_SIZE_Y_HALF (33)
+#define GRID_SIZE_X_HALF (33)
 
 #define TILE_WIDTH 64
 #define TILE_HEIGHT 32
@@ -73,6 +73,7 @@ public:
 	// TileManager access
 	Dokev::TileManager* GetTileManager() { return tileManager.get(); }
 	const Dokev::TileManager* GetTileManager() const { return tileManager.get(); }
+
 
 private:
 	void rotatePoint90(float x, float y,

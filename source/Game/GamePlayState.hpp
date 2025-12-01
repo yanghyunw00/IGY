@@ -7,9 +7,11 @@
  * \copyright DigiPen Institute of Technology
  */
 #pragma once
+#include <array>
+#include <memory>
+
 #include "CS200/RGBA.hpp"
-#include "Engine/GameState.hpp"
-#include "Engine/Matrix.hpp"
+
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKCamera.hpp"
 #include "Dokev/DKMouseInput.hpp"
@@ -21,12 +23,14 @@
 #include "Dokev/DKMapManager.hpp"
 #include "Dokev/DKUIManager.hpp"
 #include "Dokev/DKTutorialManager.hpp"
-
-#include "Engine/Vec2.hpp"
-#include <array>
-#include <memory>
 #include "Dokev/DKRenderState.hpp"
 #include "Dokev/DKGameState.hpp"
+#include "Dokev/DKMouseSelection.hpp"
+
+#include "Engine/Vec2.hpp"
+#include "Engine/GameState.hpp"
+#include "Engine/Matrix.hpp"
+
 #include "Game/ResourceManager.hpp"
 #include "Game/BuildingCostManager.hpp"
 
@@ -77,4 +81,7 @@ private:
 
     // Building cost manager
     BuildingCostManager buildingCostManager;
+
+    //Mouse Selection
+    Dokev::MouseSelection mouseSelection;
 };

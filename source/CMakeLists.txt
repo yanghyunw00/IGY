@@ -79,6 +79,7 @@ set(SOURCE_CODE
     Dokev/DkTutorialStep.hpp Dokev/DkTutorialStep.cpp  
     Dokev/DKJobsystem.hpp Dokev/DKJobsystem.cpp
     Dokev/DKJobsystemManager.hpp
+    Dokev/DKMouseSelection.hpp Dokev/DKMouseSelection.cpp
 
 
 
