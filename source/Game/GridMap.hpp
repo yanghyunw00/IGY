@@ -14,9 +14,12 @@
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Dokev/DKTileManager.hpp"
-#include "Game/pathFinding.hpp"
 #include "Dokev/DKRenderState.hpp"
 #include "OpenGL/GL.hpp"
+#include "Game/pathFinding.hpp"
+
+// Forward declaration
+namespace Dokev { class MouseSelection; }
 
 #define GRID_SIZE_Y 67
 #define GRID_SIZE_X 67
@@ -45,7 +48,7 @@ public:
 	void ReGenerateMap();
 	void ResetIsoGridMapArray();
 	void InitializeIsoView();
-	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
+	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr) const;
 
 	void IsometricDrawMouseAtlas(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 
@@ -129,6 +132,8 @@ public:
 
 	GLuint mouseAtlasFBO   = 0;
     GLuint mouseAtlasTex   = 0;
+
+
 
 
 

@@ -293,10 +293,6 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
                 }
                 return roadPos;
             }
-            else
-            {
-                std::cout << "No road found nearby" << std::endl;
-            }
         }
     }
 

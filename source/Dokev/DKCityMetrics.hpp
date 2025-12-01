@@ -19,7 +19,6 @@ namespace Dokev
         float financialBalance;       // 재정 상태
         float populationDensity;      // 밀집도 (인구/거주지)
 
-        // 거주지 관련
         int totalResidentialBuildings;
         int totalPopulation;
 
@@ -31,7 +30,6 @@ namespace Dokev
             return averageHappiness;
         }
 
-        // 만족도 변화율 설정 (양수=증가, 음수=감소)
         void SetHappinessChangeRate(float rate)
         {
             happinessChangeRate = rate;

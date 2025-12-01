@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(./cs200_fun.exe)",
-      "Bash(cmake --build:*)"
+      "Bash(cmake --build:*)",
+      "Bash(Select-Object -First 50)"
     ],
     "deny": [],
     "ask": []

@@ -123,6 +123,9 @@ void GamePlayState::Load()
 
     // Load building costs from JSON
     buildingCostManager.LoadFromFile("Assets/resources/building_costs.json");
+
+    mouseSelection.SetGridMap(GetGSComponent<MapManager>()->GetMap());
+    mouseSelection.Load(assets::locate_asset("Assets/images/textures/select.png"));
 }
 
 void GamePlayState::Update(double dt)
@@ -291,13 +294,14 @@ void GamePlayState::Update(double dt)
     {
         if (mapMgr && mapMgr->GetMap())
         {
+            Math::ivec2 mouseScreen = mouse.GetPosition();
+
             mapMgr->GetMap()->IsometricDrawMouseAtlas(index, selected_renderer);
 
             GLubyte pixel[4] = { 0 };
             glBindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
 
-            Math::ivec2 mouseScreen = mouse.GetPosition();
-            mouseScreen.y           = windowSize.y - mouseScreen.y;
+            mouseScreen.y = windowSize.y - mouseScreen.y;
 
             glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
@@ -306,7 +310,9 @@ void GamePlayState::Update(double dt)
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
             float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.0f;
 
-            mouseSelection.Update(tileX,tileY);
+            Math::fvec2 gridCoord = ConvertViewTileToGrid({ tileX, tileY }, index, mapMgr->GetMap());
+
+            mouseSelection.Update(gridCoord.x, gridCoord.y);
 
             auto selectedBuild = uiManager.GetSelectedBuilding();
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
@@ -444,6 +450,7 @@ void GamePlayState::Update(double dt)
             }
         }
     }
+    mouseSelection.SetViewIndex(index);
 }
 
 void GamePlayState::Draw() const
@@ -464,7 +471,7 @@ void GamePlayState::Draw() const
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     auto mapMgr = GetGSComponent<MapManager>();
-    mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer);
+    mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection);
 
     const auto& resources = mapMgr->GetResources();
     // resource
@@ -489,7 +496,6 @@ void GamePlayState::Draw() const
         human->Draw(index, mapMgr->GetMap());
     }
 
-    // Draw all buildings
     auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
     for (const auto& building : buildings)
     {
@@ -506,7 +512,6 @@ void GamePlayState::Draw() const
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
 
     tutorialManager.Draw();
-    mouseSelection.Draw();
 
     renderer2d.EndScene();
 }

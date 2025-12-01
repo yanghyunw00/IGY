@@ -7,6 +7,7 @@
  */
 
 #include "GridMap.hpp"
+#include "Dokev/DKMouseSelection.hpp"
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGrid.hpp"
 #include "Dokev/DKUtility.hpp"
@@ -38,7 +39,6 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     IsoGridTexture[2] = MountainTexture;
     IsoGridTexture[3] = SnowTexture;
 
-
     ResetPerlinTexture();
 
     ResetIsoGridMapArray();
@@ -53,6 +53,7 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 
 
     InitializeIsoView();
+
 
     // Initialize TileManager
     tileManager = std::make_unique<Dokev::TileManager>();
@@ -148,7 +149,7 @@ void GridMap::InitializeIsoView()
     }
 }
 
-void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer) const
+void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, const Dokev::MouseSelection* mouseSelection) const
 {
     currentView = index % 4;
 
@@ -206,6 +207,11 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer) 
                         current_texture = 0;
                     Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                }
+
+                if (mouseSelection && mouseSelection->ShouldDrawAtTile(originalX, originalY))
+                {
+                    mouseSelection->DrawAtTile(screenX, topY);
                 }
             }
         }

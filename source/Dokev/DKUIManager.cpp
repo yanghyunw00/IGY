@@ -135,13 +135,14 @@ namespace Dokev
         float height      = size + 3.0f;
         float paddingY    = -10;
         int   iconPaddingY = 15;
+        float iconScale = 0.8;
 
         float currentX = startX;
         float currentY = resourceY;
 
         if (woodIcon.IsValid())
         {
-            woodIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, ICON_SCALE, Dokev::ColorPalette::WHITE);
+            woodIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
         }
         if (outlined)
         {
@@ -155,7 +156,7 @@ namespace Dokev
 
         if (rockIcon.IsValid())
         {
-            rockIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, ICON_SCALE, Dokev::ColorPalette::WHITE);
+            rockIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
         }
         if (outlined)
         {
@@ -169,7 +170,7 @@ namespace Dokev
 
         if (steelIcon.IsValid())
         {
-            steelIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, ICON_SCALE, Dokev::ColorPalette::WHITE);
+            steelIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
         }
         if (outlined)
         {
@@ -183,7 +184,7 @@ namespace Dokev
 
         if (humanIcon.IsValid())
         {
-            humanIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, ICON_SCALE, Dokev::ColorPalette::WHITE);
+            humanIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
         }
         if (outlined)
         {
