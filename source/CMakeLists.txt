@@ -17,6 +17,8 @@ set(SOURCE_CODE
     CS200/Renderer2DUtils.hpp CS200/Renderer2DUtils.cpp
     CS200/RenderingAPI.hpp CS200/RenderingAPI.cpp
     CS200/RGBA.hpp
+    CS200/OffscreenFramebuffer.hpp CS200/OffscreenFramebuffer.cpp
+    CS200/PostProcessingPipeline.hpp CS200/PostProcessingPipeline.cpp
 
     Engine/Engine.hpp Engine/Engine.cpp
     Engine/Error.hpp

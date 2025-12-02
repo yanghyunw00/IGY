@@ -11,6 +11,9 @@
 #include <memory>
 
 #include "CS200/RGBA.hpp"
+#include "CS200/OffscreenFramebuffer.hpp"
+#include "CS200/PostProcessingPipeline.hpp"
+#include "OpenGL/Shader.hpp"
 
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKCamera.hpp"
@@ -84,4 +87,22 @@ private:
 
     //Mouse Selection
     Dokev::MouseSelection mouseSelection;
+
+    // Post-processing
+    OffscreenFramebuffer   offscreenBuffer;
+    PostProcessingPipeline postProcessing;
+    OpenGL::CompiledShader screenShader;
+    OpenGL::Handle         screenVAO;
+    OpenGL::Handle         screenVBO;
+    GLsizei                screenVertexCount = 0;
+
+    // Post-processing parameters
+    bool  enablePostFX                 = false;
+    bool  useMSAA                      = false;
+    int   msaaSamples                  = 4;
+    float gammaValue                   = 2.2f;
+    float chromaticAberrationMouseX    = 0.5f;
+    float chromaticAberrationMouseY    = 0.5f;
+
+    void setupScreenTriangle();
 };

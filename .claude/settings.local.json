@@ -3,7 +3,8 @@
     "allow": [
       "Bash(./cs200_fun.exe)",
       "Bash(cmake --build:*)",
-      "Bash(Select-Object -First 50)"
+      "Bash(Select-Object -First 50)",
+      "Bash(cmake:*)"
     ],
     "deny": [],
     "ask": []
