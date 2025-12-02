@@ -344,7 +344,7 @@ void GamePlayState::Update(double dt)
                     }
 
                     GridCell* clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
-                    if (!clickedCell || clickedCell->getWater())
+                    if (!clickedCell || clickedCell->getWater() || !tileMgr->CanPlaceTile(gridX,gridY))
                     {
                         // Invalid placement  -> give bool type to mouse selction and set to false
                         //-> draw red texture on mouse selction draw function
@@ -370,12 +370,14 @@ void GamePlayState::Update(double dt)
                     };
 
                     bool placed = false;
+
+                    
                     switch (selectedBuild)
                     {
                         case BuildingType::ROAD:
                             {
                                 auto* road = mapMgr->GetRoad();
-                                if (!road || !tileMgr->CanPlaceTile(gridX, gridY))
+                                if (!road)
                                     break;
                                 if (!consumeResources(BuildingType::ROAD))
                                     break;
@@ -385,8 +387,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::HOME:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::HOME))
                                     break;
 
@@ -398,8 +398,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::WOOD_WORKSHOP:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::WOOD_WORKSHOP))
                                     break;
 
@@ -413,8 +411,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::ROCK_WORKSHOP:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::ROCK_WORKSHOP))
                                     break;
 
@@ -428,8 +424,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::STEEL_WORKSHOP:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::STEEL_WORKSHOP))
                                     break;
 
