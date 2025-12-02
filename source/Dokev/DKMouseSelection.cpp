@@ -8,16 +8,16 @@
 
 namespace Dokev
 {
-    void MouseSelection::Load(const std::filesystem::path& texturePath)
+    void MouseSelection::Load(const std::filesystem::path& texturePath, const std::filesystem::path& invalidtexturePath)
     {
-        selectionTexture = Dokev::LoadTexture(texturePath.string());
+        selectionTexture        = Dokev::LoadTexture(texturePath.string());
+        invalidSelectionTexture = Dokev::LoadTexture(invalidtexturePath.string());
     }
 
     void MouseSelection::Update(float x, float y)
     {
         position.x = x;
         position.y = y;
-        hasValidPosition = true;
     }
 
     void MouseSelection::Draw() const
@@ -47,28 +47,23 @@ namespace Dokev
         int screenX = originX + (x - y) * TILE_WIDTH_HALF;
         int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
 
-        int count = y * GRID_SIZE_X + x;
+        int    count  = y * GRID_SIZE_X + x;
         double height = selectedView[count]->getHeight();
-        int topY = static_cast<int>(height) - screenY;
+        int    topY   = static_cast<int>(height) - screenY;
 
         if (selectionTexture.IsValid())
         {
             selectionTexture.Draw(screenX, topY);
         }
-        else
+        if (!hasValidPosition)
         {
-            CS200::RGBA fillColor = ColorAlpha(Dokev::ColorPalette::YELLOW, 0.3f);
-            DrawRectangle(screenX, topY, TILE_WIDTH, TILE_HEIGHT, fillColor);
-            DrawRectangleLinesEx(screenX, topY, TILE_WIDTH, TILE_HEIGHT, 2.0f, Dokev::ColorPalette::YELLOW);
+            invalidSelectionTexture.Draw(screenX, topY);
         }
     }
 
     bool MouseSelection::ShouldDrawAtTile(int tileX, int tileY) const
     {
-        if (!hasValidPosition)
-        {
-            return false;
-        }
+
 
         int x = static_cast<int>(std::round(position.x));
         int y = static_cast<int>(std::round(position.y));
@@ -82,11 +77,10 @@ namespace Dokev
         {
             selectionTexture.Draw(screenX, topY);
         }
-        else
+
+        if (!hasValidPosition)
         {
-            CS200::RGBA fillColor = ColorAlpha(Dokev::ColorPalette::YELLOW, 0.3f);
-            DrawRectangle(screenX, topY, TILE_WIDTH, TILE_HEIGHT, fillColor);
-            DrawRectangleLinesEx(screenX, topY, TILE_WIDTH, TILE_HEIGHT, 2.0f, Dokev::ColorPalette::YELLOW);
+            invalidSelectionTexture.Draw(screenX, topY);
         }
     }
 }

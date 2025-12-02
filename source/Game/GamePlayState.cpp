@@ -26,7 +26,6 @@
 #include "WorkBuilding.hpp"
 
 
-
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Input.hpp"
@@ -125,7 +124,7 @@ void GamePlayState::Load()
     buildingCostManager.LoadFromFile("Assets/resources/building_costs.json");
 
     mouseSelection.SetGridMap(GetGSComponent<MapManager>()->GetMap());
-    mouseSelection.Load(assets::locate_asset("Assets/images/textures/select.png"));
+    mouseSelection.Load(assets::locate_asset("Assets/images/textures/select.png"), assets::locate_asset("Assets/images/textures/selectRed.png"));
 }
 
 void GamePlayState::Update(double dt)
@@ -153,7 +152,7 @@ void GamePlayState::Update(double dt)
         cityMetrics->Update(static_cast<float>(dt));
     }
 
-    // Update all humans 
+    // Update all humans
     auto  mapMgr = GetGSComponent<MapManager>();
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
 
@@ -278,18 +277,20 @@ void GamePlayState::Update(double dt)
 
     // Check if button was clicked
     auto currentSelection = uiManager.GetSelectedBuilding();
-    bool buttonClicked = (previousUISelection != currentSelection) && (currentSelection != BuildingType::NONE);
+    bool buttonClicked    = (previousUISelection != currentSelection) && (currentSelection != BuildingType::NONE);
 
     // Update tutorial
-    const auto& input = Engine::GetInput();
-    bool skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
+    const auto& input       = Engine::GetInput();
+    bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
     tutorialManager.Update(static_cast<float>(dt), mouseClicked, skipPressed);
 
     if (buttonClicked)
     {
         tutorialManager.OnButtonClicked();
     }
-
+    ///////////////////////////////////////////////////////////
+    // Update mouse picking for isometric, building placement//
+    ///////////////////////////////////////////////////////////
     if (mouseClicked)
     {
         if (mapMgr && mapMgr->GetMap())
@@ -313,6 +314,7 @@ void GamePlayState::Update(double dt)
             Math::fvec2 gridCoord = ConvertViewTileToGrid({ tileX, tileY }, index, mapMgr->GetMap());
 
             mouseSelection.Update(gridCoord.x, gridCoord.y);
+            mouseSelection.SetHasValidPosition(true);
 
             auto selectedBuild = uiManager.GetSelectedBuilding();
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
@@ -344,6 +346,9 @@ void GamePlayState::Update(double dt)
                     GridCell* clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
                     if (!clickedCell || clickedCell->getWater())
                     {
+                        // Invalid placement  -> give bool type to mouse selction and set to false
+                        //-> draw red texture on mouse selction draw function
+                        mouseSelection.SetHasValidPosition(false);
                         return;
                     }
 

@@ -17,8 +17,9 @@ namespace Dokev
         void SetGridMap(GridMap* gridMap) { map = gridMap; }
         void SetViewIndex(int viewIndex) { currentViewIndex = viewIndex; }
 
-        void Load(const std::filesystem::path& texturePath);
+        void Load(const std::filesystem::path& texturePath, const std::filesystem::path& invalidtexturePath);
         void Update(float x, float y);
+        void SetHasValidPosition(bool isValid) { hasValidPosition = isValid; }
         void Draw() const;
 
         bool ShouldDrawAtTile(int tileX, int tileY) const;
@@ -29,6 +30,7 @@ namespace Dokev
         GridMap* map;
         int currentViewIndex;
         Texture2D selectionTexture;
+        Texture2D invalidSelectionTexture;
         bool hasValidPosition;
 
     };
