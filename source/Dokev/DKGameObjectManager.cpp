@@ -31,6 +31,21 @@ namespace Dokev
         return m_buildings;
     }
 
+    void GameObjectManager::RemoveBuilding(int gridX, int gridY)
+    {
+        m_buildings.erase(
+            std::remove_if(m_buildings.begin(), m_buildings.end(),
+                [gridX, gridY](const auto& building)
+                {
+                    auto buildingGrid = building->GetGrid();
+                    int buildingX = static_cast<int>(std::round(buildingGrid.x));
+                    int buildingY = static_cast<int>(std::round(buildingGrid.y));
+                    return buildingX == gridX && buildingY == gridY;
+                }),
+            m_buildings.end()
+        );
+    }
+
     void GameObjectManager::Refresh()
     {
         m_humans.erase(

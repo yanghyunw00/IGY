@@ -85,6 +85,16 @@ namespace Dokev
         roadButton.name     = "Road";
         roadButton.tint     = Dokev::ColorPalette::WHITE;
         buildingButtons.push_back(roadButton);
+
+        //Delete Button 
+        BuildingButton deleteButton;
+        deleteButton.type     = BuildingType::DELETE;
+        deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+        deleteButton.position = Math::fvec2(startX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 5);
+        deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        deleteButton.name     = "Delete";
+        deleteButton.tint     = Dokev::ColorPalette::WHITE;
+        buildingButtons.push_back(deleteButton);
     }
 
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked)
@@ -110,7 +120,6 @@ namespace Dokev
         }
     }
 
-
     void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr) const
     {
         DrawResources(resourceMgr, humanCount);
@@ -128,7 +137,7 @@ namespace Dokev
             return;
 
         auto  windowSize = Engine::GetWindow().GetSize();
-        float startX     = static_cast<float>(windowSize.x) - BUTTON_WIDTH - UI_SPACING + 32.0f;
+        float startX     = static_cast<float>(windowSize.x) - 100.0f - UI_SPACING + 32.0f;
         float resourceY  = static_cast<float>(windowSize.y) - 100.0f;
 
         float size        = 32.0f;
@@ -199,7 +208,7 @@ namespace Dokev
     void UIManager::DrawHappiness(CityMetrics* cm) const
     {
         auto  windowSize = Engine::GetWindow().GetSize();
-        float startX     = static_cast<float>(windowSize.x) - BUTTON_WIDTH - UI_SPACING + 32.0f;
+        float startX     = static_cast<float>(windowSize.x) -  100.0f - UI_SPACING + 32.0f;
         float startY     = static_cast<float>(windowSize.y) - 60.0f;
         int iconPaddingY = 15;
 
@@ -242,6 +251,8 @@ namespace Dokev
 
         DrawRectangleLinesEx(static_cast<int>(button.position.x), static_cast<int>(button.position.y), static_cast<int>(button.size.x), static_cast<int>(button.size.y), 3.0f, borderColor);
 
+        
+        //Draw Building Texture.
         if (button.texture.IsValid())
         {
 

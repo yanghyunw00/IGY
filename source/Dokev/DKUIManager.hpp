@@ -66,11 +66,12 @@ namespace Dokev
         Texture2D steelIcon;
         Texture2D happyIcon;
         Texture2D humanIcon;
+        Texture2D deleteIcon;
         
         std::unique_ptr<CS230::Font> outlined;
 
-        static constexpr float BUTTON_WIDTH = 100.0f;
-        static constexpr float BUTTON_HEIGHT = 100.0f;
+        static constexpr float BUTTON_WIDTH = 60.0f;
+        static constexpr float BUTTON_HEIGHT = 60.0f;
         static constexpr float BUTTON_SPACING = 10.0f;
         static constexpr float UI_SPACING = 20.0f; //ui spacing, between draw ui sfuff
         static constexpr double FONT_SCALE = 0.7;  // for font scaling

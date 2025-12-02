@@ -344,12 +344,25 @@ void GamePlayState::Update(double dt)
                     }
 
                     GridCell* clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
-                    if (!clickedCell || clickedCell->getWater() || !tileMgr->CanPlaceTile(gridX,gridY))
+
+                    if (selectedBuild != BuildingType::DELETE)
                     {
-                        // Invalid placement  -> give bool type to mouse selction and set to false
-                        //-> draw red texture on mouse selction draw function
-                        mouseSelection.SetHasValidPosition(false);
-                        return;
+                        if (!clickedCell || clickedCell->getWater() || !tileMgr->CanPlaceTile(gridX, gridY))
+                        {
+                            // Invalid placement  -> give bool type to mouse selction and set to false
+                            //-> draw red texture on mouse selction draw function
+                            mouseSelection.SetHasValidPosition(false);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // For DELETE mode, only check for water
+                        if (!clickedCell || clickedCell->getWater())
+                        {
+                            mouseSelection.SetHasValidPosition(false);
+                            return;
+                        }
                     }
 
                     if (!resourceMgr || !gameObjMgr)
@@ -371,7 +384,6 @@ void GamePlayState::Update(double dt)
 
                     bool placed = false;
 
-                    
                     switch (selectedBuild)
                     {
                         case BuildingType::ROAD:
@@ -435,6 +447,26 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
+                        case BuildingType::DELETE:
+                            {
+                                mouseSelection.SetHasValidPosition(true);
+                                gameObjMgr->RemoveBuilding(gridX, gridY);
+
+                                auto* road = mapMgr->GetRoad();
+                                if (road)
+                                {
+                                    // RemoveRoad already has Deallocate Tile
+                                    road->removeRoad(gridX, gridY, *map);
+                                }
+                                else
+                                {
+                                    tileMgr->DeallocateTile(gridX, gridY);
+                                }
+
+                                placed = true;
+                                break;
+                            }
+
                         default: break;
                     }
 

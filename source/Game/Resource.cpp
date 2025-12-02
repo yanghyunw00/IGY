@@ -37,9 +37,7 @@ void Resource::Draw(int viewIndex, const GridMap* map) const
     if (!cell) return;
     
     float height = static_cast<float>(cell->getHeight());
-    //float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
-    //int originX = map->GetIsoOriginX();
     int originX = 0;
     int originY = 0;
 
