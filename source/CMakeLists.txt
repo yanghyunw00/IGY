@@ -94,6 +94,9 @@ set(SOURCE_CODE
     Game/GridCell.hpp
     Game/CustomCell.hpp Game/CustomCell.cpp
     Game/GridMap.hpp Game/GridMap.cpp
+    Game/HappinessSystem.hpp
+    Game/ImmigrationSystem.hpp
+    Game/UserInterfaceEditor.hpp Game/UserInterfaceEditor.cpp
     Game/Human.hpp Game/Human.cpp
     Game/pathFinding.hpp Game/pathFinding.cpp
     Game/Road.hpp Game/Road.cpp

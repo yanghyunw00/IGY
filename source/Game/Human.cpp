@@ -521,33 +521,10 @@ bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
 
 Human Human::CreateImmigrant()
 {
-    int side = rand() % 4; // 0=top, 1=right, 2=bottom, 3=left
+    int margin = GRID_SIZE_X / 4;
 
-    float spawnX, spawnY;
-
-    switch (side)
-    {
-        case 0: // Top (entering from north)
-            spawnX = (float)(rand() % GRID_SIZE_X);
-            spawnY = 0.0f;
-            break;
-        case 1: // Right (entering from east)
-            spawnX = GRID_SIZE_X - 1;
-            spawnY = (float)(rand() % GRID_SIZE_Y);
-            break;
-        case 2: // Bottom (entering from south)
-            spawnX = (float)(rand() % GRID_SIZE_X);
-            spawnY = GRID_SIZE_Y - 1;
-            break;
-        case 3: // Left (entering from west)
-            spawnX = 0.0f;
-            spawnY = (float)(rand() % GRID_SIZE_Y);
-            break;
-        default:
-            spawnX = 0.0f;
-            spawnY = 0.0f;
-            break;
-    }
+    float spawnX = (float)(margin + rand() % (GRID_SIZE_X - 2 * margin));
+    float spawnY = (float)(margin + rand() % (GRID_SIZE_Y - 2 * margin));
 
     Human immigrant(Math::fvec2(spawnX, spawnY));
     return immigrant;

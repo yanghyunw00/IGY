@@ -105,7 +105,8 @@ void GamePlayState::Load()
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
     GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(5.0f, 5.0f)));
-    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(78.0f, 13.0f)));
+    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(7.0f, 7.0f)));
+
 
     camera.SetZoom(0.3f);
 
@@ -190,82 +191,26 @@ void GamePlayState::Update(double dt)
     //      smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
     //  }
 
-    // Auto immigration system
+    // Happiness & Immigration System 
     auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
     auto resourceMgr = GetGSComponent<ResourceManager>();
 
-    size_t humanCount = gameObjMgr->GetHumans().size();
-    size_t homeCount  = 0;
+    // Update city metrics with new systems
+    bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(dt, gameObjMgr.get(), resourceMgr.get());
 
-    for (const auto& building : gameObjMgr->GetBuildings())
-    {
-        if (Dokev::Meta::is_residential_type(building->GetBuildingType()))
-        {
-            homeCount++;
-        }
-    }
-
-    // immigration condition
-    int totalResources    = resourceMgr->GetTotalResources();
-    int requiredResources = static_cast<int>(humanCount) * 100;
-
-    if (humanCount < homeCount && totalResources >= requiredResources)
+    if (shouldSpawnImmigrant)
     {
         gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
     }
 
-    // end condition
-    if (gameObjMgr->GetHumans().size() > 10 || cityMetrics->GetHappiness() <= 10.0f)
+    // End condition
+    if (cityMetrics->GetHappiness() <= 10.0f)
     {
         SDL_Event e{};
         e.type         = SDL_WINDOWEVENT;
         e.window.event = SDL_WINDOWEVENT_CLOSE;
         SDL_PushEvent(&e);
         return;
-    }
-
-    // Happiness system based on population, workplaces, and homes
-    size_t workplaceCount = 0;
-    for (const auto& building : gameObjMgr->GetBuildings())
-    {
-        BuildingType type = building->GetBuildingType();
-        if (Dokev::Meta::is_workshop_type(type))
-        {
-            workplaceCount++;
-        }
-    }
-
-    float happinessChangeRate = 0.0f;
-
-    if (homeCount > humanCount)
-    {
-        // 사람이 거주지보다 많음- 만족도 천천히 증가
-        happinessChangeRate = 1.0f;
-    }
-    else if (workplaceCount == 0 && homeCount > 0)
-    {
-        // 거주지만 있음 - 만족도 빠르게 증가 (최상)
-        happinessChangeRate = 1.5f;
-    }
-    else if (humanCount >= workplaceCount && homeCount == 0)
-    {
-        // 사람이 워크샾보다 많고 거주지 없음 - 만족도 빠르게 감소
-        happinessChangeRate = -2.0f;
-    }
-    else if (workplaceCount > humanCount && humanCount > homeCount)
-    {
-        // 워크샾이 사람보다 많고 거주지도 부족함 - 만족도 매우 빠르게 감소 (최악)
-        happinessChangeRate = -1.5f;
-    }
-    else if (workplaceCount > humanCount && homeCount > 0)
-    {
-        // 워크샾이 사람보다 많고 거주지는 있음 - 만족도 천천히 감소
-        happinessChangeRate = -1.0f;
-    }
-
-    if (cityMetrics)
-    {
-        cityMetrics->SetHappinessChangeRate(happinessChangeRate);
     }
 
     // mouse hovering & building instructure
@@ -554,7 +499,17 @@ void GamePlayState::Draw() const
 
 void GamePlayState::DrawImGui()
 {
+    // Developer UI
     worldEditor.DrawImGui();
+
+    // Player UI
+    auto cityMetrics = GetGSComponent<CityMetrics>();
+    auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
+
+    if (cityMetrics && gameObjMgr)
+    {
+        playerUI.DrawUI(cityMetrics->GetHappinessSystem(), cityMetrics->GetImmigrationSystem(), gameObjMgr.get());
+    }
 }
 
 void GamePlayState::Unload()

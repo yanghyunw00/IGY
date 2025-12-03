@@ -54,7 +54,7 @@ namespace Dokev
         constexpr bool is_residential_type(BuildingType type)
         {
             using underlying = std::underlying_type_t<BuildingType>;
-            constexpr underlying home = static_cast<underlying>(100);
+            constexpr underlying home = static_cast<underlying>(4);
 
             return static_cast<underlying>(type) == home;
         }
@@ -63,7 +63,7 @@ namespace Dokev
         constexpr bool is_road_type(BuildingType type)
         {
             using underlying = std::underlying_type_t<BuildingType>;
-            constexpr underlying road = static_cast<underlying>(200);
+            constexpr underlying road = static_cast<underlying>(5);  
 
             return static_cast<underlying>(type) == road;
         }

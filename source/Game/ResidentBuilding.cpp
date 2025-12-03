@@ -35,8 +35,8 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
     switch (bt)
     {
         case BuildingType::HOME:
-            texture      = homeTexture; 
-            max_capacity = 10;
+            texture      = homeTexture;
+            max_capacity = 2;  // Each home can house 2 people
             cost         = 0;
             break;
 

@@ -36,6 +36,7 @@
 
 #include "Game/ResourceManager.hpp"
 #include "Game/BuildingCostManager.hpp"
+#include "Game/UserInterfaceEditor.hpp"
 
 class GamePlayState : public Dokev::GameState
 {
@@ -87,5 +88,8 @@ private:
 
     //Mouse Selection
     Dokev::MouseSelection mouseSelection;
+
+    // Player UI
+    UserInterfaceEditor playerUI;
 
 };
