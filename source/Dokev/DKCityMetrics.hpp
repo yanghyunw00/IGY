@@ -23,11 +23,9 @@ namespace Dokev
     class CityMetrics : public IComponent
     {
     private:
-        // === New Systems ===
         HappinessSystem   happinessSystem;
         ImmigrationSystem immigrationSystem;
 
-        // === Legacy (kept for compatibility) ===
         float averageHappiness    = 100.0f; // 평균 만족도
         float happinessChangeRate = 0.0f;   // 초당 증가/감소율 (deprecated)
 
@@ -39,13 +37,7 @@ namespace Dokev
         int totalPopulation;
 
     public:
-        /**
-         * \brief Update happiness and immigration systems
-         * \param dt Delta time
-         * \param gameObjectManager Reference to game object manager
-         * \param resourceManager Reference to resource manager
-         * \return true if new immigrant should spawn
-         */
+
         bool UpdateSystems(double dt, GameObjectManager* gameObjectManager, ResourceManager* resourceManager);
 
         void Update(double dt) override;
@@ -56,7 +48,6 @@ namespace Dokev
 
         float GetHappinessChangeRate() const { return happinessChangeRate; }
 
-        // === New System Accessors ===
         HappinessSystem*   GetHappinessSystem() { return &happinessSystem; }
         ImmigrationSystem* GetImmigrationSystem() { return &immigrationSystem; }
     };
