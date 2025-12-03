@@ -83,43 +83,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
                       { ResourceType::Steel, "Steel" }
 })
 
-void GamePlayState::setupScreenTriangle()
-{
-    struct ScreenVertex
-    {
-        float x, y;
-        float u, v;
-    };
-
-    const ScreenVertex vertices[] = {
-        { -1.0f, -1.0f, 0.0f, 0.0f },
-        {  3.0f, -1.0f, 2.0f, 0.0f },
-        { -1.0f,  3.0f, 0.0f, 2.0f },
-    };
-
-    screenVertexCount = static_cast<GLsizei>(std::ssize(vertices));
-
-    GL::GenBuffers(1, &screenVBO);
-    GL::BindBuffer(GL_ARRAY_BUFFER, screenVBO);
-    GL::BufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    GL::BindBuffer(GL_ARRAY_BUFFER, 0);
-
-    GL::GenVertexArrays(1, &screenVAO);
-    GL::BindVertexArray(screenVAO);
-    GL::BindBuffer(GL_ARRAY_BUFFER, screenVBO);
-
-    GL::EnableVertexAttribArray(0);
-    GL::VertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(ScreenVertex), nullptr);
-    GL::VertexAttribDivisor(0, 0);
-
-    GL::EnableVertexAttribArray(1);
-    GL::VertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ScreenVertex), reinterpret_cast<void*>(2 * sizeof(float)));
-    GL::VertexAttribDivisor(1, 0);
-
-    GL::BindVertexArray(0);
-    GL::BindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
 void GamePlayState::Load()
 {
     CS200::RenderingAPI::SetClearColor(0x252525FF);
@@ -163,39 +126,8 @@ void GamePlayState::Load()
     mouseSelection.SetGridMap(GetGSComponent<MapManager>()->GetMap());
     mouseSelection.Load(assets::locate_asset("Assets/images/textures/select.png"), assets::locate_asset("Assets/images/textures/selectRed.png"));
 
-    // Initialize post-processing
-    auto windowSize = Engine::GetWindow().GetSize();
-    const auto use_msaa = useMSAA ? OffscreenFramebuffer::MSAA::True : OffscreenFramebuffer::MSAA::False;
-    offscreenBuffer.Initialize(windowSize.x, windowSize.y, use_msaa, msaaSamples);
-
-    const std::filesystem::path screen_vert = assets::locate_asset("Assets/shaders/simple.vert");
-    const std::filesystem::path screen_frag = assets::locate_asset("Assets/shaders/simple-texture.frag");
-    screenShader = OpenGL::CreateShader(screen_vert, screen_frag);
-
-    setupScreenTriangle();
-
-    postProcessing.Initialize(windowSize.x, windowSize.y);
-
-    // Add Chromatic Aberration effect
-    {
-        const std::filesystem::path chroma_vert   = assets::locate_asset("Assets/shaders/simple.vert");
-        const std::filesystem::path chroma_frag   = assets::locate_asset("Assets/shaders/chromatic-aberration.frag");
-        auto                        chroma_shader = OpenGL::CreateShader(chroma_vert, chroma_frag);
-
-        postProcessing.AddEffect(PostProcessingEffect(
-            "Chromatic Aberration", PostProcessingEffect::Enable::True, chroma_shader,
-            [this](const OpenGL::CompiledShader& shader) {
-                glUniform2f(shader.UniformLocations.at("uMouseFocusPoint"), chromaticAberrationMouseX, chromaticAberrationMouseY);
-            }));
-    }
-
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    if (useMSAA)
-    {
-        glEnable(GL_MULTISAMPLE);
-    }
 }
 
 void GamePlayState::Update(double dt)
@@ -359,6 +291,7 @@ void GamePlayState::Update(double dt)
     {
         tutorialManager.OnButtonClicked();
     }
+
     ///////////////////////////////////////////////////////////
     // Update mouse picking for isometric, building placement//
     ///////////////////////////////////////////////////////////
@@ -375,9 +308,10 @@ void GamePlayState::Update(double dt)
 
             mouseScreen.y = windowSize.y - mouseScreen.y;
 
-            glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            GL::ReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            
 
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
             float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.0f;
@@ -558,24 +492,6 @@ void GamePlayState::Update(double dt)
 void GamePlayState::Draw() const
 {
     auto windowSize = Engine::GetWindow().GetSize();
-
-    // Handle window resize
-    static int last_width  = 0;
-    static int last_height = 0;
-    if (windowSize.x != last_width || windowSize.y != last_height)
-    {
-        const_cast<GamePlayState*>(this)->offscreenBuffer.Resize(windowSize.x, windowSize.y);
-        const_cast<GamePlayState*>(this)->postProcessing.Resize(windowSize.x, windowSize.y);
-        last_width  = windowSize.x;
-        last_height = windowSize.y;
-    }
-
-    // Bind offscreen buffer if post-processing is enabled
-    if (enablePostFX)
-    {
-        const_cast<GamePlayState*>(this)->offscreenBuffer.BindForRendering();
-    }
-
     CS200::RenderingAPI::Clear();
 
     auto& renderer2d           = Engine::GetRenderer2D(selected_renderer);
@@ -634,84 +550,15 @@ void GamePlayState::Draw() const
     tutorialManager.Draw();
 
     renderer2d.EndScene();
-
-    // Apply post-processing effects
-    if (enablePostFX)
-    {
-        GLuint scene_texture = const_cast<GamePlayState*>(this)->offscreenBuffer.GetTexture();
-        GLuint final_texture = const_cast<GamePlayState*>(this)->postProcessing.Apply(scene_texture);
-
-        // Render to screen
-        GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
-        GL::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        GL::Clear(GL_COLOR_BUFFER_BIT);
-        GL::Viewport(0, 0, windowSize.x, windowSize.y);
-
-        GL::UseProgram(screenShader.Shader);
-
-        GL::ActiveTexture(GL_TEXTURE0);
-        GL::BindTexture(GL_TEXTURE_2D, final_texture);
-        GL::Uniform1i(screenShader.UniformLocations.at("uColorTexture"), 0);
-
-        GL::BindVertexArray(screenVAO);
-        GL::DrawArrays(GL_TRIANGLES, 0, screenVertexCount);
-
-        GL::BindVertexArray(0);
-        GL::BindTexture(GL_TEXTURE_2D, 0);
-        GL::UseProgram(0);
-    }
 }
 
 void GamePlayState::DrawImGui()
 {
     worldEditor.DrawImGui();
-
-    // Post-processing controls
-    ImGui::Begin("Post-Processing");
-    ImGui::Checkbox("Enable Post-Processing", &enablePostFX);
-    ImGui::BeginDisabled(!enablePostFX);
-    ImGui::SeparatorText("Chromatic Aberration");
-
-    // Chromatic Aberration
-    if (auto* chroma = postProcessing.GetEffect("Chromatic Aberration"))
-    {
-        ImGui::Checkbox("Enable Effect", reinterpret_cast<bool*>(&chroma->Enabled));
-
-        ImGui::BeginDisabled(chroma->Enabled == PostProcessingEffect::Enable::False);
-        ImGui::Indent();
-        ImGui::SliderFloat("Focus X", &chromaticAberrationMouseX, 0.0f, 1.0f);
-        ImGui::SliderFloat("Focus Y", &chromaticAberrationMouseY, 0.0f, 1.0f);
-        ImGui::Unindent();
-        ImGui::EndDisabled();
-    }
-
-    ImGui::EndDisabled();
-
-    ImGui::End();
 }
 
 void GamePlayState::Unload()
 {
-    // Clean up post-processing resources
-    offscreenBuffer.Shutdown();
-    postProcessing.Shutdown();
-
-    if (screenVAO != 0)
-    {
-        glDeleteVertexArrays(1, &screenVAO);
-        screenVAO = 0;
-    }
-    if (screenVBO != 0)
-    {
-        glDeleteBuffers(1, &screenVBO);
-        screenVBO = 0;
-    }
-    if (screenShader.Shader != 0)
-    {
-        glDeleteProgram(screenShader.Shader);
-        screenShader.Shader = 0;
-    }
-
     Engine::GetLogger().LogEvent("GamePlayState: Unloaded");
 }
 
