@@ -1,4 +1,4 @@
-﻿/**
+/**
  * \file
  * \author Hyunwoo Yang
  * \date 2025 Fall
@@ -41,7 +41,10 @@ namespace CS230
          * - Store character dimensions for text measurement
          */
         explicit Font(const std::filesystem::path& file_name);
+        ~Font();
 
+
+        static void IncrementFrame() { current_frame++; }
 
         std::shared_ptr<Texture> PrintToTexture(const std::string& text, CS200::RGBA color = 0xFFFFFFFF);
 

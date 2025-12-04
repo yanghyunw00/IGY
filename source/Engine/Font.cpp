@@ -1,4 +1,4 @@
-﻿/**  * \file
+/**  * \file
   * \author Hyunwoo Yang
   * \date 2025 Fall
   * \par CS200 Computer Graphics I
@@ -43,6 +43,12 @@ namespace CS230
         FindCharRects(image);
         CS200::Image flip(file_name, true);
         font_texture = std::shared_ptr<Texture>(new Texture(OpenGL::CreateTextureFromImage(flip), flip.GetSize()));
+    }
+
+    Font::~Font()
+    {
+        text_cache.clear();
+        font_texture.reset();
     }
 
     void Font::FindCharRects(const CS200::Image& image)
@@ -138,9 +144,7 @@ namespace CS230
             }
         }
 
-        std::stringstream make_key;
-        make_key << text << std::hex << color;
-        const std::string cache_key = make_key.str();
+        std::string cache_key = text + "_" + std::to_string(color);
 
         //cache hit
         auto it = text_cache.find(cache_key);

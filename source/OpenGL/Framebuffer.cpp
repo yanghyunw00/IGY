@@ -26,11 +26,6 @@ namespace OpenGL
         GL::GenFramebuffers(1, &fb.Framebuffer);
         GL::BindFramebuffer(GL_FRAMEBUFFER, fb.Framebuffer);
 
-        GL::GenTextures(1, &fb.ColorAttachment);
-        GL::BindTexture(GL_TEXTURE_2D, fb.ColorAttachment);
-
-        GL::TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
         fb.ColorAttachment = CreateRGBATexture(size);
 
         GL::FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fb.ColorAttachment, 0);

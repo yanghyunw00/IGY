@@ -14,6 +14,7 @@
 #include "CS200/NDC.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "FPS.hpp"
+#include "Font.hpp"
 #include "GameState.hpp"
 #include "GameStateManager.hpp"
 #include "Input.hpp"
@@ -142,6 +143,7 @@ void Engine::Update()
     const auto        viewport      = impl->viewport;
     const Math::ivec2 viewport_size = { viewport.width, viewport.height };
     CS200::RenderingAPI::SetViewport(viewport_size, { viewport.x, viewport.y });
+    CS230::Font::IncrementFrame();
     state_manager.Draw();
     impl->viewport = ImGuiHelper::Begin();
     state_manager.DrawImGui();

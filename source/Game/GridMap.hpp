@@ -41,7 +41,6 @@ public:
 
 	~GridMap()
 	{
-
 		UnloadImage(PerlinNoiseImage);
 	};
 	
@@ -119,7 +118,7 @@ private:
 
 	mutable int currentView;
 
-	PathFinding* pathFinder;
+	std::unique_ptr<PathFinding> pathFinder;
 	std::vector<Math::fvec2> currentPath;
 	bool showPath;
 

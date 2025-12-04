@@ -62,10 +62,10 @@ private:
     Dokev::Mouse mouse;
 
     // Smoke animation demo
-    Dokev::AnimatedSprite smokeSprite;
+    //Dokev::AnimatedSprite smokeSprite;
 
     // Particle emitter demo
-    Dokev::ParticleEmitter<Dokev::Smoke> smokeEmitter;
+    //Dokev::ParticleEmitter<Dokev::Smoke> smokeEmitter;
 
     // Immigration system
     float immigrationTimer = 0.0f;
