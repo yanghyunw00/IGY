@@ -103,7 +103,7 @@ void GridMap::ResetIsoGridMapArray()
 {
     m_gridCells.assign(GRID_SIZE_Y, std::vector<GridCell>(GRID_SIZE_X));
 
-    // GetImageColor가 thread-safe하지 않을 수 있으므로 순차 처리
+    // Process sequentially as GetImageColor may not be thread-safe
     for (int y = 0; y < GRID_SIZE_Y; ++y)
     {
         for (int x = 0; x < GRID_SIZE_X; ++x)
@@ -125,22 +125,22 @@ void GridMap::InitializeIsoView()
     {
         for (int x = 0; x < GRID_SIZE_X; ++x)
         {
-            // 원본 뷰
+            // Original view
             view1[Dokev::Meta::grid_to_index(x, y, GRID_SIZE_X)] = &m_gridCells[y][x];
 
-            // 90도 회전
+            // 90 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, new_x, new_y);
             size_t rotIndex90 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
             if (rotIndex90 < GRID_SIZE_X * GRID_SIZE_Y)
                 view2[rotIndex90] = &m_gridCells[y][x];
 
-            // 180도 회전
+            // 180 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, new_x, new_y);
             size_t rotIndex180 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
             if (rotIndex180 >= 0 && rotIndex180 < GRID_SIZE_X * GRID_SIZE_Y)
                 view3[rotIndex180] = &m_gridCells[y][x];
 
-            // 270도 회전
+            // 270 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, new_x, new_y);
             size_t rotIndex270 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
             if (rotIndex270 < GRID_SIZE_X * GRID_SIZE_Y)
@@ -367,12 +367,11 @@ void GridMap::InitializePathFinding()
 {
     if (pathFinder)
     {
-        delete pathFinder;
-        pathFinder = nullptr;
+        pathFinder.reset();
         std::cout << "clear the pathfind" << std::endl;
     }
 
-    pathFinder = new PathFinding(GRID_SIZE_X, GRID_SIZE_Y, 50.0f);
+    pathFinder = std::make_unique<PathFinding>(GRID_SIZE_X, GRID_SIZE_Y, 50.0f);
 
     pathFinder->UpdateMapFromGrid(m_gridCells);
 

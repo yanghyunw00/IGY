@@ -23,6 +23,18 @@
        
 */
 
+// Visual Leak Detector (VLD)
+// #ifdef USE_VLD
+// #include <vld.h>
+// #endif
+
+// CRT Memory Leak Detection
+// #if defined(_WIN32) && defined(_DEBUG)
+// #define _CRTDBG_MAP_ALLOC
+// #include <crtdbg.h>
+// #include <stdlib.h>
+// #endif
+
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Window.hpp"
@@ -81,6 +93,14 @@ EMSCRIPTEN_BINDINGS(main_window)
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
+
+// #if defined(_WIN32) && defined(_DEBUG)
+//     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+//     //_CrtSetBreakAlloc(156);
+//     // Optionally set a breakpoint on a specific allocation number
+//     _CrtSetBreakAlloc(4148); // Set breakpoint on allocation #140484
+// #endif
+
     Engine& engine = Engine::Instance();
     engine.Start("Team - Antartic Monkeys");
     engine.GetGameStateManager().PushState<MainMenu>();
@@ -97,6 +117,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     constexpr int  match_browser_framerate = -1;
     emscripten_set_main_loop(main_loop, match_browser_framerate, simulate_infinite_loop);
 #endif
+
+// Dump memory leaks at program exit 
+// #if defined(_WIN32) && defined(_DEBUG)
+//     _CrtDumpMemoryLeaks();
+// #endif
+
     return 0;
 }
  

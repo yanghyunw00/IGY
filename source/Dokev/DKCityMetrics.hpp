@@ -26,12 +26,12 @@ namespace Dokev
         HappinessSystem   happinessSystem;
         ImmigrationSystem immigrationSystem;
 
-        float averageHappiness    = 100.0f; // 평균 만족도
-        float happinessChangeRate = 0.0f;   // 초당 증가/감소율 (deprecated)
+        float averageHappiness    = 100.0f; // Average satisfaction level
+        float happinessChangeRate = 0.0f;   // Rate of change per second (deprecated)
 
-        float environmentalPollution; // 환경 오염도 (0-100)
-        float financialBalance;       // 재정 상태
-        float populationDensity;      // 밀집도 (인구/거주지)
+        float environmentalPollution; // Environmental pollution (0-100)
+        float financialBalance;       // Financial balance
+        float populationDensity;      // Population density (population/residences)
 
         int totalResidentialBuildings;
         int totalPopulation;

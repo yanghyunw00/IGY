@@ -65,9 +65,9 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
     actualPosition.x = startPosition.x + (targetGridPos.x - startPosition.x) * t;
     actualPosition.y = startPosition.y + (targetGridPos.y - startPosition.y) * t;
 
-    if (t >= 1.0f) // 목표 지점 도착
+    if (t >= 1.0f) // Reached target position
     {
-        // 위치를 목표 지점에 정확히 맞춤ccccccccccccc
+        // Snap position to target exactly
         actualPosition = targetGridPos;
         currentGridPos = targetGridPos;
 
@@ -91,7 +91,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
 
         currentPathIndex++;
 
-        // 끝에 도달했는지
+        // Check if reached the end
         if (currentPathIndex >= path.size())
         {
             isMoving = false;
@@ -100,7 +100,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
             {
             }
         }
-        else // 아직 덜 갔으면
+        else // Still more to go
         {
             startPosition = currentGridPos;
             targetGridPos = path[currentPathIndex];
@@ -260,7 +260,7 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
 
     if (road)
     {
-        // 이미 도로를 따라가고 있으면 다음 도로 타일 찾기
+        // If already following a road, find the next road tile
         if (ai.isFollowingRoad)
         {
             bool        foundRoad    = false;
@@ -274,12 +274,12 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
             }
             else
             {
-                // 도로 끝에 도달했거나 더 이상 갈 도로가 없음
+                // Reached end of road or no more road to follow
                 ai.isFollowingRoad = false;
             }
         }
 
-        // 도로를 따라가지 않고 있으면 가장 가까운 도로 찾기
+        // If not following a road, find the nearest road
         if (!ai.isFollowingRoad)
         {
             Math::fvec2 roadPos;
@@ -379,10 +379,10 @@ Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
     int prevY = static_cast<int>(startPosition.y);
 
     int directions[4][2] = {
-        {  1,  0 }, // 오른쪽
-        { -1,  0 }, // 왼쪽
-        {  0,  1 }, // 아래
-        {  0, -1 }  // 위
+        {  1,  0 }, // Right
+        { -1,  0 }, // Left
+        {  0,  1 }, // Down
+        {  0, -1 }  // Up
     };
 
     std::vector<Math::fvec2> candidates;
@@ -407,9 +407,9 @@ Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
         return currentGridPos;
     }
 
-    // delete previous road
+    // Remove previous road from candidates
     std::vector<Math::fvec2> nextMoveOptions;
-    if (candidates.size() > 1) //more than one road
+    if (candidates.size() > 1) // More than one road
     {
         for (const auto& tile : candidates)
         {
@@ -421,25 +421,25 @@ Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
     }
     else
     {
-        // one candidate
-        nextMoveOptions = candidates; 
+        // Only one candidate
+        nextMoveOptions = candidates;
     }
-    
-    // decide the next move 
+
+    // Decide the next move
     if (nextMoveOptions.empty())
     {
         outFoundRoad = true;
-        return candidates[0]; 
+        return candidates[0];
     }
     else if (nextMoveOptions.size() == 1)
     {
-        // 직선 / 코너
+        // Straight line or corner
         outFoundRoad = true;
         return nextMoveOptions[0];
     }
     else
     {
-        // 교차로 -> 랜덤선택
+        // Intersection - choose randomly
         outFoundRoad = true;
         int randomIndex = rand() % nextMoveOptions.size();
         return nextMoveOptions[randomIndex];
@@ -472,14 +472,14 @@ bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
     visited[key(startX, startY)] = true;
 
     int directions[8][2] = {
-        {  1,  0 }, // 오른쪽
-        { -1,  0 }, // 왼쪽
-        {  0,  1 }, // 아래
-        {  0, -1 }, // 위
-        {  1,  1 }, // 오른쪽 아래
-        {  1, -1 }, // 오른쪽 위
-        { -1,  1 }, // 왼쪽 아래
-        { -1, -1 }  // 왼쪽 위
+        {  1,  0 }, // Right
+        { -1,  0 }, // Left
+        {  0,  1 }, // Down
+        {  0, -1 }, // Up
+        {  1,  1 }, // Right-Down
+        {  1, -1 }, // Right-Up
+        { -1,  1 }, // Left-Down
+        { -1, -1 }  // Left-Up
     };
 
     int searchLimit = 1000;
@@ -499,13 +499,13 @@ bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
             if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
                 continue;
 
-            // visited check
+            // Check if already visited
             if (visited[key(nx, ny)])
                 continue;
 
             visited[key(nx, ny)] = true;
 
-            // if found road
+            // Check if road is found
             if (road->hasRoad(nx, ny))
             {
                 outRoadPosition = Math::fvec2(static_cast<float>(nx), static_cast<float>(ny));

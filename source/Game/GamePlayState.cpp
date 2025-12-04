@@ -112,7 +112,7 @@ void GamePlayState::Load()
 
     camera.SetZoom(0.3f);
 
-    smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
+    //smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
     worldEditor.Initialize(
         GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get());
@@ -182,7 +182,7 @@ void GamePlayState::Update(double dt)
         }
     }
 
-    smokeEmitter.Update(environment.DeltaTime);
+    //smokeEmitter.Update(environment.DeltaTime);
 
     // const auto& input = Engine::GetInput();
     //  if (input.KeyJustPressed(CS230::Input::Keys::P))
@@ -483,12 +483,12 @@ void GamePlayState::Draw() const
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
     // Draw smoke animation at position (200, 200)
-    Math::TransformationMatrix smokeTransform;
-    smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
+    //Math::TransformationMatrix smokeTransform;
+    //smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
     // smokeSprite.Draw(smokeTransform);
 
     // Draw particles
-    smokeEmitter.Draw(cameraTransform * ndcMatrix);
+    //smokeEmitter.Draw(cameraTransform * ndcMatrix);
 
     // Draw all humans
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();

@@ -32,29 +32,28 @@ namespace Dokev
         {
             if (line.empty() || line[0] == '#')
                 continue;
-
-            if (line.find("PlayFrame") != std::string::npos)
-            {
-                std::istringstream iss(line);
-                std::string command;
-                int    frameIndex;
-                double duration;
-                iss >> command >> frameIndex >> duration;
-                frames.push_back({ frameIndex, duration });
-            }
-            else if (line.find("Loop") != std::string::npos)
-            {
-                std::istringstream iss(line);
-                std::string command;
-                int loopIndex;
-                iss >> command >> loopIndex;
-                loopStartFrame = loopIndex;
-                loopEnabled    = true;
-            }
-            else if (line.find("End") != std::string::npos)
-            {
-                loopEnabled = false;
-            }
+        }
+        if (line.find("PlayFrame") != std::string::npos)
+        {
+            std::istringstream iss(line);
+            std::string        command;
+            int                frameIndex;
+            double             duration;
+            iss >> command >> frameIndex >> duration;
+            frames.push_back({ frameIndex, duration });
+        }
+        else if (line.find("Loop") != std::string::npos)
+        {
+            std::istringstream iss(line);
+            std::string        command;
+            int                loopIndex;
+            iss >> command >> loopIndex;
+            loopStartFrame = loopIndex;
+            loopEnabled    = true;
+        }
+        else if (line.find("End") != std::string::npos)
+        {
+            loopEnabled = false;
         }
     }
 
@@ -140,8 +139,8 @@ namespace Dokev
     void Animation::Reset()
     {
         currentFrameIndex = 0;
-        timer = 0.0;
-        justCompleted = false;
+        timer             = 0.0;
+        justCompleted     = false;
     }
 
     bool Animation::IsComplete() const

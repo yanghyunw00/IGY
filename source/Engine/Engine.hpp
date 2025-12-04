@@ -30,29 +30,7 @@ namespace CS200
     class IRenderer2D;
 }
 
-/**
- * \brief Runtime information about the window and application state
- *
- * WindowEnvironment provides access to essential runtime metrics and window
- * properties that are commonly needed by game logic, rendering systems, and
- * debugging tools. This information is updated each frame to reflect the
- * current state of the application.
- *
- * Timing Information:
- * - DeltaTime: Time elapsed since the last frame (for frame-rate independent movement)
- * - ElapsedTime: Total time since application started (for animations and effects)
- * - FrameCount: Total number of frames rendered (for debugging and profiling)
- * - FPS: Current frames per second (for performance monitoring)
- *
- * Display Information:
- * - DisplaySize: Current viewport dimensions in pixels (for coordinate calculations)
- *
- * Common use cases:
- * - Frame-rate independent animations and movement
- * - Performance monitoring and debugging
- * - UI scaling based on viewport size
- * - Time-based effects and animations
- */
+
 struct WindowEnvironment
 {
     int        FPS         = 0;   ///< Current frames per second

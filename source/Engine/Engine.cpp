@@ -14,6 +14,7 @@
 #include "CS200/NDC.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "FPS.hpp"
+#include "Font.hpp"
 #include "GameState.hpp"
 #include "GameStateManager.hpp"
 #include "Input.hpp"
@@ -146,6 +147,7 @@ void Engine::Update()
     impl->viewport = ImGuiHelper::Begin();
     state_manager.DrawImGui();
     ImGuiHelper::End();
+    CS230::Font::IncrementFrame();
 }
 
 bool Engine::HasGameEnded()
