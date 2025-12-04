@@ -45,19 +45,11 @@ namespace CS230
         font_texture = std::shared_ptr<Texture>(new Texture(OpenGL::CreateTextureFromImage(flip), flip.GetSize()));
     }
 
-<<<<<<< Updated upstream
     Font::~Font()
     {
         text_cache.clear();
         font_texture.reset();
     }
-=======
- /*   Font::~Font()
-    {
-        text_cache.clear();
-        font_texture.reset();
-    }*/
->>>>>>> Stashed changes
 
     void Font::FindCharRects(const CS200::Image& image)
     {

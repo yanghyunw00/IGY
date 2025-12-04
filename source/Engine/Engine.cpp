@@ -147,7 +147,7 @@ void Engine::Update()
     impl->viewport = ImGuiHelper::Begin();
     state_manager.DrawImGui();
     ImGuiHelper::End();
-   // CS230::Font::IncrementFrame();
+    CS230::Font::IncrementFrame();
 }
 
 bool Engine::HasGameEnded()

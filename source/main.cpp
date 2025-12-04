@@ -23,17 +23,17 @@
        
 */
 
-// Visual Leak Detector (VLD) - Must be included first
-#ifdef USE_VLD
-#include <vld.h>
-#endif
+// Visual Leak Detector (VLD)
+// #ifdef USE_VLD
+// #include <vld.h>
+// #endif
 
-// CRT Memory Leak Detection (Windows Debug only)
-#if defined(_WIN32) && defined(_DEBUG)
-#define _CRTDBG_MAP_ALLOC
-#include <crtdbg.h>
-#include <stdlib.h>
-#endif
+// CRT Memory Leak Detection
+// #if defined(_WIN32) && defined(_DEBUG)
+// #define _CRTDBG_MAP_ALLOC
+// #include <crtdbg.h>
+// #include <stdlib.h>
+// #endif
 
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
@@ -93,13 +93,13 @@ EMSCRIPTEN_BINDINGS(main_window)
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
-    // Enable CRT Memory Leak Detection (Windows Debug only)
-#if defined(_WIN32) && defined(_DEBUG)
-    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-    //_CrtSetBreakAlloc(156);
-    // Optionally set a breakpoint on a specific allocation number
-    _CrtSetBreakAlloc(4148); // Set breakpoint on allocation #140484
-#endif
+
+// #if defined(_WIN32) && defined(_DEBUG)
+//     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+//     //_CrtSetBreakAlloc(156);
+//     // Optionally set a breakpoint on a specific allocation number
+//     _CrtSetBreakAlloc(4148); // Set breakpoint on allocation #140484
+// #endif
 
     Engine& engine = Engine::Instance();
     engine.Start("Team - Antartic Monkeys");
@@ -118,10 +118,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     emscripten_set_main_loop(main_loop, match_browser_framerate, simulate_infinite_loop);
 #endif
 
-    // Dump memory leaks at program exit (Windows Debug only)
-#if defined(_WIN32) && defined(_DEBUG)
-    _CrtDumpMemoryLeaks();
-#endif
+// Dump memory leaks at program exit 
+// #if defined(_WIN32) && defined(_DEBUG)
+//     _CrtDumpMemoryLeaks();
+// #endif
 
     return 0;
 }

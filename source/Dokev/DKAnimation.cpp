@@ -21,50 +21,38 @@ namespace Dokev
 
     Animation::Animation(const std::filesystem::path& animation_file)
     {
-        try
+        std::ifstream file(animation_file);
+        if (!file.is_open())
         {
-            std::ifstream file(animation_file);
-            if (!file.is_open())
-            {
-                std::cerr << "Warning: Failed to load animation file: " << animation_file.string() << std::endl;
-                return;
-            }
-
-            std::string line;
-            while (std::getline(file, line))
-            {
-                if (line.empty() || line[0] == '#')
-                    continue;
-
-                if (line.find("PlayFrame") != std::string::npos)
-                {
-                    std::istringstream iss(line);
-                    std::string command;
-                    int    frameIndex;
-                    double duration;
-                    iss >> command >> frameIndex >> duration;
-                    frames.push_back({ frameIndex, duration });
-                }
-                else if (line.find("Loop") != std::string::npos)
-                {
-                    std::istringstream iss(line);
-                    std::string command;
-                    int loopIndex;
-                    iss >> command >> loopIndex;
-                    loopStartFrame = loopIndex;
-                    loopEnabled    = true;
-                }
-                else if (line.find("End") != std::string::npos)
-                {
-                    loopEnabled = false;
-                }
-            }
+            throw std::runtime_error("Failed to load: " + animation_file.string());
         }
-        catch (const std::exception& e)
+
+        std::string line;
+        while (std::getline(file, line))
         {
-            std::cerr << "Exception while loading animation: " << e.what() << std::endl;
-            std::cerr << "File: " << animation_file.string() << std::endl;
-            frames.clear();
+            if (line.empty() || line[0] == '#')
+                continue;
+        }
+        if (line.find("PlayFrame") != std::string::npos)
+        {
+            std::istringstream iss(line);
+            std::string        command;
+            int                frameIndex;
+            double             duration;
+            iss >> command >> frameIndex >> duration;
+            frames.push_back({ frameIndex, duration });
+        }
+        else if (line.find("Loop") != std::string::npos)
+        {
+            std::istringstream iss(line);
+            std::string        command;
+            int                loopIndex;
+            iss >> command >> loopIndex;
+            loopStartFrame = loopIndex;
+            loopEnabled    = true;
+        }
+        else if (line.find("End") != std::string::npos)
+        {
             loopEnabled = false;
         }
     }
@@ -151,8 +139,8 @@ namespace Dokev
     void Animation::Reset()
     {
         currentFrameIndex = 0;
-        timer = 0.0;
-        justCompleted = false;
+        timer             = 0.0;
+        justCompleted     = false;
     }
 
     bool Animation::IsComplete() const
