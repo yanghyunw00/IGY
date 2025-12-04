@@ -92,4 +92,5 @@ private:
     // Player UI
     UserInterfaceEditor playerUI;
 
+    Math::ivec2 lastPlaceRoadPos = {-1,-1};
 };

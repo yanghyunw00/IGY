@@ -43,8 +43,9 @@ namespace Dokev
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float          startX = static_cast<float>(windowSize.x) - BUTTON_WIDTH - UI_SPACING;
-        float          startY = UI_SPACING;
+        float totalButtonsWidth = BUTTON_WIDTH * 6 + BUTTON_SPACING * 5;
+        float startX = (static_cast<float>(windowSize.x) - totalButtonsWidth) / 2.0f;
+        float startY = UI_SPACING;
         BuildingButton homeButton;
         homeButton.type     = BuildingType::HOME;
         homeButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
@@ -56,7 +57,7 @@ namespace Dokev
         BuildingButton woodButton;
         woodButton.type     = BuildingType::WOOD_WORKSHOP;
         woodButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
-        woodButton.position = Math::fvec2(startX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+        woodButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
         woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         woodButton.name     = "Wood Workshop";
         woodButton.tint     = Dokev::ColorPalette::BROWN;
@@ -64,7 +65,7 @@ namespace Dokev
         BuildingButton rockButton;
         rockButton.type     = BuildingType::ROCK_WORKSHOP;
         rockButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
-        rockButton.position = Math::fvec2(startX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+        rockButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
         rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         rockButton.name     = "Rock Workshop";
         rockButton.tint     = Dokev::ColorPalette::GRAY;
@@ -72,7 +73,7 @@ namespace Dokev
         BuildingButton steelButton;
         steelButton.type     = BuildingType::STEEL_WORKSHOP;
         steelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
-        steelButton.position = Math::fvec2(startX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+        steelButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3, startY);
         steelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         steelButton.name     = "Steel Workshop";
         steelButton.tint     = Dokev::ColorPalette::LIGHTGRAY;
@@ -80,17 +81,16 @@ namespace Dokev
         BuildingButton roadButton;
         roadButton.type     = BuildingType::ROAD;
         roadButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
-        roadButton.position = Math::fvec2(startX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 4);
+        roadButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4, startY);
         roadButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         roadButton.name     = "Road";
         roadButton.tint     = Dokev::ColorPalette::WHITE;
         buildingButtons.push_back(roadButton);
 
-        //Delete Button 
         BuildingButton deleteButton;
         deleteButton.type     = BuildingType::DELETE;
         deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
-        deleteButton.position = Math::fvec2(startX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 5);
+        deleteButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 5, startY);
         deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         deleteButton.name     = "Delete";
         deleteButton.tint     = Dokev::ColorPalette::WHITE;
