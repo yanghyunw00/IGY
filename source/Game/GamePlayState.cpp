@@ -74,6 +74,8 @@ namespace
         int inverseRotation = (4 - rotation) % 4;
         return map->TransformPathPointForView(tileCoord, inverseRotation);
     }
+
+    Math::ivec2 lastPlacedRoadPos = {-1, -1};
 }
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
@@ -219,6 +221,7 @@ void GamePlayState::Update(double dt)
     Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
     mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
     bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+    bool ismouseheld           = mouse.MouseDown(Dokev::Mouse::Button::Left);
 
     auto previousUISelection = uiManager.GetSelectedBuilding();
     uiManager.Update(mouseScreenPos, mouseClicked);
@@ -240,7 +243,11 @@ void GamePlayState::Update(double dt)
     ///////////////////////////////////////////////////////////
     // Update mouse picking for isometric, building placement//
     ///////////////////////////////////////////////////////////
-    if (mouseClicked)
+
+    auto selectBuildingType = uiManager.GetSelectedBuilding();
+    bool shouldplace = mouseClicked || (ismouseheld && selectBuildingType == BuildingType::ROAD);
+
+    if (shouldplace)
     {
         if (mapMgr && mapMgr->GetMap())
         {
@@ -338,6 +345,9 @@ void GamePlayState::Update(double dt)
                     {
                         case BuildingType::ROAD:
                             {
+                                if (lastPlacedRoadPos.x == gridX && lastPlacedRoadPos.y == gridY)
+                                    break;
+
                                 auto* road = mapMgr->GetRoad();
                                 if (!road)
                                     break;
@@ -345,6 +355,7 @@ void GamePlayState::Update(double dt)
                                     break;
                                 road->addRoad(gridX, gridY, *map);
                                 placed = true;
+                                lastPlacedRoadPos = {gridX, gridY};
                                 break;
                             }
                         case BuildingType::HOME:
@@ -422,7 +433,10 @@ void GamePlayState::Update(double dt)
 
                     if (placed)
                     {
-                        uiManager.SetSelectedBuilding(BuildingType::NONE);
+                        if(input.KeyJustPressed(CS230::Input::Keys::Escape))
+                        {
+                             uiManager.SetSelectedBuilding(BuildingType::NONE);
+                        }
                         tutorialManager.OnBuildingPlaced();
                     }
                 };
@@ -431,6 +445,12 @@ void GamePlayState::Update(double dt)
             }
         }
     }
+
+    if (!ismouseheld)
+    {
+        lastPlacedRoadPos = {-1, -1};
+    }
+
     mouseSelection.SetViewIndex(index);
 }
 
