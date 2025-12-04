@@ -85,7 +85,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
                 std::string terrainName;
                 double      height = currentCell->getHeight();
                 terrainName        = GetTerrainName(height);
-                ai.previousGridPos = startPosition; 
+                ai.previousGridPos = startPosition;
             }
         }
 
@@ -138,6 +138,29 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     if (!map)
         return;
 
+    if (ai.isFollowingRoad && road)
+    {
+        bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x),
+                                    static_cast<int>(currentGridPos.y));
+
+        if (onRoad)
+        {
+            bool        foundRoad    = false;
+            Math::fvec2 nextRoadTile = FindNextRoadTile(road, foundRoad);
+
+            if (foundRoad)
+            {
+                std::vector<Math::fvec2> simplePath;
+                simplePath.push_back(currentGridPos);
+                simplePath.push_back(nextRoadTile);
+
+                FollowPath(simplePath);
+                ChangeState(HumanState::Walking);
+                return;
+            }
+        }
+    }
+
     Math::fvec2 destination = FindRandomDestination(map, road);
 
     map->ClearPath();
@@ -145,7 +168,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
     auto path_ = map->GetCurrentPath();
 
-    if (!path_.empty())
+    if (!path_.empty() && path_.size() > 1)
     {
         FollowPath(path_);
         ChangeState(HumanState::Walking);
@@ -159,23 +182,58 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
 void Human::Update(float deltaTime, GridMap* map, const Road* road)
 {
-    if (state == HumanState::Walking && isMoving)
+    if (state == HumanState::Walking)
     {
-        UpdateMovement(deltaTime, map);
-
         if (!isMoving)
         {
-            bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), 
-                                                static_cast<int>(currentGridPos.y));
+            ai.isFollowingRoad = false;
+            ChangeState(HumanState::Idle);
+            return;
+        }
 
-            if (ai.isFollowingRoad && onRoad)
+        if (ai.isFollowingRoad && road)
+        {
+            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x),
+                                               static_cast<int>(currentGridPos.y));
+
+            if (!onRoad)
             {
+                isMoving = false;
+                path.clear();
                 ChangeState(HumanState::FindingDestination);
+                return;
             }
-            else
+
+        }
+
+        if (isMoving)
+        {
+            UpdateMovement(deltaTime, map);
+
+            if (!isMoving)
             {
-                ai.isFollowingRoad = false; 
-                ChangeState(HumanState::Idle);
+                bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x),
+                                                    static_cast<int>(currentGridPos.y));
+
+                if (onRoad)
+                {
+                    ai.isFollowingRoad = true;
+                    ai.roadReturnAttempts = 0;
+                    ChangeState(HumanState::FindingDestination);
+                }
+                else
+                {
+                    if (ai.isFollowingRoad)
+                    {
+                        ChangeState(HumanState::FindingDestination);
+                    }
+                    else
+                    {
+                        ai.isFollowingRoad = false;
+                        ai.roadReturnAttempts = 0;
+                        ChangeState(HumanState::Idle);
+                    }
+                }
             }
         }
     }
@@ -260,32 +318,52 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
 
     if (road)
     {
-        // If already following a road, find the next road tile
         if (ai.isFollowingRoad)
         {
-            bool        foundRoad    = false;
-            Math::fvec2 nextRoadTile = FindNextRoadTile(road, foundRoad);
+            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x),
+                                       static_cast<int>(currentGridPos.y));
 
-            if (foundRoad)
+            if (onRoad)
             {
-                ai.lastDirection.x = nextRoadTile.x - currentGridPos.x;
-                ai.lastDirection.y = nextRoadTile.y - currentGridPos.y;
-                return nextRoadTile;
+                bool        foundRoad    = false;
+                Math::fvec2 nextRoadTile = FindNextRoadTile(road, foundRoad);
+
+                if (foundRoad)
+                {
+                    ai.lastDirection.x = nextRoadTile.x - currentGridPos.x;
+                    ai.lastDirection.y = nextRoadTile.y - currentGridPos.y;
+                    ai.roadReturnAttempts = 0;  
+                    return nextRoadTile;
+                }
+            }
+
+            Math::fvec2 roadPos;
+            if (FindNearbyRoad(road, roadPos))
+            {
+                std::cout << "Returning to road - attempt " << ai.roadReturnAttempts + 1 << std::endl;
+                ai.recentDestinations.push_back(roadPos);
+                if (ai.recentDestinations.size() > ai.maxRecentDestinations)
+                {
+                    ai.recentDestinations.erase(ai.recentDestinations.begin());
+                }
+                return roadPos;
             }
             else
             {
-                // Reached end of road or no more road to follow
-                ai.isFollowingRoad = false;
+                ai.roadReturnAttempts++;
+                if (ai.roadReturnAttempts >= ai.maxRoadReturnAttempts)
+                {
+                    ai.isFollowingRoad = false;
+                    ai.roadReturnAttempts = 0;
+                }
             }
         }
 
-        // If not following a road, find the nearest road
         if (!ai.isFollowingRoad)
         {
             Math::fvec2 roadPos;
             if (FindNearbyRoad(road, roadPos))
             {
-                ai.isFollowingRoad = true;
                 ai.recentDestinations.push_back(roadPos);
                 if (ai.recentDestinations.size() > ai.maxRecentDestinations)
                 {

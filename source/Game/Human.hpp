@@ -19,18 +19,18 @@ class Road;
 
 enum class HumanState
 {
-    Idle,              // Standing still, doing nothing
+    Idle,              // doing nothing
     Walking,           // Moving along a path
     FindingDestination,// Deciding where to go next
-    Working,           // Performing work 
-    Resting            // Resting to recover energy 
+    Working,           // work 
+    Resting            // Resting
 };
 
 struct HumanStats
 {
-    float happiness = 100.0f;      // 0-100: Overall happiness
-    float energy = 100.0f;         // 0-100: Energy level (future: affects speed)
-    float walkSpeed = 1.0f;        // Movement speed multiplier
+    float happiness = 100.0f;      // 0-100: happiness
+    float energy = 100.0f;         // 0-100: Energy level 
+    float walkSpeed = 1.0f;        // Movement speed
 };
 
 enum class WorkType
@@ -57,7 +57,7 @@ struct HumanAI
     float maxIdleTime = 0.5f;         // Max time before finding new destination
     Math::fvec2 previousGridPos = {-1.0f, -1.0f}; 
 
-    float explorationRadius = 30.0f;  // How far from current position to explore
+    float explorationRadius = 15.0f;  // How far from current position to explore
     bool isExploring = true;          // Currently in exploration mode
 
     Math::fvec2 lastDirection = {0.0f, 0.0f};  // Last movement direction
@@ -72,6 +72,8 @@ struct HumanAI
     bool preferRoads = true;          // Should try to use roads when pathfinding
     bool isFollowingRoad = false;     // Currently following a road
     bool roadDirection = true;        // true = forward, false = backward
+    int roadReturnAttempts = 0;       // Number of attempts to return to road
+    static constexpr int maxRoadReturnAttempts = 3;  // Max attempts before giving up
 
     CommandSource currentCommand = CommandSource::Autonomous;
 };
@@ -108,14 +110,6 @@ public:
 
     Math::fvec2 FindNextRoadTile(const Road* road, bool& outFoundRoad) const;
 
-    // WORK SYSTEM (Future)
-
-    void AssignWork(WorkType type, Math::fvec2 workplacePos);
-
-    void UnassignWork();
-
-    void GoToWorkplace(GridMap* map);
-
     WorkType GetAssignedWork() const { return ai.assignedWork; }
     bool HasWorkAssignment() const { return ai.assignedWork != WorkType::None; }
 
@@ -136,11 +130,9 @@ private:
     void UpdateMovement(float deltaTime, GridMap* map);
     void UpdateIdle(float deltaTime, GridMap* map);
     void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road);
-    void UpdateWorking(float deltaTime, GridMap* map);
     void ChangeState(HumanState newState);
 
     // TERRAIN HELPERS
-    bool IsTerrainWalkable(const GridMap* map, int gridX, int gridY) const;
     std::string GetTerrainName(double height) const;
 
 
