@@ -15,6 +15,13 @@ protected:
     float satisfaction;
     float taxrate;
 
+    // Static texture cache to prevent memory leaks
+    static Dokev::Texture2D homeTexture;
+    static Dokev::Texture2D missingTexture;
+    static bool texturesLoaded;
+
+    static void LoadTextures();
+
 public:
     ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
     ~ResidentBuilding() override;

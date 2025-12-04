@@ -14,15 +14,18 @@
 #include "Dokev/DKImage.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Dokev/DKTileManager.hpp"
-#include "Game/pathFinding.hpp"
 #include "Dokev/DKRenderState.hpp"
 #include "OpenGL/GL.hpp"
+#include "Game/pathFinding.hpp"
 
-#define GRID_SIZE_Y 91
-#define GRID_SIZE_X 91
+// Forward declaration
+namespace Dokev { class MouseSelection; }
 
-#define GRID_SIZE_Y_HALF (45)
-#define GRID_SIZE_X_HALF (45)
+#define GRID_SIZE_Y 67
+#define GRID_SIZE_X 67
+
+#define GRID_SIZE_Y_HALF (33)
+#define GRID_SIZE_X_HALF (33)
 
 #define TILE_WIDTH 64
 #define TILE_HEIGHT 32
@@ -45,7 +48,7 @@ public:
 	void ReGenerateMap();
 	void ResetIsoGridMapArray();
 	void InitializeIsoView();
-	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
+	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr) const;
 
 	void IsometricDrawMouseAtlas(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 
@@ -73,6 +76,7 @@ public:
 	// TileManager access
 	Dokev::TileManager* GetTileManager() { return tileManager.get(); }
 	const Dokev::TileManager* GetTileManager() const { return tileManager.get(); }
+
 
 private:
 	void rotatePoint90(float x, float y,
@@ -128,6 +132,8 @@ public:
 
 	GLuint mouseAtlasFBO   = 0;
     GLuint mouseAtlasTex   = 0;
+
+
 
 
 

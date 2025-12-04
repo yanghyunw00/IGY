@@ -18,8 +18,10 @@ enum class BuildingType
     STEEL_WORKSHOP,
 
     // RESIDENT buildings
-    HOME = 100,
+    HOME,
 
     // INFRASTRUCTURE
-    ROAD = 200
+    ROAD,
+    //Delete
+    DELETE
 };

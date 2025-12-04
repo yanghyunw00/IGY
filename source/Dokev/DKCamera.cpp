@@ -56,9 +56,57 @@ namespace Dokev
         zoom = std::clamp(zoom, minZoom, maxZoom);
     }
 
+    void Camera::ZoomIn()
+    {
+        if (zoomLevel < 2)
+        {
+            zoomLevel++;
+        }
+
+        switch (zoomLevel)
+        {
+            case 0: targetZoom = 0.1f; break;
+            case 1: targetZoom = 1.0f; break;
+            case 2: targetZoom = 2.0f; break;
+            default: targetZoom = 1.0f; break;
+        }
+    }
+
+    void Camera::ZoomOut()
+    {
+        if (zoomLevel > 0)
+        {
+            zoomLevel--;
+        }
+
+        switch (zoomLevel)
+        {
+            case 0: targetZoom = 0.1f; break;
+            case 1: targetZoom = 1.0f; break;
+            case 2: targetZoom = 2.0f; break;
+            default: targetZoom = 1.0f; break;
+        }
+    }
+
+    void Camera::UpdateZoomInterpolation(double dt)
+    {
+        if (std::abs(zoom - targetZoom) > 0.001f)
+        {
+            float step = zoomSpeed * static_cast<float>(dt);
+            zoom = zoom + (targetZoom - zoom) * step;
+
+            if (std::abs(zoom - targetZoom) < 0.001f)
+            {
+                zoom = targetZoom;
+            }
+        }
+    }
+
     void Camera::Reset()
     {
         position = { 0.0, 0.0 };
         zoom = 1.0f;
+        targetZoom = 1.0f;
+        zoomLevel = 1;
     }
 }

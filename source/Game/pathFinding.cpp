@@ -19,6 +19,7 @@ PathFinding::PathFinding(int sizeX, int sizeY, float maxClimb)
 {
 	heightMap.resize(gridSizeY, std::vector<float>(gridSizeX, 0.0f));
 	walkableMap.resize(gridSizeY, std::vector<bool>(gridSizeX, true));
+	closedSet.resize(gridSizeY, std::vector<bool>(gridSizeX, false)); // Pre-allocate once
 
 	allNodes.resize(gridSizeY);
 	for(int y = 0; y < gridSizeY; y++) {
@@ -166,6 +167,7 @@ std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX,
 			node.gCost = INF;
 			node.hCost = 0;
 			node.parent = nullptr;
+			closedSet[y][x] = false;
 		}
 	}
 
@@ -173,14 +175,13 @@ std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX,
 		endX < 0 || endX >= gridSizeX || endY < 0 || endY >= gridSizeY ||
 		!IsPositionWalkable(startX, startY) || !IsPositionWalkable(endX, endY))
 	{
-		return {}; 
+		return {};
 	}
 
 	Node* startNode = &allNodes[startY][startX];
 	Node* targetNode = &allNodes[endY][endX];
 
 	std::priority_queue<Node*, std::vector<Node*>, NodeComparator> openSet;
-	std::vector<std::vector<bool>> closedSet(gridSizeY, std::vector<bool>(gridSizeX, false));
 
 	startNode->gCost = 0;
 	startNode->hCost = GetManhattanDistance(startNode, targetNode);

@@ -9,8 +9,24 @@
 #include "ResidentBuilding.hpp"
 #include "Engine/Path.hpp"
 
+Dokev::Texture2D ResidentBuilding::homeTexture;
+Dokev::Texture2D ResidentBuilding::missingTexture;
+bool ResidentBuilding::texturesLoaded = false;
+
+void ResidentBuilding::LoadTextures()
+{
+    if (!texturesLoaded)
+    {
+        homeTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+        missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        texturesLoaded = true;
+    }
+}
+
 ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), satisfaction(1.0f), taxrate(10)
 {
+    LoadTextures(); 
+
     max_capacity     = 50;
     current_capacity = 0;
     cost             = 100;
@@ -19,13 +35,13 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
     switch (bt)
     {
         case BuildingType::HOME:
-            texture      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
-            max_capacity = 10;
+            texture      = homeTexture;
+            max_capacity = 2;  // Each home can house 2 people
             cost         = 0;
             break;
 
         default:
-            texture      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+            texture      = missingTexture;
             max_capacity = 0;
             cost         = 0;
             break;
@@ -54,14 +70,14 @@ void ResidentBuilding::Draw(int viewIndex, const GridMap* map)
 
     GridCell** viewArray = map->GetViewArray(viewIndex);
 
-    float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
+    float m_height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
     int originX = 0;
     int originY = 0;
 
     int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
     int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
-    int topY = static_cast<int>(height) - screenY;
+    int topY = static_cast<int>(m_height) - screenY;
     
     int drawX = screenX + TILE_WIDTH_HALF - texture.GetWidth() / 2;
     int drawY = topY + TILE_HEIGHT * 2;

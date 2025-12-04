@@ -60,12 +60,10 @@ namespace Dokev
         // Camera zoom
         if (camera)
         {
-            if (input.KeyDown(CS230::Input::Keys::Q))
-                camera->AdjustZoom(0.95f);
-            if (input.KeyDown(CS230::Input::Keys::E))
-                camera->AdjustZoom(1.05f);
-
-            camera->ClampZoom(0.1f, 5.0f);
+            if (input.KeyJustPressed(CS230::Input::Keys::Q))
+                camera->ZoomOut();
+            if (input.KeyJustPressed(CS230::Input::Keys::E))
+                camera->ZoomIn();
 
             constexpr double camera_speed = 1.0;
 
@@ -94,7 +92,6 @@ namespace Dokev
             }
         }
 
-        // Map rotation
         if (rotationIndex)
         {
             if (input.KeyJustPressed(CS230::Input::Keys::Z))

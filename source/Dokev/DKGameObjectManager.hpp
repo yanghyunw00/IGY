@@ -22,6 +22,7 @@ namespace Dokev
     public:
         void AddHuman(Human* human);
         void AddBuilding(Building* building);
+        void RemoveBuilding(int gridX, int gridY);
 
         std::vector<std::unique_ptr<Human>>& GetHumans();
         std::vector<std::unique_ptr<Building>>& GetBuildings();

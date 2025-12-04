@@ -17,6 +17,8 @@ set(SOURCE_CODE
     CS200/Renderer2DUtils.hpp CS200/Renderer2DUtils.cpp
     CS200/RenderingAPI.hpp CS200/RenderingAPI.cpp
     CS200/RGBA.hpp
+    CS200/OffscreenFramebuffer.hpp CS200/OffscreenFramebuffer.cpp
+    CS200/PostProcessingPipeline.hpp CS200/PostProcessingPipeline.cpp
 
     Engine/Engine.hpp Engine/Engine.cpp
     Engine/Error.hpp
@@ -75,6 +77,12 @@ set(SOURCE_CODE
     Dokev/DKTimeManager.hpp Dokev/DKTimeManager.cpp
     Dokev/DKUIManager.hpp Dokev/DKUIManager.cpp
     Dokev/DKUtility.hpp Dokev/DKUtility.cpp
+    Dokev/DKTutorialManager.hpp Dokev/DKTutorialManager.cpp
+    Dokev/DkTutorialStep.hpp Dokev/DkTutorialStep.cpp  
+    Dokev/DKJobsystem.hpp Dokev/DKJobsystem.cpp
+    Dokev/DKJobsystemManager.hpp
+    Dokev/DKMouseSelection.hpp Dokev/DKMouseSelection.cpp
+
 
 
 
@@ -86,6 +94,9 @@ set(SOURCE_CODE
     Game/GridCell.hpp
     Game/CustomCell.hpp Game/CustomCell.cpp
     Game/GridMap.hpp Game/GridMap.cpp
+    Game/HappinessSystem.hpp
+    Game/ImmigrationSystem.hpp
+    Game/UserInterfaceEditor.hpp Game/UserInterfaceEditor.cpp
     Game/Human.hpp Game/Human.cpp
     Game/pathFinding.hpp Game/pathFinding.cpp
     Game/Road.hpp Game/Road.cpp

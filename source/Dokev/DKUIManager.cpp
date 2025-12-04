@@ -33,6 +33,7 @@ namespace Dokev
         rockIcon  = LoadTexture(assets::locate_asset("Assets/resources/rock_1.png").string());
         steelIcon = LoadTexture(assets::locate_asset("Assets/resources/steel_1.png").string());
         happyIcon = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
+        humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/human.png").string());
         outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/Font_Outlined.png").string());
     }
 
@@ -84,6 +85,16 @@ namespace Dokev
         roadButton.name     = "Road";
         roadButton.tint     = Dokev::ColorPalette::WHITE;
         buildingButtons.push_back(roadButton);
+
+        //Delete Button 
+        BuildingButton deleteButton;
+        deleteButton.type     = BuildingType::DELETE;
+        deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+        deleteButton.position = Math::fvec2(startX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 5);
+        deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        deleteButton.name     = "Delete";
+        deleteButton.tint     = Dokev::ColorPalette::WHITE;
+        buildingButtons.push_back(deleteButton);
     }
 
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked)
@@ -109,10 +120,9 @@ namespace Dokev
         }
     }
 
-
-    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm,  BuildingCostManager* costMgr) const
+    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr) const
     {
-        DrawResources(resourceMgr);
+        DrawResources(resourceMgr, humanCount);
         DrawHappiness(cm);
 
         for (const auto& button : buildingButtons)
@@ -121,78 +131,90 @@ namespace Dokev
         }
     }
 
-    void UIManager::DrawResources(ResourceManager* resourceMgr) const
+    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount) const
     {
         if (!resourceMgr)
             return;
 
         auto  windowSize = Engine::GetWindow().GetSize();
-        float startX     = static_cast<float>(windowSize.x) - BUTTON_WIDTH - UI_SPACING - 50;
-        float resourceY  = static_cast<float>(windowSize.y) - 120.0f;
+        float startX     = static_cast<float>(windowSize.x) - 100.0f - UI_SPACING + 32.0f;
+        float resourceY  = static_cast<float>(windowSize.y) - 100.0f;
 
         float size        = 32.0f;
-        float height      = size + 5.0f;
-        float textOffsetX = size + 50.0f;
-        float paddingY    = -15;
+        float height      = size + 3.0f;
+        float paddingY    = -10;
+        int   iconPaddingY = 15;
+        float iconScale = 0.8;
 
         float currentX = startX;
         float currentY = resourceY;
 
-        // Wood
         if (woodIcon.IsValid())
         {
-            woodIcon.DrawEx(static_cast<int>(currentX), static_cast<int>(currentY), 0.0f, size / woodIcon.GetWidth(), Dokev::ColorPalette::WHITE);
+            woodIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
         }
         if (outlined)
         {
-            std::string woodText = std::to_string(resourceMgr->totalWood);
+            std::string woodText = FormatNumber(resourceMgr->totalWood);
             if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.7, 0.7 }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE,FONT_SCALE }), Dokev::ColorPalette::WHITE);
             }
         }
         currentY -= height;
 
-        // Stone
         if (rockIcon.IsValid())
         {
-            rockIcon.DrawEx(static_cast<int>(currentX), static_cast<int>(currentY), 0.0f, size / rockIcon.GetWidth(), Dokev::ColorPalette::WHITE);
+            rockIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
         }
         if (outlined)
         {
-            std::string stoneText = std::to_string(resourceMgr->totalStone);
+            std::string stoneText = FormatNumber(resourceMgr->totalStone);
             if (auto textTexture = outlined->PrintToTexture(stoneText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.7, 0.7 }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
             }
         }
         currentY -= height;
 
-        // Steel
         if (steelIcon.IsValid())
         {
-            steelIcon.DrawEx(static_cast<int>(currentX), static_cast<int>(currentY), 0.0f, size / steelIcon.GetWidth(), Dokev::ColorPalette::WHITE);
+            steelIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
         }
         if (outlined)
         {
-            std::string steelText = std::to_string(resourceMgr->totalSteel);
+            std::string steelText = FormatNumber(resourceMgr->totalSteel);
             if (auto textTexture = outlined->PrintToTexture(steelText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX + textOffsetX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.7, 0.7 }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+            }
+        }
+        currentY -= height + 5.0f;
+
+        if (humanIcon.IsValid())
+        {
+            humanIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
+        }
+        if (outlined)
+        {
+            std::string humanText = FormatNumber(humanCount);
+            if (auto textTexture = outlined->PrintToTexture(humanText, Dokev::ColorPalette::WHITE))
+            {
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
             }
         }
     }
 
     void UIManager::DrawHappiness(CityMetrics* cm) const
-
     {
         auto  windowSize = Engine::GetWindow().GetSize();
-        float startX     = static_cast<float>(windowSize.x) - BUTTON_WIDTH - UI_SPACING + 32.0f;
-        float startY     = static_cast<float>(windowSize.y) - 70.0f;
+        float startX     = static_cast<float>(windowSize.x) -  100.0f - UI_SPACING + 32.0f;
+        float startY     = static_cast<float>(windowSize.y) - 60.0f;
+        int iconPaddingY = 15;
 
         if (happyIcon.IsValid())
         {
-            happyIcon.DrawEx(static_cast<int>(startX) - 70, static_cast<int>(startY), 0.0f, 32.0f / happyIcon.GetWidth(), Dokev::ColorPalette::WHITE);
+            happyIcon.DrawEx(static_cast<int>(startX) - ICON_SPACING, static_cast<int>(startY) + iconPaddingY, 0.0f, 0.6f, Dokev::ColorPalette::WHITE);
         }
 
         if (outlined)
@@ -200,7 +222,7 @@ namespace Dokev
             std::string happinesstext = std::to_string(cm->GetHappiness());
             if (auto textTexture = outlined->PrintToTexture(happinesstext, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ startX, startY + 10.0f }) * Math::ScaleMatrix(Math::vec2{ 0.7, 0.7 }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ startX, startY + 10.0f }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
             }
         }
     }
@@ -229,21 +251,20 @@ namespace Dokev
 
         DrawRectangleLinesEx(static_cast<int>(button.position.x), static_cast<int>(button.position.y), static_cast<int>(button.size.x), static_cast<int>(button.size.y), 3.0f, borderColor);
 
+        
+        //Draw Building Texture.
         if (button.texture.IsValid())
         {
-            float PADDINGX = 30.0f;
-            float PADDINGY = 20.0f;
 
-            float imageScale    = 0.7f;
             int   textureWidth  = button.texture.GetWidth();
             int   textureHeight = button.texture.GetHeight();
 
-            float scaledWidth  = textureWidth * imageScale;
-            float scaledHeight = textureHeight * imageScale;
+            float scaledWidth  = textureWidth *  static_cast<float>(ICON_SCALE);
+            float scaledHeight = textureHeight * static_cast<float>(ICON_SCALE);
 
-            Math::fvec2 imagePos = Math::fvec2(button.position.x - PADDINGX + (button.size.x - scaledWidth) / 2.0f, button.position.y - PADDINGY + (button.size.y - scaledHeight) / 2.0f);
+            Math::fvec2 imagePos = Math::fvec2(button.position.x + (button.size.x - scaledWidth) / 2.0f, button.position.y + (button.size.y - scaledHeight) / 2.0f);
 
-            button.texture.DrawEx(static_cast<int>(imagePos.x), static_cast<int>(imagePos.y), 0.0f, imageScale, button.tint);
+            button.texture.DrawEx(static_cast<int>(imagePos.x), static_cast<int>(imagePos.y), 0.0f, static_cast<float>(ICON_SCALE), button.tint);
         }
 
         // Draw required resources
@@ -312,5 +333,17 @@ namespace Dokev
                 }
             }
         }
+    }
+
+    std::string UIManager::FormatNumber(int value) const
+    {
+        if (value >= 1000)
+        {
+            float displayValue = value / 1000.0f;
+            char buffer[32];
+            std::snprintf(buffer, sizeof(buffer), "%.1fk", displayValue);
+            return std::string(buffer);
+        }
+        return std::to_string(value);
     }
 }

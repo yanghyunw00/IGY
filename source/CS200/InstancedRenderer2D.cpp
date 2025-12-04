@@ -62,8 +62,8 @@ void CS200::InstancedRenderer2D::Init()
 
     textureSlots.resize(MaxTextures);
 
-    const std::filesystem::path vertex_file   = assets::locate_asset("Assets/shaders/instance.vert");
-    const std::filesystem::path fragment_file = assets::locate_asset("Assets/shaders/instance.frag");
+    const std::filesystem::path vertex_file   = assets::locate_asset("Assets/shaders/InstancedRenderer2D/instance.vert");
+    const std::filesystem::path fragment_file = assets::locate_asset("Assets/shaders/InstancedRenderer2D/instance.frag");
 
     std::ifstream     vert_stream(vertex_file);
     std::stringstream vert_buffer;

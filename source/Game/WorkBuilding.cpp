@@ -12,8 +12,24 @@
 #include "Engine/Path.hpp"
 #include "ResourceManager.hpp"
 
+Dokev::Texture2D WorkBuilding::workshopTexture;
+Dokev::Texture2D WorkBuilding::missingTexture;
+bool WorkBuilding::texturesLoaded = false;
+
+void WorkBuilding::LoadTextures()
+{
+    if (!texturesLoaded)
+    {
+        workshopTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        texturesLoaded = true;
+    }
+}
+
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {
+    LoadTextures(); 
+
     max_capacity     = 20;
     current_capacity = 0;
     cost             = 150;
@@ -23,25 +39,25 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
     switch(bt)
     {
         case BuildingType::WOOD_WORKSHOP:
-        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        texture = workshopTexture; 
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::ROCK_WORKSHOP:
-        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        texture = workshopTexture; 
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::STEEL_WORKSHOP:
-        texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        texture = workshopTexture; 
         max_capacity = 10;
         cost = 0;
         break;
 
         default:
-            texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+            texture = missingTexture; 
             max_capacity = 0;
             cost = 0;
             break;
@@ -91,14 +107,14 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
 
     GridCell** viewArray = map->GetViewArray(viewIndex);
 
-    int height = static_cast<int>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
+    int m_height = static_cast<int>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
     int originX = 0;
     int originY = 0;
 
     int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
     int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
-    int topY = height - screenY;
+    int topY = m_height - screenY;
     
     int drawX = screenX + TILE_WIDTH_HALF - texture.GetWidth() / 2;
     int drawY = topY + TILE_HEIGHT * 2;

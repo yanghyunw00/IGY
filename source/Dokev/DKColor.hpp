@@ -74,6 +74,12 @@ namespace Dokev
         constexpr CS200::RGBA BOX_OUTLINE_SELECTED = 0x4CCC4CFF; // bright green
         constexpr CS200::RGBA BOX_OUTLINE_DEFAULT  = 0x999999FF; // light gray
         constexpr CS200::RGBA TOOLTIP_BACKGROUND   = 0x191919E5; // black
+
+        // Tutorial Colors
+        constexpr CS200::RGBA TUTORIAL_OVERLAY     = 0x00000096; // semi-transparent black
+        constexpr CS200::RGBA TUTORIAL_OVERLAY_DARK = 0x00000096; // darker overlay
+        constexpr CS200::RGBA TUTORIAL_HIGHLIGHT   = 0xFFFF0064; // semi-transparent yellow
+        constexpr CS200::RGBA TUTORIAL_ARROW       = 0xFFFF00FF; // bright yellow
     }
 
     CS200::RGBA ColorLerp(CS200::RGBA color1, CS200::RGBA color2, float t);

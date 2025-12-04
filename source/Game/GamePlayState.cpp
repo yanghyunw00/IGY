@@ -16,6 +16,7 @@
 #include "Dokev/DKColor.hpp"
 #include "Dokev/DKGameObjectManager.hpp"
 #include "Dokev/DKImage.hpp"
+#include "Dokev/DKMetaProgramming.hpp"
 #include "Dokev/DKParticles.hpp"
 #include "Dokev/DKShapes.hpp"
 #include "Dokev/DKTexture.hpp"
@@ -23,7 +24,6 @@
 #include "Human.hpp"
 #include "ResidentBuilding.hpp"
 #include "WorkBuilding.hpp"
-
 
 
 #include "Engine/Engine.hpp"
@@ -105,7 +105,8 @@ void GamePlayState::Load()
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
     GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(5.0f, 5.0f)));
-    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(78.0f, 13.0f)));
+    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(7.0f, 7.0f)));
+
 
     camera.SetZoom(0.3f);
 
@@ -117,13 +118,23 @@ void GamePlayState::Load()
     // Initialize UI Manager
     uiManager.Initialize();
 
+    // Initialize Tutorial Manager
+    tutorialManager.Initialize(&uiManager);
+
     // Load building costs from JSON
     buildingCostManager.LoadFromFile("Assets/resources/building_costs.json");
+
+    mouseSelection.SetGridMap(GetGSComponent<MapManager>()->GetMap());
+    mouseSelection.Load(assets::locate_asset("Assets/images/textures/select.png"), assets::locate_asset("Assets/images/textures/selectRed.png"));
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void GamePlayState::Update(double dt)
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
+    camera.UpdateZoomInterpolation(dt);
     worldEditor.UpdateInput();
 
     if (worldEditor.IsSaveRequested())
@@ -148,17 +159,25 @@ void GamePlayState::Update(double dt)
     // Update all humans
     auto  mapMgr = GetGSComponent<MapManager>();
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
-    for (auto& human : humans)
+
+    if (!humans.empty())
     {
-        human->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+        for (auto& human : humans)
+        {
+            human->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+        }
     }
+
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 
-    // Update all buildings
     auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
-    for (auto& building : buildings)
+
+    if (!buildings.empty())
     {
-        building->Update(static_cast<float>(dt));
+        for (auto& building : buildings)
+        {
+            building->Update(static_cast<float>(dt));
+        }
     }
 
     smokeEmitter.Update(environment.DeltaTime);
@@ -172,32 +191,20 @@ void GamePlayState::Update(double dt)
     //      smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
     //  }
 
-    // Auto immigration system
+    // Happiness & Immigration System 
     auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
     auto resourceMgr = GetGSComponent<ResourceManager>();
 
-    size_t humanCount = gameObjMgr->GetHumans().size();
-    size_t homeCount  = 0;
+    // Update city metrics with new systems
+    bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(dt, gameObjMgr.get(), resourceMgr.get());
 
-    for (const auto& building : gameObjMgr->GetBuildings())
-    {
-        if (building->GetBuildingType() == BuildingType::HOME)
-        {
-            homeCount++;
-        }
-    }
-
-    // immigration condition
-    int totalResources    = resourceMgr->GetTotalResources();
-    int requiredResources = static_cast<int>(humanCount) * 100;
-
-    if (humanCount < homeCount && totalResources >= requiredResources)
+    if (shouldSpawnImmigrant)
     {
         gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
     }
 
-    // end condition
-    if (gameObjMgr->GetHumans().size() > 10 || cityMetrics->GetHappiness() <= 10.0f)
+    // End condition
+    if (cityMetrics->GetHappiness() <= 10.0f)
     {
         SDL_Event e{};
         e.type         = SDL_WINDOWEVENT;
@@ -205,51 +212,6 @@ void GamePlayState::Update(double dt)
         SDL_PushEvent(&e);
         return;
     }
-
-    // Happiness system based on population, workplaces, and homes
-    size_t workplaceCount = 0;
-    for (const auto& building : gameObjMgr->GetBuildings())
-    {
-        BuildingType type = building->GetBuildingType();
-        if (type == BuildingType::WOOD_WORKSHOP || type == BuildingType::ROCK_WORKSHOP || type == BuildingType::STEEL_WORKSHOP)
-        {
-            workplaceCount++;
-        }
-    }
-
-    float happinessChangeRate = 0.0f;
-
-    if (homeCount > humanCount)
-    {
-        // 사람이 거주지보다 많음- 만족도 천천히 증가
-        happinessChangeRate = 1.0f;
-    }
-    else if (workplaceCount == 0 && homeCount > 0)
-    {
-        // 거주지만 있음 - 만족도 빠르게 증가 (최상)
-        happinessChangeRate = 1.5f;
-    }
-    else if (humanCount >= workplaceCount && homeCount == 0)
-    {
-        // 사람이 워크샾보다 많고 거주지 없음 - 만족도 빠르게 감소
-        happinessChangeRate = -2.0f;
-    }
-    else if (workplaceCount > humanCount && humanCount > homeCount)
-    {
-        // 워크샾이 사람보다 많고 거주지도 부족함 - 만족도 매우 빠르게 감소 (최악)
-        happinessChangeRate = -1.5f;
-    }
-    else if (workplaceCount > humanCount && homeCount > 0)
-    {
-        // 워크샾이 사람보다 많고 거주지는 있음 - 만족도 천천히 감소
-        happinessChangeRate = -1.0f;
-    }
-
-    if (cityMetrics)
-    {
-        cityMetrics->SetHappinessChangeRate(happinessChangeRate);
-    }
-
 
     // mouse hovering & building instructure
     mouse.Update();
@@ -261,24 +223,48 @@ void GamePlayState::Update(double dt)
     auto previousUISelection = uiManager.GetSelectedBuilding();
     uiManager.Update(mouseScreenPos, mouseClicked);
 
+    // Check if button was clicked
+    auto currentSelection = uiManager.GetSelectedBuilding();
+    bool buttonClicked    = (previousUISelection != currentSelection) && (currentSelection != BuildingType::NONE);
+
+    // Update tutorial
+    const auto& input       = Engine::GetInput();
+    bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
+    tutorialManager.Update(static_cast<float>(dt), mouseClicked, skipPressed);
+
+    if (buttonClicked)
+    {
+        tutorialManager.OnButtonClicked();
+    }
+
+    ///////////////////////////////////////////////////////////
+    // Update mouse picking for isometric, building placement//
+    ///////////////////////////////////////////////////////////
     if (mouseClicked)
     {
         if (mapMgr && mapMgr->GetMap())
         {
+            Math::ivec2 mouseScreen = mouse.GetPosition();
+
             mapMgr->GetMap()->IsometricDrawMouseAtlas(index, selected_renderer);
 
             GLubyte pixel[4] = { 0 };
             glBindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
 
-            Math::ivec2 mouseScreen = mouse.GetPosition();
-            mouseScreen.y           = windowSize.y - mouseScreen.y;
+            mouseScreen.y = windowSize.y - mouseScreen.y;
 
-            glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+            GL::ReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            
 
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
             float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.0f;
+
+            Math::fvec2 gridCoord = ConvertViewTileToGrid({ tileX, tileY }, index, mapMgr->GetMap());
+
+            mouseSelection.Update(gridCoord.x, gridCoord.y);
+            mouseSelection.SetHasValidPosition(true);
 
             auto selectedBuild = uiManager.GetSelectedBuilding();
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
@@ -308,9 +294,25 @@ void GamePlayState::Update(double dt)
                     }
 
                     GridCell* clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
-                    if (!clickedCell || clickedCell->getWater())
+
+                    if (selectedBuild != BuildingType::DELETE)
                     {
-                        return;
+                        if (!clickedCell || clickedCell->getWater() || !tileMgr->CanPlaceTile(gridX, gridY))
+                        {
+                            // Invalid placement  -> give bool type to mouse selction and set to false
+                            //-> draw red texture on mouse selction draw function
+                            mouseSelection.SetHasValidPosition(false);
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        // For DELETE mode, only check for water
+                        if (!clickedCell || clickedCell->getWater())
+                        {
+                            mouseSelection.SetHasValidPosition(false);
+                            return;
+                        }
                     }
 
                     if (!resourceMgr || !gameObjMgr)
@@ -331,12 +333,13 @@ void GamePlayState::Update(double dt)
                     };
 
                     bool placed = false;
+
                     switch (selectedBuild)
                     {
                         case BuildingType::ROAD:
                             {
                                 auto* road = mapMgr->GetRoad();
-                                if (!road || !tileMgr->CanPlaceTile(gridX, gridY))
+                                if (!road)
                                     break;
                                 if (!consumeResources(BuildingType::ROAD))
                                     break;
@@ -346,8 +349,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::HOME:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::HOME))
                                     break;
 
@@ -359,8 +360,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::WOOD_WORKSHOP:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::WOOD_WORKSHOP))
                                     break;
 
@@ -374,8 +373,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::ROCK_WORKSHOP:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::ROCK_WORKSHOP))
                                     break;
 
@@ -389,8 +386,6 @@ void GamePlayState::Update(double dt)
                             }
                         case BuildingType::STEEL_WORKSHOP:
                             {
-                                if (!tileMgr->CanPlaceTile(gridX, gridY))
-                                    break;
                                 if (!consumeResources(BuildingType::STEEL_WORKSHOP))
                                     break;
 
@@ -402,12 +397,33 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
+                        case BuildingType::DELETE:
+                            {
+                                mouseSelection.SetHasValidPosition(true);
+                                gameObjMgr->RemoveBuilding(gridX, gridY);
+
+                                auto* road = mapMgr->GetRoad();
+                                if (road)
+                                {
+                                    // RemoveRoad already has Deallocate Tile
+                                    road->removeRoad(gridX, gridY, *map);
+                                }
+                                else
+                                {
+                                    tileMgr->DeallocateTile(gridX, gridY);
+                                }
+
+                                placed = true;
+                                break;
+                            }
+
                         default: break;
                     }
 
                     if (placed)
                     {
                         uiManager.SetSelectedBuilding(BuildingType::NONE);
+                        tutorialManager.OnBuildingPlaced();
                     }
                 };
 
@@ -415,16 +431,17 @@ void GamePlayState::Update(double dt)
             }
         }
     }
+    mouseSelection.SetViewIndex(index);
 }
 
 void GamePlayState::Draw() const
 {
+    auto windowSize = Engine::GetWindow().GetSize();
     CS200::RenderingAPI::Clear();
 
     auto& renderer2d           = Engine::GetRenderer2D(selected_renderer);
     auto& renderer2d_IMMEDIATE = Engine::GetRenderer2D(Dokev::RenderState::IMMEDIATE);
 
-    auto windowSize = Engine::GetWindow().GetSize();
     auto ndcMatrix  = CS200::build_ndc_matrix(windowSize);
 
     auto cameraTransform = camera.GetViewMatrix();
@@ -435,7 +452,7 @@ void GamePlayState::Draw() const
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     auto mapMgr = GetGSComponent<MapManager>();
-    mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer);
+    mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection);
 
     const auto& resources = mapMgr->GetResources();
     // resource
@@ -460,7 +477,6 @@ void GamePlayState::Draw() const
         human->Draw(index, mapMgr->GetMap());
     }
 
-    // Draw all buildings
     auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
     for (const auto& building : buildings)
     {
@@ -473,13 +489,27 @@ void GamePlayState::Draw() const
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
     renderer2d.BeginScene(ndcMatrixUI);
 
-    uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), const_cast<BuildingCostManager*>(&buildingCostManager));
+    int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
+    uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
+
+    tutorialManager.Draw();
+
     renderer2d.EndScene();
 }
 
 void GamePlayState::DrawImGui()
 {
+    // Developer UI
     worldEditor.DrawImGui();
+
+    // Player UI
+    auto cityMetrics = GetGSComponent<CityMetrics>();
+    auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
+
+    if (cityMetrics && gameObjMgr)
+    {
+        playerUI.DrawUI(cityMetrics->GetHappinessSystem(), cityMetrics->GetImmigrationSystem(), gameObjMgr.get());
+    }
 }
 
 void GamePlayState::Unload()

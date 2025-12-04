@@ -214,8 +214,8 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
     int topY    = static_cast<int>(height) - screenY;
 
-    int drawX = screenX + TILE_WIDTH_HALF;
-    int drawY = topY;
+    int drawX = screenX + TILE_WIDTH_HALF - humanTexture.GetWidth() / 2;
+    int drawY = topY + TILE_HEIGHT_HALF;
 
     // For Debugging stuffs
    // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
@@ -292,10 +292,6 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
                     ai.recentDestinations.erase(ai.recentDestinations.begin());
                 }
                 return roadPos;
-            }
-            else
-            {
-                std::cout << "No road found nearby" << std::endl;
             }
         }
     }
@@ -525,33 +521,10 @@ bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
 
 Human Human::CreateImmigrant()
 {
-    int side = rand() % 4; // 0=top, 1=right, 2=bottom, 3=left
+    int margin = GRID_SIZE_X / 4;
 
-    float spawnX, spawnY;
-
-    switch (side)
-    {
-        case 0: // Top (entering from north)
-            spawnX = (float)(rand() % GRID_SIZE_X);
-            spawnY = 0.0f;
-            break;
-        case 1: // Right (entering from east)
-            spawnX = GRID_SIZE_X - 1;
-            spawnY = (float)(rand() % GRID_SIZE_Y);
-            break;
-        case 2: // Bottom (entering from south)
-            spawnX = (float)(rand() % GRID_SIZE_X);
-            spawnY = GRID_SIZE_Y - 1;
-            break;
-        case 3: // Left (entering from west)
-            spawnX = 0.0f;
-            spawnY = (float)(rand() % GRID_SIZE_Y);
-            break;
-        default:
-            spawnX = 0.0f;
-            spawnY = 0.0f;
-            break;
-    }
+    float spawnX = (float)(margin + rand() % (GRID_SIZE_X - 2 * margin));
+    float spawnY = (float)(margin + rand() % (GRID_SIZE_Y - 2 * margin));
 
     Human immigrant(Math::fvec2(spawnX, spawnY));
     return immigrant;

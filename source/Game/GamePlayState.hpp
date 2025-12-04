@@ -7,9 +7,14 @@
  * \copyright DigiPen Institute of Technology
  */
 #pragma once
+#include <array>
+#include <memory>
+
 #include "CS200/RGBA.hpp"
-#include "Engine/GameState.hpp"
-#include "Engine/Matrix.hpp"
+#include "CS200/OffscreenFramebuffer.hpp"
+#include "CS200/PostProcessingPipeline.hpp"
+#include "OpenGL/Shader.hpp"
+
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKCamera.hpp"
 #include "Dokev/DKMouseInput.hpp"
@@ -20,14 +25,18 @@
 #include "Dokev/DKGameWorldEditor.hpp"
 #include "Dokev/DKMapManager.hpp"
 #include "Dokev/DKUIManager.hpp"
-
-#include "Engine/Vec2.hpp"
-#include <array>
-#include <memory>
+#include "Dokev/DKTutorialManager.hpp"
 #include "Dokev/DKRenderState.hpp"
 #include "Dokev/DKGameState.hpp"
+#include "Dokev/DKMouseSelection.hpp"
+
+#include "Engine/Vec2.hpp"
+#include "Engine/GameState.hpp"
+#include "Engine/Matrix.hpp"
+
 #include "Game/ResourceManager.hpp"
 #include "Game/BuildingCostManager.hpp"
+#include "Game/UserInterfaceEditor.hpp"
 
 class GamePlayState : public Dokev::GameState
 {
@@ -71,6 +80,16 @@ private:
     // UI Manager
     Dokev::UIManager uiManager;
 
+    // Tutorial Manager
+    Dokev::TutorialManager tutorialManager;
+
     // Building cost manager
     BuildingCostManager buildingCostManager;
+
+    //Mouse Selection
+    Dokev::MouseSelection mouseSelection;
+
+    // Player UI
+    UserInterfaceEditor playerUI;
+
 };
