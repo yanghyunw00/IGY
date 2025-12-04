@@ -12,7 +12,7 @@ precision mediump sampler2D;
 uniform sampler2D uTexture;
 
 in vec2 vTexCoord;
-float in vec4 vTint;
+flat in vec4 vTint;
 
 layout(location = 0) out vec4 FragColor;
 

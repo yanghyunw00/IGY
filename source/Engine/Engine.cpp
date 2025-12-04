@@ -10,6 +10,7 @@
 #include "CS200/ImGuiHelper.hpp"
 #include "CS200/InstancedRenderer2D.hpp"
 #include "CS200/ImmediateRenderer2D.hpp"
+#include "CS200/BatchRenderer2D.hpp"
 
 #include "CS200/NDC.hpp"
 #include "CS200/RenderingAPI.hpp"
@@ -50,6 +51,7 @@ public:
     CS230::GameStateManager    gameStateManager{};
     CS200::InstancedRenderer2D InstancedRenderer2D{};
     CS200::ImmediateRenderer2D ImmediateRenderer2D{};
+    CS200::BatchRenderer2D     BatchRenderer2D{};
     CS230::TextureManager      textureManager{};
 };
 
@@ -96,6 +98,8 @@ CS200::IRenderer2D& Engine::GetRenderer2D(Dokev::RenderState selection)
         return Instance().impl->ImmediateRenderer2D;
         case Dokev::RenderState::INSTANCED:
         return Instance().impl->InstancedRenderer2D;
+        case Dokev::RenderState::BATCH:
+        return Instance().impl->BatchRenderer2D;
     }
     Instance().impl->logger.LogError("Reached the end of switch statement without returning at GetRenderer2D in Engine.cpp line 87");
        return Instance().impl->InstancedRenderer2D;
@@ -118,6 +122,7 @@ void Engine::Start(std::string_view window_title)
     window.SetEventCallback(ImGuiHelper::FeedEvent);
     impl->ImmediateRenderer2D.Init();
     impl->InstancedRenderer2D.Init(); //MC
+    impl->BatchRenderer2D.Init();
 
     impl->timer.ResetTimeStamp();
 }
@@ -126,6 +131,7 @@ void Engine::Stop()
 {
     impl->ImmediateRenderer2D.Shutdown();
     impl->InstancedRenderer2D.Shutdown(); //MC
+    impl->BatchRenderer2D.Shutdown();
 
     impl->gameStateManager.Clear();
     ImGuiHelper::Shutdown();
@@ -150,7 +156,7 @@ void Engine::Update()
 
 bool Engine::HasGameEnded()
 {
-    return impl->window.IsClosed() || impl->gameStateManager.HasGameEnded();\
+    return impl->window.IsClosed() || impl->gameStateManager.HasGameEnded();
 }
 
 Engine::Engine() : impl(new Impl())

@@ -5,7 +5,6 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
-\
 
 #pragma once
 namespace Dokev{

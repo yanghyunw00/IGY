@@ -7,11 +7,11 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "CS200/RGBA.hpp"
-#include "Engine/GameState.hpp"
 #include "Engine/Matrix.hpp"
 #include "Dokev/DKTexture.hpp"
 #include "Dokev/DKCamera.hpp"
 #include "Dokev/DKMouseInput.hpp"
+#include "Dokev/DKGameState.hpp"
 #include "CS200/IRenderer2D.hpp"
 
 #include "Dokev/DKRenderState.hpp"
@@ -20,13 +20,14 @@
 #include "GridMap.hpp"
 #include <array>
 #include <memory>
+#include <vector>
 
 
-class DEMO : public CS230::GameState
+class DEMO : public Dokev::GameState
 {
 public:
     void          Load() override;
-    void          Update() override;
+    void          Update(double dt) override;
     void          Unload() override;
     void          Draw() const override;
     void          SwitchRenderer(Dokev::RenderState type);
@@ -45,11 +46,14 @@ private:
 
     Dokev::Camera camera;
     Dokev::Mouse mouse;
-    std::unique_ptr<CS200::IRenderer2D>          customRenderer;
-    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED; // will change to batched
+    Dokev::RenderState selected_renderer = Dokev::RenderState::BATCH; // default to batched renderer
 private:
     void                       updateInput();
 private: //test shi
 
     bool show_atlas = false;
+
+    // Batch renderer showcase
+    std::vector<Math::vec2> batchDemoPositions{};
+    bool                    batchDemoEnabled = true;
 };

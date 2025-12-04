@@ -46,14 +46,27 @@ void DEMO::Load()
 
     camera.SetZoom(0.3f);
 
+    batchDemoPositions.clear();
+    constexpr int demoColumns = 18;
+    constexpr int demoRows    = 8;
+    constexpr int spacingX    = 64;
+    constexpr int spacingY    = 48;
+    for (int y = 0; y < demoRows; ++y)
+    {
+        for (int x = 0; x < demoColumns; ++x)
+        {
+            batchDemoPositions.push_back({ static_cast<double>(x * spacingX - demoColumns * spacingX / 2),
+                                           static_cast<double>(y * spacingY - demoRows * spacingY / 2) });
+        }
+    }
 }
 
 
-void DEMO::Update()
+void DEMO::Update(double dt)
 {
 
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
-
+    (void)dt;
     updateInput();
 
 }
@@ -86,6 +99,18 @@ void DEMO::Draw() const
     else
     {
         map.IsometricDrawMap(index,selected_renderer);
+    }
+
+    if (batchDemoEnabled)
+    {
+        const float time = static_cast<float>(Engine::GetWindowEnvironment().ElapsedTime);
+        for (size_t i = 0; i < batchDemoPositions.size(); ++i)
+        {
+            const float wave = std::sin(time + static_cast<float>(i) * 0.15f) * 0.5f + 0.5f;
+            const std::array<float, 4> tint = { 0.4f + 0.6f * wave, 0.7f, 1.0f - 0.4f * wave, 1.0f };
+            const auto packedTint = CS200::pack_color(tint);
+            Dokev::DrawTexture(noiseTexture, static_cast<int>(batchDemoPositions[i].x), static_cast<int>(batchDemoPositions[i].y), packedTint, selected_renderer);
+        }
     }
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();
@@ -122,6 +147,8 @@ void DEMO::DrawImGui()
             show_atlas = false;
         }
 
+        ImGui::Checkbox("Show batch renderer stress grid", &batchDemoEnabled);
+
         ImGui::Text("Rotate Index: %d", index);
          const auto &env = Engine::GetWindowEnvironment();
         ImGui::Text("FPS: %d", env.FPS);
@@ -131,6 +158,8 @@ void DEMO::DrawImGui()
 
         ImGui::Separator();
         ImGui::Text("select renderer");
+        ImGui::Text("Current: %s", selected_renderer == Dokev::RenderState::BATCH ? "BATCH" :
+                                   selected_renderer == Dokev::RenderState::INSTANCED ? "INSTANCED" : "IMMEDIATE");
         if (ImGui::Button("INSTANCED"))
         {
             SwitchRenderer(Dokev::RenderState::INSTANCED);
@@ -138,6 +167,10 @@ void DEMO::DrawImGui()
          if (ImGui::Button("IMMEDIATE"))
         {
             SwitchRenderer(Dokev::RenderState::IMMEDIATE);
+        }
+         if (ImGui::Button("BATCH"))
+        {
+            SwitchRenderer(Dokev::RenderState::BATCH);
         }
 
     }
@@ -149,23 +182,7 @@ void DEMO::SwitchRenderer(Dokev::RenderState type)
     if (selected_renderer == type) // if we switched to the same type
         return;
 
-    if (customRenderer)
-    {
-        customRenderer->Shutdown();
-        customRenderer.reset();
-    }
-
     selected_renderer = type;
-
-    switch (type)
-    {
-        case Dokev::RenderState::IMMEDIATE: break;
-
-        case Dokev::RenderState::INSTANCED:
-            customRenderer = std::make_unique<CS200::InstancedRenderer2D>();
-            customRenderer->Init();
-            break;
-    }
 }
 
 void DEMO::updateInput()

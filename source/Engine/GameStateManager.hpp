@@ -43,7 +43,9 @@ namespace CS230
     void GameStateManager::PushState()
     {
         using namespace std::literals;
+        
         mGameStateStack.push_back(std::make_unique<STATE>());
+
         const auto& state = mGameStateStack.back();
         Engine::GetLogger().LogEvent("Entering state "s + state->GetName());
         state->Load();
