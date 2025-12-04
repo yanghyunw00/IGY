@@ -143,11 +143,11 @@ void Engine::Update()
     const auto        viewport      = impl->viewport;
     const Math::ivec2 viewport_size = { viewport.width, viewport.height };
     CS200::RenderingAPI::SetViewport(viewport_size, { viewport.x, viewport.y });
-    CS230::Font::IncrementFrame();
     state_manager.Draw();
     impl->viewport = ImGuiHelper::Begin();
     state_manager.DrawImGui();
     ImGuiHelper::End();
+   // CS230::Font::IncrementFrame();
 }
 
 bool Engine::HasGameEnded()

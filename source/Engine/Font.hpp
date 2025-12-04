@@ -41,10 +41,15 @@ namespace CS230
          * - Store character dimensions for text measurement
          */
         explicit Font(const std::filesystem::path& file_name);
+<<<<<<< Updated upstream
         ~Font();
 
 
         static void IncrementFrame() { current_frame++; }
+=======
+        //~Font();
+        //static void IncrementFrame() { current_frame++; }
+>>>>>>> Stashed changes
 
         std::shared_ptr<Texture> PrintToTexture(const std::string& text, CS200::RGBA color = 0xFFFFFFFF);
 
