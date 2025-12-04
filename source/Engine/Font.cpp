@@ -45,6 +45,12 @@ namespace CS230
         font_texture = std::shared_ptr<Texture>(new Texture(OpenGL::CreateTextureFromImage(flip), flip.GetSize()));
     }
 
+    Font::~Font()
+    {
+        text_cache.clear();
+        font_texture.reset();
+    }
+
     void Font::FindCharRects(const CS200::Image& image)
     {
         const CS200::RGBA* first_row = image.data();
@@ -123,6 +129,7 @@ namespace CS230
             {
                 const Cache& cache = tc.second;
 
+                //60 frame & only the cache holds a reference
                 const bool old_frame = (current_frame - cache.leastUsedFrame > 60);
                 const bool is_referenced = (cache.texture.use_count() == 1);
 

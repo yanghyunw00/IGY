@@ -30,8 +30,20 @@ namespace CS230
     class Font
     {
     public:
-
+        /**
+         * \brief Load and parse a bitmap font from an image file
+         * \param file_name Path to the bitmap font image
+         *
+         * Implementation:
+         * - Load image without vertical flip (for parsing)
+         * - Parse character rectangles by scanning white pixel boundaries
+         * - Create font texture with vertical flip (for rendering)
+         * - Store character dimensions for text measurement
+         */
         explicit Font(const std::filesystem::path& file_name);
+        ~Font();
+
+
         static void IncrementFrame() { current_frame++; }
 
         std::shared_ptr<Texture> PrintToTexture(const std::string& text, CS200::RGBA color = 0xFFFFFFFF);
@@ -48,6 +60,7 @@ namespace CS230
         Math::ivec2  measureText(const std::string& text);
         void         drawChar(char c, Math::TransformationMatrix& matrix, CS200::RGBA color);
         Math::irect& GetCharRect(char c);
+
 
         std::shared_ptr<Texture>               font_texture;
         Math::irect                            char_rects[CHAR_COUNT];
