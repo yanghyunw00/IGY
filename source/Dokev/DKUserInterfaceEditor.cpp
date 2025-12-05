@@ -6,16 +6,16 @@
  * \copyright DigiPen Institute of Technology
  */
 
-#include "UserInterfaceEditor.hpp"
-#include "HappinessSystem.hpp"
-#include "ImmigrationSystem.hpp"
+#include "DKUserInterfaceEditor.hpp"
+#include "Game/HappinessSystem.hpp"
+#include "DKImmigrationSystem.hpp"
 #include "Dokev/DKGameObjectManager.hpp"
-#include "Building.hpp"
-#include "BuildingType.hpp"
+#include "Game/Building.hpp"
+#include "Game/BuildingType.hpp"
 #include "Dokev/DKMetaProgramming.hpp"
 #include <imgui.h>
 
-void UserInterfaceEditor::DrawUI(HappinessSystem* happinessSystem, ImmigrationSystem* immigrationSystem,
+void UserInterfaceEditor::DrawUI(HappinessSystem* happinessSystem, Dokev::ImmigrationSystem* immigrationSystem,
                                  Dokev::GameObjectManager* gameObjectManager)
 {
     if (!happinessSystem || !immigrationSystem || !gameObjectManager)
@@ -117,7 +117,7 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessSystem* happinessSystem)
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.waterScore);
 }
 
-void UserInterfaceEditor::DrawImmigrationSection(ImmigrationSystem* immigrationSystem, HappinessSystem* happinessSystem,
+void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationSystem* immigrationSystem, HappinessSystem* happinessSystem,
                                                   int availableHomes, int totalResources, int humanCount)
 {
     //  Section Title 
@@ -172,6 +172,8 @@ void UserInterfaceEditor::DrawImmigrationSection(ImmigrationSystem* immigrationS
 void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity,
                                                  int totalHouses, int workplaceCount, int humanCount)
 {
+    (void)gameObjectManager; //unused
+
     //  Section Title 
     ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "POPULATION");
 

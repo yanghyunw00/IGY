@@ -36,7 +36,7 @@
 
 #include "Game/ResourceManager.hpp"
 #include "Game/BuildingCostManager.hpp"
-#include "Game/UserInterfaceEditor.hpp"
+#include "Dokev/DKUserInterfaceEditor.hpp"
 
 class GamePlayState : public Dokev::GameState
 {

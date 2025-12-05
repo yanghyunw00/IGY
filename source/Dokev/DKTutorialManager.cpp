@@ -196,7 +196,7 @@ namespace Dokev
 
         if (currentStep.highlightType == HighlightType::CIRCLE)
         {
-            float pulse = 1.0f + 0.1f * std::sin(currentStepTime * 3.0f);
+            //float pulse = 1.0f + 0.1f * std::sin(currentStepTime * 3.0f);
 
             DrawRectangle(x, y, width, height, ColorPalette::TUTORIAL_HIGHLIGHT);
         }

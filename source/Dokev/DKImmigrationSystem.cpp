@@ -1,24 +1,8 @@
-/**
- * \file ImmigrationSystem.hpp
- * \brief 
- * \author 
- * \date 2025 Fall
- * \copyright DigiPen Institute of Technology
- */
+#include "DKImmigrationSystem.hpp"
 
-#pragma once
-#include <algorithm>
-#include <cstdlib>
-
-class ImmigrationSystem
+namespace Dokev
 {
-private:
-    float immigrationTimer        = 0.0f;
-    float baseImmigrationInterval = 10.0f; // check every 10sec
-
-public:
-
-    float CalculateImmigrationChance(int availableHomes, float happiness, int humanCount, int totalResources) const
+    float ImmigrationSystem::CalculateImmigrationChance(int availableHomes, float happiness, int humanCount, int totalResources) const
     {
         float chance = 0.0f;
 
@@ -35,7 +19,7 @@ public:
         else if (happiness >= 20.0f)
             chance = 0.05f; // 5%
         else
-            chance = 0.0f; // 0% 
+            chance = 0.0f; // 0%
 
         // Resource bonus
         int requiredResources = humanCount * 100;
@@ -44,7 +28,7 @@ public:
             chance += 0.10f; //+ 10%
         }
 
-        //Is it big city?
+        // Is it big city?
         if (humanCount > 50)
         {
             chance += 0.05f; // + 5 %
@@ -53,7 +37,7 @@ public:
         return std::clamp(chance, 0.0f, 1.0f);
     }
 
-    bool Update(float dt, int availableHomes, float happiness, int humanCount, int totalResources)
+    bool ImmigrationSystem::Update(float dt, int availableHomes, float happiness, int humanCount, int totalResources)
     {
         immigrationTimer += dt;
 
@@ -66,30 +50,10 @@ public:
             float random = static_cast<float>(rand()) / RAND_MAX;
             if (random < chance)
             {
-                return true; 
+                return true;
             }
         }
 
         return false;
     }
-
-    /**
-     * \brief Get time until next immigration check (for UI)
-     */
-    float GetNextImmigrationTime() const { return baseImmigrationInterval - immigrationTimer; }
-
-    /**
-     * \brief Get base interval
-     */
-    float GetBaseInterval() const { return baseImmigrationInterval; }
-
-    /**
-     * \brief Set base interval 
-     */
-    void SetBaseInterval(float interval) { baseImmigrationInterval = interval; }
-
-    /**
-     * \brief Reset timer
-     */
-    void ResetTimer() { immigrationTimer = 0.0f; }
-};
+}

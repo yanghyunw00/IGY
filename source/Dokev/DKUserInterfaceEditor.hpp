@@ -1,7 +1,7 @@
 /**
  * \file UserInterfaceEditor.hpp
- * \brief 
- * \author 
+ * \brief
+ * \author
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
@@ -10,19 +10,18 @@
 
 // Forward declarations
 class HappinessSystem;
-class ImmigrationSystem;
 
 namespace Dokev
 {
     class GameObjectManager;
+    class ImmigrationSystem;
 }
 
 class UserInterfaceEditor
 {
 public:
     UserInterfaceEditor() = default;
-    void DrawUI(HappinessSystem* happinessSystem, ImmigrationSystem* immigrationSystem,
-                Dokev::GameObjectManager* gameObjectManager);
+    void DrawUI(HappinessSystem* happinessSystem, Dokev::ImmigrationSystem* immigrationSystem, Dokev::GameObjectManager* gameObjectManager);
 
 private:
     /**
@@ -33,12 +32,10 @@ private:
     /**
      * \brief Draw immigration section (without Begin/End)
      */
-    void DrawImmigrationSection(ImmigrationSystem* immigrationSystem, HappinessSystem* happinessSystem,
-                                int availableHomes, int totalResources, int humanCount);
+    void DrawImmigrationSection(Dokev::ImmigrationSystem* immigrationSystem, HappinessSystem* happinessSystem, int availableHomes, int totalResources, int humanCount);
 
     /**
      * \brief Draw population section (without Begin/End)
      */
-    void DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity, int totalHouses,
-                               int workplaceCount, int humanCount);
+    void DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity, int totalHouses, int workplaceCount, int humanCount);
 };

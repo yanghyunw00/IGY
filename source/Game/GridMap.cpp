@@ -137,7 +137,7 @@ void GridMap::InitializeIsoView()
             // 180 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, new_x, new_y);
             size_t rotIndex180 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
-            if (rotIndex180 >= 0 && rotIndex180 < GRID_SIZE_X * GRID_SIZE_Y)
+            if (rotIndex180 > 0 && rotIndex180 < GRID_SIZE_X * GRID_SIZE_Y)
                 view3[rotIndex180] = &m_gridCells[y][x];
 
             // 270 degree rotation
@@ -222,6 +222,7 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
 // intializes the member variable array IsoAtlasTexture with the texture created. later unpack the rgba values in the texture to get the grid.
 void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer) const
 {
+    (void)selected_renderer;
     glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
     currentView = (index % 4) + 1;
@@ -263,11 +264,11 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
                 double height = selectedView[count]->getHeight();
                 int    topY   = static_cast<int>(height) - screenY;
 
-                int originalX = selectedView[count]->x;
-                int originalY = selectedView[count]->y;
+                // int originalX = selectedView[count]->x;
+                // int originalY = selectedView[count]->y;
 
-                Dokev::TileType tileType =
-                    tileManager->GetTileType(originalX, originalY); // why not retrieve the memory where they are all contiguous? like maybe a struct so there are fewer cache misses?
+                // Dokev::TileType tileType =
+                //     tileManager->GetTileType(originalX, originalY);
 
 
                 /*if (tileType == Dokev::TileType::ROAD)

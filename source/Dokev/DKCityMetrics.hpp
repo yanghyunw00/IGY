@@ -8,7 +8,7 @@
 #pragma once
 #include "Dokev/DKComponent.hpp"
 #include "Game/HappinessSystem.hpp"
-#include "Game/ImmigrationSystem.hpp"
+#include "Dokev/DKImmigrationSystem.hpp"
 
 namespace Dokev
 {

@@ -82,8 +82,9 @@ set(SOURCE_CODE
     Dokev/DKJobsystem.hpp Dokev/DKJobsystem.cpp
     Dokev/DKJobsystemManager.hpp
     Dokev/DKMouseSelection.hpp Dokev/DKMouseSelection.cpp
-
-
+    Dokev/DKMetaProgramming.hpp
+    Dokev/DKUserInterfaceEditor.hpp Dokev/DKUserInterfaceEditor.cpp
+    Dokev/DKImmigrationSystem.hpp Dokev/DKImmigrationSystem.cpp
 
 
 
@@ -95,8 +96,6 @@ set(SOURCE_CODE
     Game/CustomCell.hpp Game/CustomCell.cpp
     Game/GridMap.hpp Game/GridMap.cpp
     Game/HappinessSystem.hpp
-    Game/ImmigrationSystem.hpp
-    Game/UserInterfaceEditor.hpp Game/UserInterfaceEditor.cpp
     Game/Human.hpp Game/Human.cpp
     Game/pathFinding.hpp Game/pathFinding.cpp
     Game/Road.hpp Game/Road.cpp
@@ -111,12 +110,6 @@ set(SOURCE_CODE
     Game/Building.hpp Game/Building.cpp
     Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
     Game/MainMenu.hpp Game/MainMenu.cpp
-
-
-
-
-
-
 
    # external/stb_image_write.h
    # external/stb_image.h
