@@ -14,8 +14,8 @@
 #include "Engine/Matrix.hpp"
 #include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
-#include "Game/ResourceManager.hpp"
 #include "Game/BuildingCostManager.hpp"
+#include "Game/ResourceManager.hpp"
 #include <cmath>
 #include <string>
 
@@ -28,7 +28,7 @@ namespace Dokev
 
     void UIManager::Initialize()
     {
-        CreateBuildingButtons();
+        CreateMainButtons();
         woodIcon  = LoadTexture(assets::locate_asset("Assets/resources/tree_1.png").string());
         rockIcon  = LoadTexture(assets::locate_asset("Assets/resources/rock_1.png").string());
         steelIcon = LoadTexture(assets::locate_asset("Assets/resources/steel_1.png").string());
@@ -37,86 +37,282 @@ namespace Dokev
         outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/Font_Outlined.png").string());
     }
 
-    void UIManager::CreateBuildingButtons()
+    void UIManager::CreateBuildingButtons(CategoryType category)
     {
         buildingButtons.clear();
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float totalButtonsWidth = BUTTON_WIDTH * 6 + BUTTON_SPACING * 5;
-        float startX = (static_cast<float>(windowSize.x) - totalButtonsWidth) / 2.0f;
-        float startY = UI_SPACING;
+        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
+        float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
+
+        switch (category)
+        {
+            case CategoryType::HOME_CATEGORY:
+                {
+                    float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
+
+                    BuildingButton homeButton;
+                    homeButton.type     = BuildingType::HOME;
+                    homeButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+                    homeButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    homeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    homeButton.name     = "Home";
+                    homeButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(homeButton);
+
+                    BuildingButton cancelButton;
+                    cancelButton.type     = BuildingType::NONE;
+                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+                    cancelButton.position = Math::fvec2(offsetX, startY);
+                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelButton.name     = "Cancel";
+                    cancelButton.tint     = Dokev::ColorPalette::RED;
+                    buildingButtons.push_back(cancelButton);
+                    break;
+                }
+
+            case CategoryType::WORK_CATEGORY:
+                {
+                    float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
+
+                    BuildingButton woodButton;
+                    woodButton.type     = BuildingType::WOOD_WORKSHOP;
+                    woodButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+                    woodButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    woodButton.name     = "Wood Workshop";
+                    woodButton.tint     = Dokev::ColorPalette::BROWN;
+                    buildingButtons.push_back(woodButton);
+
+                    BuildingButton rockButton;
+                    rockButton.type     = BuildingType::ROCK_WORKSHOP;
+                    rockButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+                    rockButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    rockButton.name     = "Rock Workshop";
+                    rockButton.tint     = Dokev::ColorPalette::GRAY;
+                    buildingButtons.push_back(rockButton);
+
+                    BuildingButton steelButton;
+                    steelButton.type     = BuildingType::STEEL_WORKSHOP;
+                    steelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+                    steelButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    steelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    steelButton.name     = "Steel Workshop";
+                    steelButton.tint     = Dokev::ColorPalette::LIGHTGRAY;
+                    buildingButtons.push_back(steelButton);
+
+                    BuildingButton cancelButton;
+                    cancelButton.type     = BuildingType::NONE;
+                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+                    cancelButton.position = Math::fvec2(offsetX, startY);
+                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelButton.name     = "Cancel";
+                    cancelButton.tint     = Dokev::ColorPalette::RED;
+                    buildingButtons.push_back(cancelButton);
+                    break;
+                }
+
+            case CategoryType::ROAD_CATEGORY:
+                {
+                    float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
+
+                    BuildingButton roadButton;
+                    roadButton.type     = BuildingType::ROAD;
+                    roadButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
+                    roadButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    roadButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    roadButton.name     = "Road";
+                    roadButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(roadButton);
+
+                    BuildingButton cancelButton;
+                    cancelButton.type     = BuildingType::NONE;
+                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+                    cancelButton.position = Math::fvec2(offsetX, startY);
+                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelButton.name     = "Cancel";
+                    cancelButton.tint     = Dokev::ColorPalette::RED;
+                    buildingButtons.push_back(cancelButton);
+                    break;
+                }
+
+            default: break;
+        }
+    }
+
+    // Create the very first Buttons
+    void UIManager::CreateMainButtons()
+    {
+        mainButtons.clear();
+
+        auto windowSize = Engine::GetWindow().GetSize();
+
+        float totalWidth = BUTTON_WIDTH * 2 + BUTTON_SPACING;
+        float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
+        float startY     = UI_SPACING;
+
+        BuildingButton constructionButton;
+        constructionButton.type     = BuildingType::NONE;
+        constructionButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+        constructionButton.position = Math::fvec2(startX, startY);
+        constructionButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        constructionButton.name     = "Construction";
+        constructionButton.tint     = Dokev::ColorPalette::WHITE;
+        mainButtons.push_back(constructionButton);
+
+        BuildingButton deleteButton;
+        deleteButton.type     = BuildingType::DELETE;
+        deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+        deleteButton.position = Math::fvec2(startX + BUTTON_WIDTH + BUTTON_SPACING, startY);
+        deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        deleteButton.name     = "Delete";
+        deleteButton.tint     = Dokev::ColorPalette::WHITE;
+        mainButtons.push_back(deleteButton);
+    }
+
+    // Create the buttons after clicking construction
+    void UIManager::CreateCategoryButtons()
+    {
+        categoryButtons.clear();
+
+        auto windowSize = Engine::GetWindow().GetSize();
+
+        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
+        float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
+        float startY     = UI_SPACING + BUTTON_HEIGHT + BUTTON_SPACING;
+
         BuildingButton homeButton;
-        homeButton.type     = BuildingType::HOME;
+        homeButton.type     = BuildingType::NONE;
         homeButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
         homeButton.position = Math::fvec2(startX, startY);
         homeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         homeButton.name     = "Home";
         homeButton.tint     = Dokev::ColorPalette::WHITE;
-        buildingButtons.push_back(homeButton);
-        BuildingButton woodButton;
-        woodButton.type     = BuildingType::WOOD_WORKSHOP;
-        woodButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
-        woodButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
-        woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-        woodButton.name     = "Wood Workshop";
-        woodButton.tint     = Dokev::ColorPalette::BROWN;
-        buildingButtons.push_back(woodButton);
-        BuildingButton rockButton;
-        rockButton.type     = BuildingType::ROCK_WORKSHOP;
-        rockButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
-        rockButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
-        rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-        rockButton.name     = "Rock Workshop";
-        rockButton.tint     = Dokev::ColorPalette::GRAY;
-        buildingButtons.push_back(rockButton);
-        BuildingButton steelButton;
-        steelButton.type     = BuildingType::STEEL_WORKSHOP;
-        steelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
-        steelButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3, startY);
-        steelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-        steelButton.name     = "Steel Workshop";
-        steelButton.tint     = Dokev::ColorPalette::LIGHTGRAY;
-        buildingButtons.push_back(steelButton);
+        categoryButtons.push_back(homeButton);
+
+        BuildingButton workButton;
+        workButton.type     = BuildingType::NONE;
+        workButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        workButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
+        workButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        workButton.name     = "Work";
+        workButton.tint     = Dokev::ColorPalette::WHITE;
+        categoryButtons.push_back(workButton);
+
         BuildingButton roadButton;
-        roadButton.type     = BuildingType::ROAD;
+        roadButton.type     = BuildingType::NONE;
         roadButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
-        roadButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4, startY);
+        roadButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
         roadButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         roadButton.name     = "Road";
         roadButton.tint     = Dokev::ColorPalette::WHITE;
-        buildingButtons.push_back(roadButton);
-
-        BuildingButton deleteButton;
-        deleteButton.type     = BuildingType::DELETE;
-        deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
-        deleteButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 5, startY);
-        deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-        deleteButton.name     = "Delete";
-        deleteButton.tint     = Dokev::ColorPalette::WHITE;
-        buildingButtons.push_back(deleteButton);
+        categoryButtons.push_back(roadButton);
     }
 
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked)
     {
-        for (auto& button : buildingButtons)
+        switch (currentMenuState)
         {
-            button.isHovered = PointInRect(mousePos, button.position, button.size);
-
-            if (button.isHovered && mouseClicked)
-            {
-                // Toggle
-                if (selectedBuilding == button.type)
+            case MenuState::MAIN:
                 {
-                    selectedBuilding = BuildingType::NONE; //
-                }
-                else
-                {
-                    selectedBuilding = button.type;
-                }
-            }
+                    for (auto& button : mainButtons)
+                    {
+                        button.isHovered = PointInRect(mousePos, button.position, button.size);
 
-            button.isSelected = (button.type == selectedBuilding);
+                        if (button.isHovered && mouseClicked)
+                        {
+                            if (button.type == BuildingType::DELETE)
+                            {
+                                selectedBuilding = BuildingType::DELETE;
+                            }
+                            else if (button.name == "Construction")
+                            {
+                                currentMenuState = MenuState::CATEGORY;
+                                CreateCategoryButtons();
+                            }
+                        }
+                    }
+                    break;
+                }
+
+            case MenuState::CATEGORY:
+                {
+                    for (auto& button : categoryButtons)
+                    {
+                        button.isHovered = PointInRect(mousePos, button.position, button.size);
+
+                        if (button.isHovered && mouseClicked)
+                        {
+                            if (button.name == "Home")
+                            {
+                                currentMenuState = MenuState::BUILDING;
+                                currentCategory  = CategoryType::HOME_CATEGORY;
+                                CreateBuildingButtons(CategoryType::HOME_CATEGORY);
+                            }
+                            else if (button.name == "Work")
+                            {
+                                currentMenuState = MenuState::BUILDING;
+                                currentCategory  = CategoryType::WORK_CATEGORY;
+                                CreateBuildingButtons(CategoryType::WORK_CATEGORY);
+                            }
+                            else if (button.name == "Road")
+                            {
+                                currentMenuState = MenuState::BUILDING;
+                                currentCategory  = CategoryType::ROAD_CATEGORY;
+                                CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
+                            }
+                        }
+                    }
+                    break;
+                }
+
+            case MenuState::BUILDING:
+                {
+                    for (auto& button : categoryButtons)
+                    {
+                        button.isHovered = PointInRect(mousePos, button.position, button.size);
+
+                        if (button.isHovered && mouseClicked)
+                        {
+                            if (button.name == "Home")
+                            {
+                                currentCategory = CategoryType::HOME_CATEGORY;
+                                CreateBuildingButtons(CategoryType::HOME_CATEGORY);
+                            }
+                            else if (button.name == "Work")
+                            {
+                                currentCategory = CategoryType::WORK_CATEGORY;
+                                CreateBuildingButtons(CategoryType::WORK_CATEGORY);
+                            }
+                            else if (button.name == "Road")
+                            {
+                                currentCategory = CategoryType::ROAD_CATEGORY;
+                                CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
+                            }
+                        }
+                    }
+
+                    for (auto& button : buildingButtons)
+                    {
+                        button.isHovered = PointInRect(mousePos, button.position, button.size);
+
+                        if (button.isHovered && mouseClicked)
+                        {
+                            selectedBuilding = button.type;
+                            currentMenuState = MenuState::MAIN;
+                            categoryButtons.clear();
+                            buildingButtons.clear();
+                        }
+
+                        button.isSelected = (button.type == selectedBuilding);
+                    }
+                    break;
+                }
         }
     }
 
@@ -125,9 +321,40 @@ namespace Dokev
         DrawResources(resourceMgr, humanCount);
         DrawHappiness(cm);
 
-        for (const auto& button : buildingButtons)
+        switch (currentMenuState)
         {
-            DrawBuildingButton(button, resourceMgr, costMgr);
+            case MenuState::MAIN:
+                for (const auto& button : mainButtons)
+                {
+                    DrawBuildingButton(button, resourceMgr, costMgr);
+                }
+                break;
+
+            case MenuState::CATEGORY:
+                for (const auto& button : mainButtons)
+                {
+                    DrawBuildingButton(button, resourceMgr, costMgr);
+                }
+                for (const auto& button : categoryButtons)
+                {
+                    DrawBuildingButton(button, resourceMgr, costMgr);
+                }
+                break;
+
+            case MenuState::BUILDING:
+                for (const auto& button : mainButtons)
+                {
+                    DrawBuildingButton(button, resourceMgr, costMgr);
+                }
+                for (const auto& button : categoryButtons)
+                {
+                    DrawBuildingButton(button, resourceMgr, costMgr);
+                }
+                for (const auto& button : buildingButtons)
+                {
+                    DrawBuildingButton(button, resourceMgr, costMgr);
+                }
+                break;
         }
     }
 
@@ -140,11 +367,11 @@ namespace Dokev
         float startX     = static_cast<float>(windowSize.x) - 100.0f - UI_SPACING + 32.0f;
         float resourceY  = static_cast<float>(windowSize.y) - 100.0f;
 
-        float size        = 32.0f;
-        float height      = size + 3.0f;
-        float paddingY    = -10;
+        float size         = 32.0f;
+        float height       = size + 3.0f;
+        float paddingY     = -10;
         int   iconPaddingY = 15;
-        float iconScale = 0.8;
+        float iconScale    = 0.8f;
 
         float currentX = startX;
         float currentY = resourceY;
@@ -158,7 +385,7 @@ namespace Dokev
             std::string woodText = FormatNumber(resourceMgr->totalWood);
             if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE,FONT_SCALE }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
             }
         }
         currentY -= height;
@@ -200,17 +427,17 @@ namespace Dokev
             std::string humanText = FormatNumber(humanCount);
             if (auto textTexture = outlined->PrintToTexture(humanText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
             }
         }
     }
 
     void UIManager::DrawHappiness(CityMetrics* cm) const
     {
-        auto  windowSize = Engine::GetWindow().GetSize();
-        float startX     = static_cast<float>(windowSize.x) -  100.0f - UI_SPACING + 32.0f;
-        float startY     = static_cast<float>(windowSize.y) - 60.0f;
-        int iconPaddingY = 15;
+        auto  windowSize   = Engine::GetWindow().GetSize();
+        float startX       = static_cast<float>(windowSize.x) - 100.0f - UI_SPACING + 32.0f;
+        float startY       = static_cast<float>(windowSize.y) - 60.0f;
+        int   iconPaddingY = 15;
 
         if (happyIcon.IsValid())
         {
@@ -251,15 +478,14 @@ namespace Dokev
 
         DrawRectangleLinesEx(static_cast<int>(button.position.x), static_cast<int>(button.position.y), static_cast<int>(button.size.x), static_cast<int>(button.size.y), 3.0f, borderColor);
 
-        
-        //Draw Building Texture.
+
+        // Draw Building Texture.
         if (button.texture.IsValid())
         {
+            int textureWidth  = button.texture.GetWidth();
+            int textureHeight = button.texture.GetHeight();
 
-            int   textureWidth  = button.texture.GetWidth();
-            int   textureHeight = button.texture.GetHeight();
-
-            float scaledWidth  = textureWidth *  static_cast<float>(ICON_SCALE);
+            float scaledWidth  = textureWidth * static_cast<float>(ICON_SCALE);
             float scaledHeight = textureHeight * static_cast<float>(ICON_SCALE);
 
             Math::fvec2 imagePos = Math::fvec2(button.position.x + (button.size.x - scaledWidth) / 2.0f, button.position.y + (button.size.y - scaledHeight) / 2.0f);
@@ -290,10 +516,12 @@ namespace Dokev
                 BuildingCost cost = costMgr->GetCost(button.type);
 
                 // building name
-                float nameYPos = 25.0f;
-                int resourceCount = (cost.wood > 0 ? 1 : 0) + (cost.stone > 0 ? 1 : 0) + (cost.steel > 0 ? 1 : 0);
-                if (resourceCount == 2) nameYPos = 40.0f;
-                if (resourceCount == 3) nameYPos = 55.0f;
+                float nameYPos      = 25.0f;
+                int   resourceCount = (cost.wood > 0 ? 1 : 0) + (cost.stone > 0 ? 1 : 0) + (cost.steel > 0 ? 1 : 0);
+                if (resourceCount == 2)
+                    nameYPos = 40.0f;
+                if (resourceCount == 3)
+                    nameYPos = 55.0f;
 
                 if (auto nameTexture = outlined->PrintToTexture(button.name, Dokev::ColorPalette::WHITE))
                 {
@@ -307,8 +535,7 @@ namespace Dokev
                     std::string woodText = "Wood: " + std::to_string(resourceMgr->totalWood) + " / " + std::to_string(cost.wood);
                     if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
                     {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + yOffset}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
+                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
                     }
                     yOffset += 15.0f;
                 }
@@ -317,8 +544,7 @@ namespace Dokev
                     std::string rockText = "Rock: " + std::to_string(resourceMgr->totalStone) + " / " + std::to_string(cost.stone);
                     if (auto textTexture = outlined->PrintToTexture(rockText, Dokev::ColorPalette::WHITE))
                     {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + yOffset}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
+                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
                     }
                     yOffset += 15.0f;
                 }
@@ -327,8 +553,7 @@ namespace Dokev
                     std::string steelText = "Steel: " + std::to_string(resourceMgr->totalSteel) + " / " + std::to_string(cost.steel);
                     if (auto textTexture = outlined->PrintToTexture(steelText, Dokev::ColorPalette::WHITE))
                     {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{tooltipPos.x + 10.0f, tooltipPos.y + yOffset}) *
-                                        Math::ScaleMatrix(Math::vec2{0.3, 0.3}), Dokev::ColorPalette::WHITE);
+                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
                     }
                 }
             }
@@ -340,7 +565,7 @@ namespace Dokev
         if (value >= 1000)
         {
             float displayValue = value / 1000.0f;
-            char buffer[32];
+            char  buffer[32];
             std::snprintf(buffer, sizeof(buffer), "%.1fk", displayValue);
             return std::string(buffer);
         }
