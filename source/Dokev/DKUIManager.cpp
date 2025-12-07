@@ -152,7 +152,7 @@ namespace Dokev
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float totalWidth = BUTTON_WIDTH * 2 + BUTTON_SPACING;
+        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
         float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
         float startY     = UI_SPACING;
 
@@ -168,11 +168,20 @@ namespace Dokev
         BuildingButton deleteButton;
         deleteButton.type     = BuildingType::DELETE;
         deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
-        deleteButton.position = Math::fvec2(startX + BUTTON_WIDTH + BUTTON_SPACING, startY);
+        deleteButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
         deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         deleteButton.name     = "Delete";
         deleteButton.tint     = Dokev::ColorPalette::WHITE;
         mainButtons.push_back(deleteButton);
+
+        BuildingButton cancelButton;
+        cancelButton.type     = BuildingType::NONE;
+        cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+        cancelButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
+        cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        cancelButton.name     = "Cancel";
+        cancelButton.tint     = Dokev::ColorPalette::RED;
+        mainButtons.push_back(cancelButton);
     }
 
     // Create the buttons after clicking construction
@@ -234,6 +243,12 @@ namespace Dokev
                             {
                                 currentMenuState = MenuState::CATEGORY;
                                 CreateCategoryButtons();
+                            }
+                            else if (button.name == "Cancel")
+                            {
+                                selectedBuilding = BuildingType::NONE;
+                                categoryButtons.clear();
+                                buildingButtons.clear();
                             }
                         }
                     }
@@ -500,7 +515,10 @@ namespace Dokev
             float tooltipWidth  = 120.0f;
             float tooltipHeight = 50.0f;
             if (button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP || button.type == BuildingType::STEEL_WORKSHOP)
+            {
+                tooltipWidth  = 175.0f;
                 tooltipHeight = 65.0f;
+            }
             if (button.type == BuildingType::HOME)
                 tooltipHeight = 80.0f;
 
@@ -555,6 +573,33 @@ namespace Dokev
                     {
                         textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
                     }
+                }
+            }
+        }
+        else if (button.isHovered && !button.name.empty())
+        {
+            std::string tooltipText   = button.name;
+            float       textWidth     = static_cast<float>(tooltipText.length()) * 8.0f;
+            float       tooltipWidth  = textWidth + 20.0f;
+            float       tooltipHeight = 40.0f;
+
+            if (tooltipWidth < 140.0f)
+            {
+                tooltipWidth = 140.0f;
+            }
+
+            Math::fvec2 tooltipPos = Math::fvec2(button.position.x - tooltipWidth - 10.0f, button.position.y);
+
+            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::TOOLTIP_BACKGROUND);
+            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 2.0f,
+                                 Dokev::ColorPalette::LIGHTGRAY);
+
+            if (outlined)
+            {
+                if (auto nameTexture = outlined->PrintToTexture(tooltipText, Dokev::ColorPalette::WHITE))
+                {
+                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 15.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
+                                      Dokev::ColorPalette::WHITE);
                 }
             }
         }

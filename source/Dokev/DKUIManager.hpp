@@ -75,6 +75,7 @@ namespace Dokev
             selectedBuilding = type;
         }
 
+
     private:
         void        CreateMainButtons();
         void        CreateCategoryButtons();
