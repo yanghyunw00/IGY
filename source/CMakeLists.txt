@@ -97,6 +97,7 @@ set(SOURCE_CODE
     Game/Building.hpp Game/Building.cpp
     Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
     Game/MainMenu.hpp Game/MainMenu.cpp
+    Game/Splash.hpp Game/Splash.cpp
 
 
 
