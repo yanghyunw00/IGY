@@ -273,13 +273,13 @@ void GamePlayState::Update(double dt)
             mapMgr->GetMap()->IsometricDrawMouseAtlas(index, selected_renderer);
 
             GLubyte pixel[4] = { 0 };
-            glBindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
+            GL::BindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
 
             mouseScreen.y = windowSize.y - mouseScreen.y;
 
             GL::ReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
             
 
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
