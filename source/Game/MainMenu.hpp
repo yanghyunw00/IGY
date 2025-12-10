@@ -44,12 +44,16 @@ private :
 
     const std::string text_Title                = "I G Y";
     const std::string text_PlayIGY              = "PlayIGY";
+    const std::string text_Setting              = "Setting";
+    const std::string text_Credit               = "Credit";
     const std::string text_Exit                 = "Exit";
     const std::string text_Antartic_Monkeys     = "Antartic_Monkeys";
 
     enum Main_Keys {
 
         GamePlayKey,
+        SettingKey,
+        CreditKey,
         ExitKey,
         Count
     };
@@ -59,6 +63,8 @@ private :
     ////////////////////
     CS200::RGBA TextColor_Title                = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_PlayIGY              = Dokev::ColorPalette::WHITE;
+    CS200::RGBA TextColor_Setting              = Dokev::ColorPalette::WHITE;
+    CS200::RGBA TextColor_Credit               = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_Exit                 = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_Antartic_Monkeys     = Dokev::ColorPalette::WHITE;
 
@@ -70,6 +76,10 @@ private :
 
     double TextScale_PlayIGY_x                 = 1.0;
     double TextScale_PlayIGY_y                 = 1.0;
+    double TextScale_Setting_x                 = 1.0;
+    double TextScale_Setting_y                 = 1.0;
+    double TextScale_Credit_x                  = 1.0;
+    double TextScale_Credit_y                  = 1.0;        
     double TextScale_Exit_x                    = 1.0;
     double TextScale_Exit_y                    = 0.95;
 
@@ -78,6 +88,8 @@ private :
 
     Math::vec2 TextScale_Title                 = {TextScale_Title_x,TextScale_Title_y};
     Math::vec2 TextScale_PlayIGY               = {TextScale_PlayIGY_x,TextScale_PlayIGY_y};
+    Math::vec2 TextScale_Setting               = {TextScale_Setting_x,TextScale_Setting_y};
+    Math::vec2 TextScale_Credit                = {TextScale_Credit_x,TextScale_Credit_y};        
     Math::vec2 TextScale_Exit                  = {TextScale_Exit_x,TextScale_Exit_y};
     Math::vec2 TextScale_Antartic_Monkeys      = {TextScale_Antartic_Monkeys_x, TextScale_Antartic_Monkeys_y};
 
@@ -89,7 +101,11 @@ private :
 
     int Padding_x              = 200;
     int Padding_y_Top          = 200;
+    int Padding_y_Title_to_Menu = 100;
     int Padding_y_Bottom       = 100;
+    int Padding_y_Middle       = (Engine::GetWindow().GetWindowSize().y - Padding_y_Top - Padding_y_Bottom) / static_cast<int>(Main_Keys::Count);
+    int Padding_y_Bottom_to_Teamname = 50;
+
 
     Math::ivec2 window_size = Engine::GetWindow().GetSize();
     int center_x               = (window_size.x) / 2;
@@ -102,7 +118,21 @@ private :
 
     Math::vec2 Text_Position_Center_Bottom = {static_cast<double>(center_x), 0.0 + static_cast<double>(Padding_y_Bottom)};
     Math::vec2 Text_Position_Title = {static_cast<double>(center_x), static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top)};
-    
+
+    Math::vec2 Text_Position_GamePlayKey = {static_cast<double>(center_x), static_cast<double>(window_size.y) 
+                                            - static_cast<double>(Padding_y_Top) - Padding_y_Title_to_Menu
+                                            - Padding_y_Middle * static_cast<int>(Main_Keys::GamePlayKey)};
+    Math::vec2 Text_Position_SettingKey = {static_cast<double>(center_x), static_cast<double>(window_size.y) 
+                                            - static_cast<double>(Padding_y_Top) - Padding_y_Title_to_Menu
+                                            - Padding_y_Middle * static_cast<int>(Main_Keys::SettingKey)};
+    Math::vec2 Text_Position_CreditKey = {static_cast<double>(center_x), static_cast<double>(window_size.y) 
+                                            - static_cast<double>(Padding_y_Top) - Padding_y_Title_to_Menu
+                                            - Padding_y_Middle * static_cast<int>(Main_Keys::CreditKey)};          
+    Math::vec2 Text_Position_ExitKey = {static_cast<double>(center_x), static_cast<double>(window_size.y) 
+                                            - static_cast<double>(Padding_y_Top) - Padding_y_Title_to_Menu
+                                            - Padding_y_Middle * static_cast<int>(Main_Keys::ExitKey)}; 
+    Math::vec2 Text_Position_Teamname = {static_cast<double>(center_x), static_cast<double>(Padding_y_Bottom - Padding_y_Bottom_to_Teamname)};                                                                                         
+                                            
     Main_Keys current = Main_Keys::GamePlayKey;
 
 };
