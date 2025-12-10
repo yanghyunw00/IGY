@@ -124,7 +124,7 @@ namespace Dokev
         return info;
     }
 
-    void SystemInfo::GetMemoryInfoString(char* buffer, size_t bufferSize)
+    void SystemInfo::GetMemoryInfoString(char* buffer, std::size_t bufferSize)
     {
         MemoryInfo info = GetMemoryInfo();
 

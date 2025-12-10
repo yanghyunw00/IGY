@@ -16,6 +16,14 @@ Dokev::Texture2D WorkBuilding::workshopTexture;
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool WorkBuilding::texturesLoaded = false;
 
+namespace
+{
+    CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
+    {
+        return (color & 0xFFFFFF00u) | alpha;
+    }
+}
+
 void WorkBuilding::LoadTextures()
 {
     if (!texturesLoaded)
@@ -69,8 +77,15 @@ WorkBuilding::~WorkBuilding()
     // TODO
 }
 
-void WorkBuilding::Update([[maybe_unused]] float dt)
+void WorkBuilding::Update(float dt)
 {
+    UpdateConstruction(dt);
+
+    if (!isBuilt)
+    {
+        return;
+    }
+
     if (HasWorker() && resourceManager != nullptr && productionTimer.Update(dt))
     {
         int amountToProduce = static_cast<int>(current_capacity * productionRate);
@@ -97,27 +112,12 @@ void WorkBuilding::Update([[maybe_unused]] float dt)
 
 void WorkBuilding::Draw(int viewIndex, const GridMap* map)
 {
-    Math::fvec2 transformedPos = map->TransformPathPointForView(Math::fvec2(gridPosition.x, gridPosition.y), viewIndex);
+    if (!map)
+    {
+        return;
+    }
 
-    float gridX_float = transformedPos.x;
-    float gridY_float = transformedPos.y;
-
-    int gridX_int = static_cast<int>(gridX_float);
-    int gridY_int = static_cast<int>(gridY_float);
-
-    GridCell** viewArray = map->GetViewArray(viewIndex);
-
-    int m_height = static_cast<int>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
-
-    int originX = map->GetIsoOriginX();
-    int originY = map->GetIsoOriginY();
-
-    int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
-    int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
-    int topY = m_height - screenY;
-
-    int drawX = screenX + TILE_WIDTH_HALF - texture.GetWidth() / 2;
-    int drawY = topY + TILE_HEIGHT * 2;
+    Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
     CS200::RGBA tint = CS200::WHITE;
     switch (buildingType)
@@ -136,7 +136,18 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
             break;
     }
 
-    texture.Draw(drawX, drawY, tint);
+    if (!isBuilt)
+    {
+        const auto alpha = static_cast<uint8_t>(128 + static_cast<int>(progress * 127.0f));
+        tint             = ApplyAlpha(tint, alpha);
+    }
+
+    texture.Draw(drawPos.x, drawPos.y, tint);
+
+    if (!isBuilt)
+    {
+        DrawProgressBar(viewIndex, map);
+    }
 }
 
 void WorkBuilding::AddWorker(int count)

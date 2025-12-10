@@ -23,6 +23,8 @@ set(SOURCE_CODE
     Engine/Engine.hpp Engine/Engine.cpp
     Engine/Error.hpp
     Engine/Font.hpp Engine/Font.cpp
+    Engine/AudioManager.hpp Engine/AudioManager.cpp
+    Engine/FontManager.hpp
     Engine/FPS.hpp
     Engine/GameState.hpp
     Engine/GameStateManager.hpp Engine/GameStateManager.cpp
@@ -111,6 +113,7 @@ set(SOURCE_CODE
 
     Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
     Game/Building.hpp Game/Building.cpp
+    Game/FloatingTextManager.hpp
     Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
     Game/MainMenu.hpp Game/MainMenu.cpp
     Game/Splash.hpp Game/Splash.cpp

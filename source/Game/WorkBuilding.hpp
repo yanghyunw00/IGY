@@ -33,7 +33,7 @@ public:
 
     void SetResourceManager(ResourceManager* rm);
 
-    void Update([[maybe_unused]] float dt) override;
+    void Update(float dt) override;
     void Draw(int viewIndex, const GridMap* map) override;
 
     std::string TypeName() override {return "WorkBuilding";}

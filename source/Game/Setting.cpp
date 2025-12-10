@@ -1,13 +1,15 @@
- #include "Setting.hpp"
- #include "GamePlayState.hpp"
- #include "Engine/Engine.hpp"
- #include "Engine/GameStateManager.hpp"
- #include "Engine/Window.hpp"
- #include "Game/Mainmenu.hpp"
+#include "Setting.hpp"
+#include "GamePlayState.hpp"
+#include "Engine/AudioManager.hpp"
+#include "Engine/Engine.hpp"
+#include "Engine/GameStateManager.hpp"
+#include "Engine/Window.hpp"
+#include "Game/Mainmenu.hpp"
 
 void Setting::Load()
 {
     CS200::RenderingAPI::SetClearColor(0x0d0e20FF);
+    volume = CS230::AudioManager::Instance().GetVolumeLevel();
 
     try
     {
@@ -179,6 +181,7 @@ void Setting::Draw() const
 void Setting::SetVolume(int scale)
 {
     volume = scale;
+    CS230::AudioManager::Instance().SetVolumeLevel(volume, volume_max);
 }
 
 void Setting::DrawText(const std::string& text, const Math::vec2& position, CS230::Font& font, CS200::RGBA color, Math::vec2 textscale) const
