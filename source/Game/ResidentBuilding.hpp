@@ -26,7 +26,7 @@ public:
     ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
     ~ResidentBuilding() override;
 
-    void Update(float dt) override;
+    void Update([[maybe_unused]] float dt) override;
     void Draw(int viewIndex, const GridMap* map) override;
 
     std::string TypeName() override {return "ResidentBuilding";}

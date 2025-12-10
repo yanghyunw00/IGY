@@ -9,7 +9,6 @@
 #include "MainMenu.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
-#include "Engine/AudioManager.hpp"
 #include "GamePlayState.hpp"
 #include "Dokev/DKMapManager.hpp"
 #include "Setting.hpp"
@@ -46,8 +45,6 @@ void MainMenu::Load()
     }
 
     selectedVariant = MapManager::GetNextMapVariant();
-
-    CS230::AudioManager::Instance().PlayMusic("Assets/sounds/title.mp3", true);
 }
 
 void MainMenu::Update(double dt)

@@ -93,5 +93,4 @@ private:
     UserInterfaceEditor playerUI;
 
     Math::ivec2 lastPlaceRoadPos = {-1,-1};
-    int roadBuildSoundCount = 0;
 };

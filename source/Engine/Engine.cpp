@@ -18,7 +18,6 @@
 #include "GameState.hpp"
 #include "GameStateManager.hpp"
 #include "Input.hpp"
-#include "AudioManager.hpp"
 #include "Logger.hpp"
 #include "TextureManager.hpp"
 #include "Timer.hpp"
@@ -120,7 +119,6 @@ void Engine::Start(std::string_view window_title)
     window.SetEventCallback(ImGuiHelper::FeedEvent);
     impl->ImmediateRenderer2D.Init();
     impl->InstancedRenderer2D.Init(); //MC
-    CS230::AudioManager::Instance().Init();
 
     impl->timer.ResetTimeStamp();
 }
@@ -131,7 +129,6 @@ void Engine::Stop()
     impl->InstancedRenderer2D.Shutdown(); //MC
 
     impl->gameStateManager.Clear();
-    CS230::AudioManager::Instance().Shutdown();
     ImGuiHelper::Shutdown();
     impl->logger.LogEvent("Engine Stopped");
 }
