@@ -11,6 +11,7 @@
 #include "DKCollision.hpp"
 #include "DKShapes.hpp"
 #include "Engine/Engine.hpp"
+#include "Engine/Input.hpp"
 #include "Engine/Matrix.hpp"
 #include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
@@ -161,7 +162,7 @@ namespace Dokev
         constructionButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
         constructionButton.position = Math::fvec2(startX, startY);
         constructionButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-        constructionButton.name     = "Construction";
+        constructionButton.name     = "Build";
         constructionButton.tint     = Dokev::ColorPalette::WHITE;
         mainButtons.push_back(constructionButton);
 
@@ -170,7 +171,7 @@ namespace Dokev
         deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
         deleteButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
         deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-        deleteButton.name     = "Delete";
+        deleteButton.name     = "Destroy";
         deleteButton.tint     = Dokev::ColorPalette::WHITE;
         mainButtons.push_back(deleteButton);
 
@@ -225,6 +226,82 @@ namespace Dokev
 
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked)
     {
+        // Keyboard shortcuts
+        const auto& input = Engine::GetInput();
+
+        // C key: Cancel (works in any state)
+        if (input.KeyJustPressed(CS230::Input::Keys::C))
+        {
+            selectedBuilding = BuildingType::NONE;
+            categoryButtons.clear();
+            buildingButtons.clear();
+            currentMenuState = MenuState::MAIN;
+        }
+
+        // B key: Build (open category menu from MAIN)
+        if (input.KeyJustPressed(CS230::Input::Keys::B) && currentMenuState == MenuState::MAIN)
+        {
+            currentMenuState = MenuState::CATEGORY;
+            CreateCategoryButtons();
+        }
+
+        // Category menu shortcuts (when in CATEGORY state)
+        if (currentMenuState == MenuState::CATEGORY)
+        {
+            if (input.KeyJustPressed(CS230::Input::Keys::H))
+            {
+                currentMenuState = MenuState::BUILDING;
+                currentCategory  = CategoryType::HOME_CATEGORY;
+                CreateBuildingButtons(CategoryType::HOME_CATEGORY);
+            }
+            else if (input.KeyJustPressed(CS230::Input::Keys::W))
+            {
+                currentMenuState = MenuState::BUILDING;
+                currentCategory  = CategoryType::WORK_CATEGORY;
+                CreateBuildingButtons(CategoryType::WORK_CATEGORY);
+            }
+            else if (input.KeyJustPressed(CS230::Input::Keys::R))
+            {
+                currentMenuState = MenuState::BUILDING;
+                currentCategory  = CategoryType::ROAD_CATEGORY;
+                CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
+            }
+        }
+
+        // Building selection shortcuts (when in BUILDING state)
+        if (currentMenuState == MenuState::BUILDING)
+        {
+            if (currentCategory == CategoryType::HOME_CATEGORY)
+            {
+                if (input.KeyJustPressed(CS230::Input::Keys::H))
+                {
+                    selectedBuilding = BuildingType::HOME;
+                }
+            }
+            else if (currentCategory == CategoryType::WORK_CATEGORY)
+            {
+                if (input.KeyJustPressed(CS230::Input::Keys::W))
+                {
+                    selectedBuilding = BuildingType::WOOD_WORKSHOP;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::R))
+                {
+                    selectedBuilding = BuildingType::ROCK_WORKSHOP;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::S))
+                {
+                    selectedBuilding = BuildingType::STEEL_WORKSHOP;
+                }
+            }
+            else if (currentCategory == CategoryType::ROAD_CATEGORY)
+            {
+                if (input.KeyJustPressed(CS230::Input::Keys::R))
+                {
+                    selectedBuilding = BuildingType::ROAD;
+                }
+            }
+        }
+
         switch (currentMenuState)
         {
             case MenuState::MAIN:
@@ -239,7 +316,7 @@ namespace Dokev
                             {
                                 selectedBuilding = BuildingType::DELETE;
                             }
-                            else if (button.name == "Construction")
+                            else if (button.name == "Build")
                             {
                                 currentMenuState = MenuState::CATEGORY;
                                 CreateCategoryButtons();
@@ -522,6 +599,13 @@ namespace Dokev
             if (button.type == BuildingType::HOME)
                 tooltipHeight = 80.0f;
 
+            // Add space for hotkey display
+            std::string hotkey = GetHotkeyForButton(button);
+            if (!hotkey.empty())
+            {
+                tooltipHeight += 15.0f;
+            }
+
             Math::fvec2 tooltipPos = Math::fvec2(button.position.x - tooltipWidth - 10.0f, button.position.y);
 
             DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::TOOLTIP_BACKGROUND);
@@ -574,6 +658,26 @@ namespace Dokev
                         textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
                     }
                 }
+
+                // Draw hotkey at the bottom
+                if (!hotkey.empty())
+                {
+                    float hotkeyY = tooltipPos.y + tooltipHeight - 15.0f;
+                    float hotkeyX = tooltipPos.x + 10.0f;
+
+                    // Draw Hotkey:  in white
+                    if (auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE))
+                    {
+                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::WHITE);
+                        hotkeyX += labelTexture->GetSize().x * 0.25f;
+                    }
+
+                    // Draw key in green
+                    if (auto keyTexture = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN))
+                    {
+                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::GREEN);
+                    }
+                }
             }
         }
         else if (button.isHovered && !button.name.empty())
@@ -582,6 +686,13 @@ namespace Dokev
             float       textWidth     = static_cast<float>(tooltipText.length()) * 8.0f;
             float       tooltipWidth  = textWidth + 20.0f;
             float       tooltipHeight = 40.0f;
+
+            // Add space for hotkey display
+            std::string hotkey = GetHotkeyForButton(button);
+            if (!hotkey.empty())
+            {
+                tooltipHeight += 15.0f;
+            }
 
             if (tooltipWidth < 140.0f)
             {
@@ -601,6 +712,26 @@ namespace Dokev
                     nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 15.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
                                       Dokev::ColorPalette::WHITE);
                 }
+
+                // Draw hotkey at the bottom
+                if (!hotkey.empty())
+                {
+                    float hotkeyY = tooltipPos.y + tooltipHeight - 15.0f;
+                    float hotkeyX = tooltipPos.x + 10.0f;
+
+                    // Draw Hotkey:  in white
+                    if (auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE))
+                    {
+                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::WHITE);
+                        hotkeyX += labelTexture->GetSize().x * 0.25f;
+                    }
+
+                    // Draw key in green
+                    if (auto keyTexture = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN))
+                    {
+                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::GREEN);
+                    }
+                }
             }
         }
     }
@@ -615,5 +746,45 @@ namespace Dokev
             return std::string(buffer);
         }
         return std::to_string(value);
+    }
+
+    std::string UIManager::GetHotkeyForButton(const BuildingButton& button) const
+    {
+        // Category buttons
+        if (currentMenuState == MenuState::CATEGORY)
+        {
+            if (button.name == "Home") return "H";
+            if (button.name == "Work") return "W";
+            if (button.name == "Road") return "R";
+        }
+
+        // Building buttons
+        if (currentMenuState == MenuState::BUILDING)
+        {
+            if (currentCategory == CategoryType::HOME_CATEGORY)
+            {
+                if (button.type == BuildingType::HOME) return "H";
+            }
+            else if (currentCategory == CategoryType::WORK_CATEGORY)
+            {
+                if (button.type == BuildingType::WOOD_WORKSHOP) return "W";
+                if (button.type == BuildingType::ROCK_WORKSHOP) return "R";
+                if (button.type == BuildingType::STEEL_WORKSHOP) return "S";
+            }
+            else if (currentCategory == CategoryType::ROAD_CATEGORY)
+            {
+                if (button.type == BuildingType::ROAD) return "R";
+            }
+            if (button.name == "Cancel") return "C";
+        }
+
+        // Main menu buttons
+        if (currentMenuState == MenuState::MAIN)
+        {
+            if (button.name == "Build") return "B";
+            if (button.name == "Cancel") return "C";
+        }
+
+        return ""; // No hotkey
     }
 }

@@ -138,7 +138,12 @@ void GamePlayState::Update(double dt)
 {
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     camera.UpdateZoomInterpolation(dt);
-    worldEditor.UpdateInput();
+
+    // Only process game input if UI menu is not active
+    if (!uiManager.IsMenuActive())
+    {
+        worldEditor.UpdateInput();
+    }
 
     if (worldEditor.IsSaveRequested())
     {
