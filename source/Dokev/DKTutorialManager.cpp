@@ -75,10 +75,10 @@ namespace Dokev
         step4.text = "Now let's build a Wood Workshop to gather resources!";
         step4.completionType = CompletionType::BUTTON_CLICKED;
         step4.highlightType = HighlightType::RECTANGLE;
-        step4.highlightPos = Math::fvec2(static_cast<float>(windowSize.x) - 120.0f, 130.0f);
-        step4.highlightSize = Math::fvec2(100.0f, 100.0f);
+        step4.highlightPos = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 110.0f, 370.0f);
+        step4.highlightSize = Math::fvec2(60.0f, 60.0f);
         step4.showArrow = true;
-        step4.arrowPos = Math::fvec2(static_cast<float>(windowSize.x) - 70.0f, 150.0f);
+        step4.arrowPos = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 140.0f, 390.0f);
         step4.blockInput = false;
         steps.push_back(step4);
 
@@ -213,8 +213,8 @@ namespace Dokev
         auto windowSize = Engine::GetWindow().GetSize();
         const auto& currentStep = steps[currentStepIndex];
 
-        float bubbleWidth = 600.0f;
-        float bubbleHeight = 100.0f;
+        float bubbleWidth = 900.0f;
+        float bubbleHeight = 120.0f;
         float bubbleX = (windowSize.x - bubbleWidth) / 2.0f;
         float bubbleY = windowSize.y - bubbleHeight - 50.0f;
 
@@ -285,6 +285,12 @@ namespace Dokev
         if (currentStepIndex >= static_cast<int>(steps.size()))
         {
             isActive = false;
+        }
+
+        // Step 4: Open Work category menu automatically
+        if (currentStepIndex == 3 && uiManager)
+        {
+            uiManager->OpenBuildingCategory(CategoryType::WORK_CATEGORY);
         }
     }
 
