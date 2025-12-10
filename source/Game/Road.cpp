@@ -11,6 +11,7 @@
 #include "Dokev/DKTileManager.hpp"
 #include "Engine/Vec2.hpp"
 #include "GridMap.hpp"
+#include <algorithm>
 #include <vector>
 
 void Road::addRoad(int x, int y, GridMap& map)
@@ -33,7 +34,16 @@ void Road::removeRoad(int x, int y, GridMap& map)
         tileManager->DeallocateTile(x, y);
     }
 
-    roadPositions.clear();
+    // Remove only the specific road at position (x, y)
+    auto it = std::find_if(roadPositions.begin(), roadPositions.end(),
+        [x, y](const Math::fvec2& pos) {
+            return static_cast<int>(pos.x) == x && static_cast<int>(pos.y) == y;
+        });
+    
+    if (it != roadPositions.end())
+    {
+        roadPositions.erase(it);
+    }
 }
 
 bool Road::hasRoad(int x, int y) const
@@ -97,19 +107,13 @@ void Road::buildRoadPath(GridMap& map, int startX, int startY, int endX, int end
 
     std::vector<Math::fvec2> path = map.GetCurrentPath();
 
-    auto* tileManager = map.GetTileManager();
-
     for (const auto& pos : path)
     {
         int x = static_cast<int>(pos.x);
         int y = static_cast<int>(pos.y);
 
+        // addRoad already handles tile allocation
         addRoad(x, y, map);
-
-        if (tileManager)
-        {
-            tileManager->AllocateTile(x, y, Dokev::TileType::ROAD);
-        }
     }
 
     map.ClearPath();

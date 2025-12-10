@@ -75,6 +75,19 @@ namespace Dokev
             selectedBuilding = type;
         }
 
+        bool IsMenuActive() const
+        {
+            return currentMenuState != MenuState::MAIN;
+        }
+
+        void OpenBuildingCategory(CategoryType category)
+        {
+            currentMenuState = MenuState::BUILDING;
+            currentCategory = category;
+            CreateCategoryButtons();
+            CreateBuildingButtons(category);
+        }
+
     private:
         void        CreateMainButtons();
         void        CreateCategoryButtons();
@@ -87,6 +100,7 @@ namespace Dokev
         void        DrawResources(ResourceManager* resourceMgr, int humanCount) const;
         void        DrawHappiness(CityMetrics* cm) const;
         std::string FormatNumber(int value) const;
+        std::string GetHotkeyForButton(const BuildingButton& button) const;
 
         MenuState    currentMenuState = MenuState::MAIN;
         CategoryType currentCategory  = CategoryType::NONE;

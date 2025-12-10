@@ -11,6 +11,8 @@
 #include "Engine/GameStateManager.hpp"
 #include "GamePlayState.hpp"
 #include "Dokev/DKMapManager.hpp"
+#include "Setting.hpp"
+#include "GameCredit.hpp"
 
 // #include "Engine/Windwow.hpp"
 
@@ -53,19 +55,50 @@ void MainMenu::Update(double dt)
     TextColor_MapSelect = Dokev::ColorPalette::WHITE;
     TextColor_Exit      = Dokev::ColorPalette::WHITE;
 
-    switch (current)
-    {
-        case Main_Keys::GamePlayKey:
-            TextColor_PlayIGY = Dokev::ColorPalette::HOTPINK;
-            break;
-        case Main_Keys::MapSelectKey:
-            TextColor_MapSelect = Dokev::ColorPalette::HOTPINK;
-            break;
-        case Main_Keys::ExitKey:
-            TextColor_Exit = Dokev::ColorPalette::HOTPINK;
-            break;
-        default: break;
-    }
+   switch (current)
+{
+    case Main_Keys::GamePlayKey:
+        TextColor_PlayIGY   = Dokev::ColorPalette::HOTPINK;
+        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+        TextColor_Setting   = Dokev::ColorPalette::WHITE;
+        TextColor_Credit    = Dokev::ColorPalette::WHITE;
+        TextColor_Exit      = Dokev::ColorPalette::WHITE;
+        break;
+
+    case Main_Keys::MapSelectKey:
+        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+        TextColor_MapSelect = Dokev::ColorPalette::HOTPINK;
+        TextColor_Setting   = Dokev::ColorPalette::WHITE;
+        TextColor_Credit    = Dokev::ColorPalette::WHITE;
+        TextColor_Exit      = Dokev::ColorPalette::WHITE;
+        break;
+
+    case Main_Keys::SettingKey:
+        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+        TextColor_Setting   = Dokev::ColorPalette::HOTPINK;
+        TextColor_Credit    = Dokev::ColorPalette::WHITE;
+        TextColor_Exit      = Dokev::ColorPalette::WHITE;
+        break;
+
+    case Main_Keys::CreditKey:
+        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+        TextColor_Setting   = Dokev::ColorPalette::WHITE;
+        TextColor_Credit    = Dokev::ColorPalette::HOTPINK;
+        TextColor_Exit      = Dokev::ColorPalette::WHITE;
+        break;
+
+    case Main_Keys::ExitKey:
+        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+        TextColor_Setting   = Dokev::ColorPalette::WHITE;
+        TextColor_Credit    = Dokev::ColorPalette::WHITE;
+        TextColor_Exit      = Dokev::ColorPalette::HOTPINK;
+        break;
+
+    default: break;
+}
     const auto& input = Engine::GetInput();
 
     if (input.KeyJustPressed(CS230::Input::Keys::Down) || input.KeyJustPressed(CS230::Input::Keys::S))
@@ -117,6 +150,15 @@ void MainMenu::Update(double dt)
                 break;
             case Main_Keys::MapSelectKey:
                 CycleMapVariant(1);
+                break;
+            case Main_Keys::SettingKey:
+                Engine::GetGameStateManager().PopState();
+                Engine::GetGameStateManager().PushState<Setting>();
+                return;
+                break;
+            case Main_Keys::CreditKey:
+                Engine::GetGameStateManager().PopState();
+                Engine::GetGameStateManager().PushState<GameCredit>();
                 return;
                 break;
             case Main_Keys::ExitKey:
@@ -159,20 +201,33 @@ void MainMenu::Draw() const
     ////////////////////////////////
     //          PlayIGY           //
     ////////////////////////////////
-    Math::vec2 pos{ static_cast<double>(PlayIGY_x), static_cast<double>(PlayIGY_y) };
-    DrawText(text_PlayIGY, pos, *Font_simple, TextColor_PlayIGY, TextScale_PlayIGY);
 
+    DrawText(text_PlayIGY, Text_Position_GamePlayKey, *Font_simple, TextColor_PlayIGY, TextScale_PlayIGY);
+  
+  
     ////////////////////////////////
     //        Map Select          //
     ////////////////////////////////
-    Math::vec2 mapPos{ static_cast<double>(MapSelect_x), static_cast<double>(MapSelect_y) };
-    DrawText(GetMapLabel(), mapPos, *Font_simple, TextColor_MapSelect, TextScale_MapSelect);
+    DrawText(GetMapLabel(), Text_Position_MapSelectKey, *Font_simple, TextColor_MapSelect, TextScale_MapSelect);
+
+    ////////////////////////////////
+    //          Setting           //
+    ////////////////////////////////
+
+    DrawText(text_Setting, Text_Position_SettingKey, *Font_simple, TextColor_Setting, TextScale_Setting);
+
+    ////////////////////////////////
+    //           Credit           //
+    ////////////////////////////////
+
+    DrawText(text_Credit, Text_Position_CreditKey, *Font_simple, TextColor_Credit, TextScale_Credit);
+
 
     ////////////////////////////////
     //           Exit             //
     ////////////////////////////////
-    Math::vec2 pos2{ static_cast<double>(Exit_x), static_cast<double>(Exit_y) };
-    DrawText(text_Exit, pos2, *Font_simple, TextColor_Exit, TextScale_Exit);
+
+    DrawText(text_Exit, Text_Position_ExitKey, *Font_simple, TextColor_Exit, TextScale_Exit);
 
     ////////////////////////////////
     //      Antartic_Monkeys      //

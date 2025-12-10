@@ -29,7 +29,7 @@ namespace Dokev
                 totalHouses++;
                 homeCapacity += building->GetMaxCapacity();
 
-                // Count houses with water (TODO: implement when water system is ready)
+                // Count houses with water (implement when water system is ready)
                 // For now, assume all houses have water
                 housesWithWater++;
             }

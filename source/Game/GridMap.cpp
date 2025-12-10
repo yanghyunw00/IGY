@@ -18,12 +18,14 @@
 #include "Engine/Texture.hpp"
 #include "Engine/TextureManager.hpp"
 #include "Engine/Window.hpp"
-#include <cmath>
+
+#include "OpenGL/GL.hpp"
 #include <GL/glew.h>
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cmath>
 
 namespace
 {
@@ -79,31 +81,31 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 
     //////////////////////////////////////////////////////////////////////////
 
-    glGenFramebuffers(1, &mouseAtlasFBO);
+    GL::GenFramebuffers(1, &mouseAtlasFBO);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
+    GL::BindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
     // this texture will save the colors
-    glGenTextures(1, &mouseAtlasTex);
-    glBindTexture(GL_TEXTURE_2D, mouseAtlasTex);
+    GL::GenTextures(1, &mouseAtlasTex);
+    GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1200, 800, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    GL::TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1200, 800, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
     // No filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     // Attach it as color attachment 0
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mouseAtlasTex, 0); // this makes it so that anything drawn goes to the texture
+    GL::FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mouseAtlasTex, 0); // this makes it so that anything drawn goes to the texture
 
     // Specify draw buffer list (only one)
     GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-    glDrawBuffers(1, drawBuffers);
+    GL::DrawBuffers(1, drawBuffers);
     // “This FBO has 1 color output, and it’s color attachment 0.”
 
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL::BindTexture(GL_TEXTURE_2D, 0);
 };
 
 void GridMap::ReGenerateMap()
@@ -376,7 +378,7 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
         return;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
+    GL::BindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
     currentView = (index % 4) + 1;
 
@@ -455,7 +457,7 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
             }
         }
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // restore
+    GL::BindFramebuffer(GL_FRAMEBUFFER, 0); // restore
 }
 
 void GridMap::ResetPerlinTexture()

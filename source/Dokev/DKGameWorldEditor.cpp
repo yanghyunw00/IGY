@@ -84,21 +84,12 @@ namespace Dokev
             {
                 camera->Move({ 0, camera_speed * environment.DeltaTime });
             }
-
-            // Reset camera
-            if (input.KeyDown(CS230::Input::Keys::R))
-            {
-                camera->Reset();
-            }
         }
 
+        // Rotation
         if (rotationIndex)
         {
-            if (input.KeyJustPressed(CS230::Input::Keys::Z))
-            {
-                *rotationIndex = (*rotationIndex - 1 + 4) % 4;
-            }
-            else if (input.KeyJustPressed(CS230::Input::Keys::C))
+            if (input.KeyJustPressed(CS230::Input::Keys::R))
             {
                 *rotationIndex = (*rotationIndex + 1) % 4;
             }

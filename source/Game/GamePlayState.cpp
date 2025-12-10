@@ -77,6 +77,7 @@ namespace
     }
 
     Math::ivec2 lastPlacedRoadPos = {-1, -1};
+    bool        blockRoadPlacementUntilRelease = false; // avoid placing road with the same click used to select it
 }
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
@@ -139,8 +140,14 @@ void GamePlayState::Update(double dt)
     Engine::GetLogger().LogEvent("GamePlayState::Update start");
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     camera.UpdateZoomInterpolation(dt);
-    worldEditor.UpdateInput();
-    Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
+
+    // Only process game input if UI menu is not active
+    if (!uiManager.IsMenuActive())
+    {
+        worldEditor.UpdateInput();
+       Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
+    }
+
 
     if (worldEditor.IsSaveRequested())
     {
@@ -239,8 +246,9 @@ void GamePlayState::Update(double dt)
     uiManager.Update(mouseScreenPos, mouseClicked);
 
     // Check if button was clicked
-    auto currentSelection = uiManager.GetSelectedBuilding();
-    bool buttonClicked    = (previousUISelection != currentSelection) && (currentSelection != BuildingType::NONE);
+    auto currentSelection   = uiManager.GetSelectedBuilding();
+    bool selectionChanged   = previousUISelection != currentSelection;
+    bool buttonClicked      = selectionChanged && (currentSelection != BuildingType::NONE);
 
     // Update tutorial
     const auto& input       = Engine::GetInput();
@@ -253,12 +261,22 @@ void GamePlayState::Update(double dt)
         tutorialManager.OnButtonClicked();
     }
 
+    // If road was selected while the mouse is still held, wait for release before allowing drag placement
+    if (selectionChanged && currentSelection == BuildingType::ROAD && ismouseheld)
+    {
+        blockRoadPlacementUntilRelease = true;
+    }
+    if (!ismouseheld)
+    {
+        blockRoadPlacementUntilRelease = false;
+    }
+
     ///////////////////////////////////////////////////////////
     // Update mouse picking for isometric, building placement//
     ///////////////////////////////////////////////////////////
 
     auto selectBuildingType = uiManager.GetSelectedBuilding();
-    bool shouldplace = mouseClicked || (ismouseheld && selectBuildingType == BuildingType::ROAD);
+    bool shouldplace = mouseClicked || (ismouseheld && selectBuildingType == BuildingType::ROAD && !blockRoadPlacementUntilRelease);
 
     if (shouldplace)
     {
@@ -276,13 +294,15 @@ void GamePlayState::Update(double dt)
             }
 
             GLubyte pixel[4] = { 0 };
-            glBindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->GetMouseAtlasFBO());
+
+            GL::BindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
+
 
             mouseScreen.y = windowSize.y - mouseScreen.y;
 
             GL::ReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
             
 
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
