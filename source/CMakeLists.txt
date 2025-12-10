@@ -49,73 +49,101 @@ set(SOURCE_CODE
     OpenGL/Texture.hpp OpenGL/Texture.cpp
     OpenGL/VertexArray.cpp OpenGL/VertexArray.hpp
 
-    Dokev/DKAnimation.hpp Dokev/DKAnimation.cpp
-    Dokev/DKAnimationSprite.hpp Dokev/DKAnimationSprite.cpp
-    Dokev/DKCamera.hpp Dokev/DKCamera.cpp
-    Dokev/DKCityMetrics.hpp Dokev/DKCityMetrics.cpp
-    Dokev/DKCollision.hpp Dokev/DKCollision.cpp
-    Dokev/DKColor.hpp Dokev/DKColor.cpp
-    Dokev/DKComponent.hpp
-    Dokev/DKComponentManager.hpp Dokev/DKComponentManager.cpp
-    Dokev/DKGameObject.hpp
-    Dokev/DKGameObjectManager.hpp Dokev/DKGameObjectManager.cpp
-    Dokev/DKGameObjectTypes.hpp
-    Dokev/DKGameState.hpp
-    Dokev/DKGameWorldEditor.hpp Dokev/DKGameWorldEditor.cpp
-    Dokev/DKGrid.hpp Dokev/DKGrid.cpp
-    Dokev/DKImage.hpp Dokev/DKImage.cpp
-    Dokev/DKMath.hpp Dokev/DKMath.cpp
-    Dokev/DKMouseInput.hpp Dokev/DKMouseInput.cpp
-    Dokev/DKMapManager.hpp Dokev/DKMapManager.cpp
-    Dokev/DKParticleEmitter.hpp Dokev/DKParticleEmitter.cpp
-    Dokev/DKParticles.hpp
-    Dokev/DKShapes.hpp Dokev/DKShapes.cpp
-    Dokev/DKSpriteSheet.hpp Dokev/DKSpriteSheet.cpp
-    Dokev/DKSystemInfo.hpp Dokev/DKSystemInfo.cpp
-    Dokev/DKTexture.hpp Dokev/DKTexture.cpp
-    Dokev/DKTileManager.hpp Dokev/DKTileManager.cpp
-    Dokev/DKTimeManager.hpp Dokev/DKTimeManager.cpp
-    Dokev/DKUIManager.hpp Dokev/DKUIManager.cpp
-    Dokev/DKUtility.hpp Dokev/DKUtility.cpp
-    Dokev/DKTutorialManager.hpp Dokev/DKTutorialManager.cpp
-    Dokev/DkTutorialStep.hpp Dokev/DkTutorialStep.cpp  
-    Dokev/DKJobsystem.hpp Dokev/DKJobsystem.cpp
-    Dokev/DKJobsystemManager.hpp
-    Dokev/DKMouseSelection.hpp Dokev/DKMouseSelection.cpp
-    Dokev/DKMetaProgramming.hpp
-    Dokev/DKUserInterfaceEditor.hpp Dokev/DKUserInterfaceEditor.cpp
-    Dokev/DKImmigrationSystem.hpp Dokev/DKImmigrationSystem.cpp
+    # Dokev Framework - Core
+    Dokev/Core/DKMath.hpp Dokev/Core/DKMath.cpp
+    Dokev/Core/DKUtility.hpp Dokev/Core/DKUtility.cpp
+    Dokev/Core/DKColor.hpp Dokev/Core/DKColor.cpp
+    Dokev/Core/DKMetaProgramming.hpp
+    Dokev/Core/DKSystemInfo.hpp Dokev/Core/DKSystemInfo.cpp
 
+    # Dokev Framework - Managers
+    Dokev/Managers/DKGameObjectManager.hpp Dokev/Managers/DKGameObjectManager.cpp
+    Dokev/Managers/DKComponentManager.hpp Dokev/Managers/DKComponentManager.cpp
+    Dokev/Managers/DKMapManager.hpp Dokev/Managers/DKMapManager.cpp
+    Dokev/Managers/DKUIManager.hpp Dokev/Managers/DKUIManager.cpp
+    Dokev/Managers/DKTimeManager.hpp Dokev/Managers/DKTimeManager.cpp
+    Dokev/Managers/DKTileManager.hpp Dokev/Managers/DKTileManager.cpp
+    Dokev/Managers/DKJobsystemManager.hpp
 
+    # Dokev Framework - GameObject
+    Dokev/GameObject/DKGameObject.hpp
+    Dokev/GameObject/DKGameObjectTypes.hpp
+    Dokev/GameObject/DKComponent.hpp
+    Dokev/GameObject/DKJobsystem.hpp Dokev/GameObject/DKJobsystem.cpp
 
-    Game/BuildingType.hpp
-    Game/BuildingCostManager.hpp Game/BuildingCostManager.cpp
-    Game/GamePlayState.hpp Game/GamePlayState.cpp
-    Game/DEMO.hpp Game/DEMO.cpp
-    Game/PlainsDemo.hpp Game/PlainsDemo.cpp
-    Game/WaterDemo.hpp Game/WaterDemo.cpp
-    Game/MountainDemo.hpp Game/MountainDemo.cpp
-    Game/GridCell.hpp
-    Game/CustomCell.hpp Game/CustomCell.cpp
-    Game/GridMap.hpp Game/GridMap.cpp
-    Game/HappinessSystem.hpp
-    Game/Human.hpp Game/Human.cpp
-    Game/pathFinding.hpp Game/pathFinding.cpp
-    Game/Road.hpp Game/Road.cpp
-    Game/Resource.hpp Game/Resource.cpp
-    Game/Wood.hpp Game/Wood.cpp
-    Game/Stone.hpp Game/Stone.cpp
-    Game/Steel.hpp Game/Steel.cpp
-    Game/ResourceManager.hpp
+    # Dokev Framework - Graphics
+    Dokev/Graphics/DKCamera.hpp Dokev/Graphics/DKCamera.cpp
+    Dokev/Graphics/DKTexture.hpp Dokev/Graphics/DKTexture.cpp
+    Dokev/Graphics/DKImage.hpp Dokev/Graphics/DKImage.cpp
+    Dokev/Graphics/DKSpriteSheet.hpp Dokev/Graphics/DKSpriteSheet.cpp
+    Dokev/Graphics/DKAnimationSprite.hpp Dokev/Graphics/DKAnimationSprite.cpp
+    Dokev/Graphics/DKAnimation.hpp Dokev/Graphics/DKAnimation.cpp
+    Dokev/Graphics/DKShapes.hpp Dokev/Graphics/DKShapes.cpp
+    Dokev/Graphics/DKRenderState.hpp
+    Dokev/Graphics/DKParticleEmitter.hpp Dokev/Graphics/DKParticleEmitter.cpp
+    Dokev/Graphics/DKParticles.hpp
 
+    # Dokev Framework - Input
+    Dokev/Input/DKMouseInput.hpp Dokev/Input/DKMouseInput.cpp
 
-    Game/ResidentBuilding.hpp Game/ResidentBuilding.cpp
-    Game/Building.hpp Game/Building.cpp
-    Game/WorkBuilding.hpp Game/WorkBuilding.cpp 
-    Game/MainMenu.hpp Game/MainMenu.cpp
-    Game/Splash.hpp Game/Splash.cpp
-    Game/Setting.hpp Game/Setting.cpp
-    Game/GameCredit.hpp Game/GameCredit.cpp
+    # Dokev Framework - World
+    Dokev/World/DKGrid.hpp Dokev/World/DKGrid.cpp
+    Dokev/World/DKCollision.hpp Dokev/World/DKCollision.cpp
+
+    # Dokev Framework - State
+    Dokev/State/DKGameState.hpp
+
+    # Game - States
+    Game/States/GamePlayState.hpp Game/States/GamePlayState.cpp
+    Game/States/MainMenu.hpp Game/States/MainMenu.cpp
+    Game/States/Splash.hpp Game/States/Splash.cpp
+    Game/States/Setting.hpp Game/States/Setting.cpp
+    Game/States/GameCredit.hpp Game/States/GameCredit.cpp
+    Game/States/DEMO.hpp Game/States/DEMO.cpp
+    Game/States/PlainsDemo.hpp Game/States/PlainsDemo.cpp
+    Game/States/WaterDemo.hpp Game/States/WaterDemo.cpp
+    Game/States/MountainDemo.hpp Game/States/MountainDemo.cpp
+
+    # Game - Entities
+    Game/Entities/Human.hpp Game/Entities/Human.cpp
+    Game/Entities/Building.hpp Game/Entities/Building.cpp
+    Game/Entities/ResidentBuilding.hpp Game/Entities/ResidentBuilding.cpp
+    Game/Entities/WorkBuilding.hpp Game/Entities/WorkBuilding.cpp
+    Game/Entities/Road.hpp Game/Entities/Road.cpp
+
+    # Game - Resources
+    Game/Resources/Resource.hpp Game/Resources/Resource.cpp
+    Game/Resources/Wood.hpp Game/Resources/Wood.cpp
+    Game/Resources/Stone.hpp Game/Resources/Stone.cpp
+    Game/Resources/Steel.hpp Game/Resources/Steel.cpp
+
+    # Game - Managers
+    Game/Managers/ResourceManager.hpp
+    Game/Managers/BuildingCostManager.hpp Game/Managers/BuildingCostManager.cpp
+    Game/Managers/HappinessManager.hpp
+    Game/Managers/DKCityMetrics.hpp Game/Managers/DKCityMetrics.cpp
+    Game/Managers/DKImmigrationManager.hpp Game/Managers/DKImmigrationManager.cpp
+
+    # Game - World
+    Game/World/GridMap.hpp Game/World/GridMap.cpp
+    Game/World/GridCell.hpp
+    Game/World/CustomCell.hpp Game/World/CustomCell.cpp
+    Game/World/pathFinding.hpp Game/World/pathFinding.cpp
+
+    # Game - UI
+    Game/UI/DKUserInterfaceEditor.hpp Game/UI/DKUserInterfaceEditor.cpp
+    Game/UI/DKTutorialManager.hpp Game/UI/DKTutorialManager.cpp
+    Game/UI/DKTutorialStep.hpp Game/UI/DKTutorialStep.cpp
+
+    # Game - Input
+    Game/Input/DKMouseSelection.hpp Game/Input/DKMouseSelection.cpp
+
+    # Game - Editor
+    Game/Editor/DKGameWorldEditor.hpp Game/Editor/DKGameWorldEditor.cpp
+
+    # Game - Common
+    Game/Common/BuildingType.hpp
+    Game/Common/Component.hpp
 
    # external/stb_image_write.h
    # external/stb_image.h

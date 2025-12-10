@@ -10,7 +10,7 @@
 
 #pragma once
 #include "CS200/RGBA.hpp"
-#include "Dokev/DKMouseInput.hpp"
+#include "Dokev/Input/DKMouseInput.hpp"
 #include "Vec2.hpp"
 #include <functional>
 #include <gsl/gsl>

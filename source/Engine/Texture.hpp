@@ -13,7 +13,7 @@
 #include "OpenGL/Texture.hpp"
 #include "Vec2.hpp"
 #include <filesystem>
-#include "Dokev/DKRenderState.hpp"
+#include "Dokev/Graphics/DKRenderState.hpp"
 
 namespace CS230
 {

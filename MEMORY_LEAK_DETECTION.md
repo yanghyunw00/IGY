@@ -88,17 +88,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_link_options(project_options INTERFACE -fsanitize=address)
 endif()
 ```
-
----
-
-## Comparison
-
-| Tool | Ease of Use | Detail Level | Platform |
-|------|-------------|--------------|----------|
-| CRT Debug Heap | ⭐⭐⭐⭐ | ⭐⭐⭐ | Windows only |
-| VLD | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Windows only |
-| AddressSanitizer | ⭐⭐⭐ | ⭐⭐⭐⭐ | Cross-platform (not MSVC) |
-
 ---
 
 ## Recommended Workflow
