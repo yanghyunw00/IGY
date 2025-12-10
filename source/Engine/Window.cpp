@@ -18,6 +18,7 @@
 #include <SDL.h>
 #include <functional>
 #include <sstream>
+#include <string>
 
 namespace
 {
@@ -29,28 +30,19 @@ namespace
             Engine::GetLogger().LogError(std::string{ "Failed to Set GL Attribute: " } + SDL_GetError());
         }
     }
-}
 
-namespace CS230
-{
-
-    /*Basic setup*/
-    void Window::setupSDLWindow(std::string_view title)
+    void set_default_gl_attributes()
     {
-        // Part 1 - Initialize SDL for visual use
-        if (SDL_Init(SDL_INIT_VIDEO) < 0)
-        {
-            throw_error_message("Failed to init SDK error: ", SDL_GetError());
-        }
-
-// Part 2 - Configure OpenGL context attributes (before window creation)
 #if defined(IS_WEBGL2)
         hint_gl(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
         hint_gl(SDL_GL_CONTEXT_MINOR_VERSION, 0);
         hint_gl(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
+        hint_gl(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        hint_gl(SDL_GL_CONTEXT_MINOR_VERSION, 3);
         hint_gl(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #endif
+        hint_gl(SDL_GL_ACCELERATED_VISUAL, 1);
         hint_gl(SDL_GL_DOUBLEBUFFER, true);
         hint_gl(SDL_GL_STENCIL_SIZE, 8);
         hint_gl(SDL_GL_DEPTH_SIZE, 24);
@@ -60,9 +52,48 @@ namespace CS230
         hint_gl(SDL_GL_ALPHA_SIZE, 8);
         hint_gl(SDL_GL_MULTISAMPLEBUFFERS, 1);
         hint_gl(SDL_GL_MULTISAMPLESAMPLES, 4);
+    }
+
+    void set_reduced_gl_attributes()
+    {
+        // Relax requirements to improve compatibility on minimal GLX setups
+        hint_gl(SDL_GL_MULTISAMPLEBUFFERS, 0);
+        hint_gl(SDL_GL_MULTISAMPLESAMPLES, 0);
+        hint_gl(SDL_GL_ALPHA_SIZE, 0);
+        hint_gl(SDL_GL_STENCIL_SIZE, 0);
+    }
+
+    SDL_Window* create_window(std::string_view title, int width, int height)
+    {
+        return SDL_CreateWindow(title.data(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL);
+    }
+}
+
+namespace CS230
+{
+
+    /*Basic setup*/
+    void Window::setupSDLWindow(std::string_view title)
+    {
+        // Part 1 - Initialize SDL for visual use
+        if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
+        {
+            throw_error_message("Failed to init SDK error: ", SDL_GetError());
+        }
+
+        // Part 2 - Configure OpenGL context attributes (before window creation)
+        set_default_gl_attributes();
 
         // Part 3 - Create the SDL window
-        sdl_window = SDL_CreateWindow(title.data(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, default_width, default_height, SDL_WINDOW_OPENGL);
+        sdl_window = create_window(title, default_width, default_height);
+        if (sdl_window == nullptr)
+        {
+            // Retry with relaxed attributes to handle systems without multisample/alpha visuals
+            Engine::GetLogger().LogEvent(std::string{ "Initial window creation failed: " } + SDL_GetError() + ". Retrying with reduced GL requirements.");
+            set_reduced_gl_attributes();
+            sdl_window = create_window(title, default_width, default_height);
+        }
+
         if (sdl_window == nullptr)
         {
             throw_error_message("Failed to create window: ", SDL_GetError());

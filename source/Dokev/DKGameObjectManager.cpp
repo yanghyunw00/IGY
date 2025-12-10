@@ -8,6 +8,7 @@
 #include "DKGameObjectManager.hpp"
 #include "Game/Human.hpp"
 #include "Game/Building.hpp"
+#include <cmath>
 
 namespace Dokev
 {

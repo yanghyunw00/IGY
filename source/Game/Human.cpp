@@ -12,6 +12,7 @@
 #include "Engine/Path.hpp"
 #include "GridMap.hpp"
 #include "Road.hpp"
+#include <cmath>
 #include <iostream>
 #include <queue>
 #include <unordered_map>
@@ -383,8 +384,8 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
         float distance = minDistance + (rand() % (int)(maxDistance - minDistance + 1));
 
         Math::fvec2 destination;
-        destination.x = currentGridPos.x + cos(angle) * distance;
-        destination.y = currentGridPos.y + sin(angle) * distance;
+        destination.x = currentGridPos.x + std::cos(angle) * distance;
+        destination.y = currentGridPos.y + std::sin(angle) * distance;
 
         destination.x = std::max(0.0f, std::min((float)(GRID_SIZE_X - 1), destination.x));
         destination.y = std::max(0.0f, std::min((float)(GRID_SIZE_Y - 1), destination.y));

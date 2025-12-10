@@ -46,6 +46,7 @@ namespace CS230
         static void IncrementFrame() { current_frame++; }
 
         std::shared_ptr<Texture> PrintToTexture(const std::string& text, CS200::RGBA color = 0xFFFFFFFF);
+        Math::ivec2              measureText(const std::string& text);
 
     private:
 
@@ -56,7 +57,6 @@ namespace CS230
         };
 
         void         FindCharRects(const CS200::Image& image);
-        Math::ivec2  measureText(const std::string& text);
         void         drawChar(char c, Math::TransformationMatrix& matrix, CS200::RGBA color);
         Math::irect& GetCharRect(char c);
 
