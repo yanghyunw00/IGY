@@ -257,16 +257,13 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int gridX_int = static_cast<int>(gridX_float);
     int gridY_int = static_cast<int>(gridY_float);
 
-    // if (gridX_int < 0 || gridX_int >= GRID_SIZE_X || gridY_int < 0 || gridY_int >= GRID_SIZE_Y)
-    //     return;
-
     // Get the view array
     GridCell** viewArray = map->GetViewArray(viewIndex);
 
     float height = static_cast<float>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
-    int originX = 0;
-    int originY = 0;
+    int originX = map->GetIsoOriginX();
+    int originY = map->GetIsoOriginY();
 
     int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
     int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);

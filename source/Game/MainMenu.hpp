@@ -130,6 +130,8 @@ private :
     int Exit_y                 = (window_size.y) / 2 - Text_dist_y;
 
     Math::vec2 Text_Position_Center_Bottom = {static_cast<double>(center_x), 0.0 + static_cast<double>(Padding_y_Bottom)};
+    Math::vec2 Text_Position_Left_Bottom = {static_cast<double>(window_size.x) - Padding_x , 0.0 + static_cast<double>(Padding_y_Bottom)};
+
     Math::vec2 Text_Position_Title = {static_cast<double>(center_x), static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top)};
 
     Math::vec2 Text_Position_GamePlayKey = {static_cast<double>(center_x), static_cast<double>(window_size.y) 

@@ -233,9 +233,8 @@ void MainMenu::Draw() const
     //      Antartic_Monkeys      //
     ////////////////////////////////
 
-    DrawText(text_Antartic_Monkeys, Text_Position_Center_Bottom, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
-    Math::vec2 mapInstructionPos{ static_cast<double>(center_x), static_cast<double>(Padding_y_Bottom + 50) };
-    DrawText(text_MapInstructions, mapInstructionPos, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
+    DrawText(text_Antartic_Monkeys, Text_Position_Left_Bottom, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
+    DrawText(text_MapInstructions, Math::vec2{Text_Position_Left_Bottom.x,static_cast<double>(Padding_y_Bottom + 50)}, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
 
     renderer2d.EndScene();
 }

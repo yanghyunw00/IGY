@@ -35,11 +35,11 @@ void Resource::Draw(int viewIndex, const GridMap* map) const
 
     GridCell* cell = viewArray[gridY_int * GRID_SIZE_X + gridX_int];
     if (!cell) return;
-    
+
     float height = static_cast<float>(cell->getHeight());
 
-    int originX = 0;
-    int originY = 0;
+    int originX = map->GetIsoOriginX();
+    int originY = map->GetIsoOriginY();
 
     int screenX = originX + static_cast<int>((transformedPos.x - transformedPos.y) * TILE_WIDTH_HALF);
     int screenY = originY + static_cast<int>((transformedPos.x + transformedPos.y) * TILE_HEIGHT_HALF);

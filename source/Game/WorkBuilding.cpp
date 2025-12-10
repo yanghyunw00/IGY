@@ -109,13 +109,13 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
 
     int m_height = static_cast<int>(viewArray[gridY_int * GRID_SIZE_X + gridX_int]->getHeight());
 
-    int originX = 0;
-    int originY = 0;
+    int originX = map->GetIsoOriginX();
+    int originY = map->GetIsoOriginY();
 
     int screenX = originX + static_cast<int>((gridX_float - gridY_float) * TILE_WIDTH_HALF);
     int screenY = originY + static_cast<int>((gridX_float + gridY_float) * TILE_HEIGHT_HALF);
     int topY = m_height - screenY;
-    
+
     int drawX = screenX + TILE_WIDTH_HALF - texture.GetWidth() / 2;
     int drawY = topY + TILE_HEIGHT * 2;
 
