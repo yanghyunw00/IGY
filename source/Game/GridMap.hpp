@@ -18,6 +18,25 @@
 #include "OpenGL/GL.hpp"
 #include "Game/pathFinding.hpp"
 
+enum class MapVariant
+{
+    Balanced = 0,
+    WaterHeavy,
+    PlainsHeavy,
+    MountainHeavy
+};
+
+struct MapGenerationProfile
+{
+    MapVariant       variant      = MapVariant::Balanced;
+    TerrainThresholds thresholds  = DefaultTerrainThresholds();
+    float            noiseScale   = 0.1f;
+    const char*      label        = "Balanced";
+};
+
+MapGenerationProfile GetMapProfile(MapVariant variant);
+const char*          GetMapVariantLabel(MapVariant variant);
+
 // Forward declaration
 namespace Dokev { class MouseSelection; }
 
@@ -50,11 +69,17 @@ public:
 	void IsometricDrawMap(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr) const;
 
 	void IsometricDrawMouseAtlas(int index,Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
+    void EnsureMouseAtlasInitialized() const;
+    GLuint GetMouseAtlasFBO() const { return mouseAtlasFBO; }
 
 	void ResetPerlinTexture();
 	const Dokev::Texture2D* GetPerlinTexture() const;
 	GridCell** GetViewArray(int viewIndex) const;
 
+    void SetMapVariant(MapVariant variant);
+    MapVariant GetMapVariant() const { return mapVariant; }
+    const MapGenerationProfile& GetGenerationProfile() const { return mapProfile; }
+    double GetWaterWaveOffset(int gridX, int gridY) const;
 
 	//Path Finding
 	void InitializePathFinding();
@@ -78,6 +103,7 @@ public:
 
 
 private:
+    void UpdateIsoOrigin();
 	void rotatePoint90(float x, float y,
 		float tx, float ty,
 		int angleDeg,
@@ -122,6 +148,9 @@ private:
 	std::vector<Math::fvec2> currentPath;
 	bool showPath;
 
+    MapVariant           mapVariant = MapVariant::Balanced;
+    MapGenerationProfile mapProfile = GetMapProfile(MapVariant::Balanced);
+
 	// Tile management for buildings and roads
 	std::unique_ptr<Dokev::TileManager> tileManager;
 	Dokev::Texture2D RoadTexture;
@@ -129,8 +158,8 @@ private:
 public: 
 
 
-	GLuint mouseAtlasFBO   = 0;
-    GLuint mouseAtlasTex   = 0;
+	mutable GLuint mouseAtlasFBO   = 0;
+    mutable GLuint mouseAtlasTex   = 0;
 
 
 

@@ -92,6 +92,9 @@ set(SOURCE_CODE
     Game/BuildingCostManager.hpp Game/BuildingCostManager.cpp
     Game/GamePlayState.hpp Game/GamePlayState.cpp
     Game/DEMO.hpp Game/DEMO.cpp
+    Game/PlainsDemo.hpp Game/PlainsDemo.cpp
+    Game/WaterDemo.hpp Game/WaterDemo.cpp
+    Game/MountainDemo.hpp Game/MountainDemo.cpp
     Game/GridCell.hpp
     Game/CustomCell.hpp Game/CustomCell.cpp
     Game/GridMap.hpp Game/GridMap.cpp

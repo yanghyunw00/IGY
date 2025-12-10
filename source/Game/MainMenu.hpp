@@ -7,6 +7,7 @@
  */
 
 #pragma once
+#include <string>
  #include "Dokev/DKTexture.hpp"
  #include "Engine/Texture.hpp"
  #include "Engine/Font.hpp"
@@ -16,11 +17,12 @@
  #include "Engine/Matrix.hpp"
  #include "Engine/Engine.hpp"
  #include "CS200/RGBA.hpp"
- #include "CS200/RenderingAPI.hpp"
- #include "CS200/IRenderer2D.hpp"
- #include "CS200/NDC.hpp"
- #include "Engine/Input.hpp"
- #include "Engine/Window.hpp"
+#include "CS200/RenderingAPI.hpp"
+#include "CS200/IRenderer2D.hpp"
+#include "CS200/NDC.hpp"
+#include "Engine/Input.hpp"
+#include "Engine/Window.hpp"
+#include "Game/GridMap.hpp"
 
 class MainMenu : public Dokev::GameState
 {
@@ -32,6 +34,8 @@ public :
     void          Draw() const override;
     void          DrawImGui() override;
     void          DrawText(const std::string& text, const Math::vec2& position, CS230::Font& font, CS200::RGBA color, Math::vec2 textscale) const;
+    void          CycleMapVariant(int direction);
+    std::string   GetMapLabel() const;
 
 private : 
     std::unique_ptr<CS230::Font> Font_simple;
@@ -44,12 +48,15 @@ private :
 
     const std::string text_Title                = "I G Y";
     const std::string text_PlayIGY              = "PlayIGY";
+    const std::string text_MapSelect            = "Map";
     const std::string text_Exit                 = "Exit";
     const std::string text_Antartic_Monkeys     = "Antartic_Monkeys";
+    const std::string text_MapInstructions      = "Use Left / Right to change map";
 
     enum Main_Keys {
 
         GamePlayKey,
+        MapSelectKey,
         ExitKey,
         Count
     };
@@ -59,6 +66,7 @@ private :
     ////////////////////
     CS200::RGBA TextColor_Title                = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_PlayIGY              = Dokev::ColorPalette::WHITE;
+    CS200::RGBA TextColor_MapSelect            = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_Exit                 = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_Antartic_Monkeys     = Dokev::ColorPalette::WHITE;
 
@@ -70,6 +78,8 @@ private :
 
     double TextScale_PlayIGY_x                 = 1.0;
     double TextScale_PlayIGY_y                 = 1.0;
+    double TextScale_MapSelect_x               = 0.95;
+    double TextScale_MapSelect_y               = 0.95;
     double TextScale_Exit_x                    = 1.0;
     double TextScale_Exit_y                    = 0.95;
 
@@ -78,6 +88,7 @@ private :
 
     Math::vec2 TextScale_Title                 = {TextScale_Title_x,TextScale_Title_y};
     Math::vec2 TextScale_PlayIGY               = {TextScale_PlayIGY_x,TextScale_PlayIGY_y};
+    Math::vec2 TextScale_MapSelect             = {TextScale_MapSelect_x, TextScale_MapSelect_y};
     Math::vec2 TextScale_Exit                  = {TextScale_Exit_x,TextScale_Exit_y};
     Math::vec2 TextScale_Antartic_Monkeys      = {TextScale_Antartic_Monkeys_x, TextScale_Antartic_Monkeys_y};
 
@@ -96,13 +107,16 @@ private :
     int center_y               = (window_size.y) / 2;
 
     int PlayIGY_x              = (window_size.x) / 2; // 1
-    int PlayIGY_y              = (window_size.y) / 2;
-    int Exit_x                 = (window_size.x) / 2; // 2
+    int PlayIGY_y              = (window_size.y) / 2 + Text_dist_y;
+    int MapSelect_x            = (window_size.x) / 2; // 2
+    int MapSelect_y            = (window_size.y) / 2;
+    int Exit_x                 = (window_size.x) / 2; // 3
     int Exit_y                 = (window_size.y) / 2 - Text_dist_y;
 
     Math::vec2 Text_Position_Center_Bottom = {static_cast<double>(center_x), 0.0 + static_cast<double>(Padding_y_Bottom)};
     Math::vec2 Text_Position_Title = {static_cast<double>(center_x), static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top)};
     
     Main_Keys current = Main_Keys::GamePlayKey;
+    MapVariant selectedVariant = MapVariant::Balanced;
 
 };

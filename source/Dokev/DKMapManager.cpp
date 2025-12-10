@@ -13,6 +13,8 @@
 #include "Game/Stone.hpp"
 #include "Game/Steel.hpp"
 
+MapVariant MapManager::s_nextVariant = MapVariant::Balanced;
+
 MapManager::MapManager()
 {
     road = std::make_unique<Road>();
@@ -20,10 +22,20 @@ MapManager::MapManager()
 
 void MapManager::Initialize()
 {
-    map.ResetPerlinTexture();
-    map.ResetIsoGridMapArray();
+    map.SetMapVariant(s_nextVariant);
+    map.ReGenerateMap();
     map.InitializePathFinding();
    //spawnResources();
+}
+
+void MapManager::SetNextMapVariant(MapVariant variant)
+{
+    s_nextVariant = variant;
+}
+
+MapVariant MapManager::GetNextMapVariant()
+{
+    return s_nextVariant;
 }
 
 void MapManager::SpawnResources()

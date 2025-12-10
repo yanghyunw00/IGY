@@ -20,6 +20,8 @@ public:
     ~MapManager() = default;
 
     void Initialize();
+    static void SetNextMapVariant(MapVariant variant);
+    static MapVariant GetNextMapVariant();
 
     GridMap* GetMap() { return &map; }
     Road* GetRoad() { return road.get(); }
@@ -37,4 +39,6 @@ private:
     std::unique_ptr<Road> road;
     
     std::vector<std::unique_ptr<Resource>> m_resources;
+
+    static MapVariant s_nextVariant;
 };

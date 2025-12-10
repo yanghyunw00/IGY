@@ -10,6 +10,7 @@
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "GamePlayState.hpp"
+#include "Dokev/DKMapManager.hpp"
 
 // #include "Engine/Windwow.hpp"
 
@@ -40,24 +41,28 @@ void MainMenu::Load()
     {
         std::cerr << e.what() << '\n';
     }
+
+    selectedVariant = MapManager::GetNextMapVariant();
 }
 
 void MainMenu::Update(double dt)
 {
     (void)dt;
 
+    TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+    TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+    TextColor_Exit      = Dokev::ColorPalette::WHITE;
 
     switch (current)
     {
         case Main_Keys::GamePlayKey:
             TextColor_PlayIGY = Dokev::ColorPalette::HOTPINK;
-            TextColor_Exit    = Dokev::ColorPalette::WHITE;
-
+            break;
+        case Main_Keys::MapSelectKey:
+            TextColor_MapSelect = Dokev::ColorPalette::HOTPINK;
             break;
         case Main_Keys::ExitKey:
-            TextColor_PlayIGY = Dokev::ColorPalette::WHITE;
-            TextColor_Exit    = Dokev::ColorPalette::HOTPINK;
-
+            TextColor_Exit = Dokev::ColorPalette::HOTPINK;
             break;
         default: break;
     }
@@ -87,13 +92,31 @@ void MainMenu::Update(double dt)
         current = static_cast<Main_Keys>(prestate);
     }
 
+    if (current == Main_Keys::MapSelectKey)
+    {
+        if (input.KeyJustPressed(CS230::Input::Keys::Left) || input.KeyJustPressed(CS230::Input::Keys::A))
+        {
+            CycleMapVariant(-1);
+        }
+
+        if (input.KeyJustPressed(CS230::Input::Keys::Right) || input.KeyJustPressed(CS230::Input::Keys::D))
+        {
+            CycleMapVariant(1);
+        }
+    }
+
     if (input.KeyJustPressed(CS230::Input::Keys::Enter))
     {
         switch (current)
         {
             case Main_Keys::GamePlayKey:
+                MapManager::SetNextMapVariant(selectedVariant);
                 Engine::GetGameStateManager().PopState();
                 Engine::GetGameStateManager().PushState<GamePlayState>();
+                return;
+                break;
+            case Main_Keys::MapSelectKey:
+                CycleMapVariant(1);
                 return;
                 break;
             case Main_Keys::ExitKey:
@@ -140,6 +163,12 @@ void MainMenu::Draw() const
     DrawText(text_PlayIGY, pos, *Font_simple, TextColor_PlayIGY, TextScale_PlayIGY);
 
     ////////////////////////////////
+    //        Map Select          //
+    ////////////////////////////////
+    Math::vec2 mapPos{ static_cast<double>(MapSelect_x), static_cast<double>(MapSelect_y) };
+    DrawText(GetMapLabel(), mapPos, *Font_simple, TextColor_MapSelect, TextScale_MapSelect);
+
+    ////////////////////////////////
     //           Exit             //
     ////////////////////////////////
     Math::vec2 pos2{ static_cast<double>(Exit_x), static_cast<double>(Exit_y) };
@@ -150,8 +179,26 @@ void MainMenu::Draw() const
     ////////////////////////////////
 
     DrawText(text_Antartic_Monkeys, Text_Position_Center_Bottom, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
+    Math::vec2 mapInstructionPos{ static_cast<double>(center_x), static_cast<double>(Padding_y_Bottom + 50) };
+    DrawText(text_MapInstructions, mapInstructionPos, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
 
     renderer2d.EndScene();
+}
+
+void MainMenu::CycleMapVariant(int direction)
+{
+    constexpr int variantCount = 4;
+    int           currentIndex = static_cast<int>(selectedVariant);
+    currentIndex               = (currentIndex + direction + variantCount) % variantCount;
+    selectedVariant            = static_cast<MapVariant>(currentIndex);
+}
+
+std::string MainMenu::GetMapLabel() const
+{
+    std::string label = text_MapSelect;
+    label += ": ";
+    label += GetMapVariantLabel(selectedVariant);
+    return label;
 }
 
 void MainMenu::DrawImGui()

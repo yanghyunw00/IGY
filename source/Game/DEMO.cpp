@@ -30,6 +30,7 @@
 #include <numbers>
 #include <sstream>
 #include "OpenGL/GL.hpp" 
+#include "Game/MainMenu.hpp"
 
 void DEMO::Load()
 {
@@ -40,6 +41,7 @@ void DEMO::Load()
     noiseTexture  = Dokev::LoadTextureFromImage(perlin);
     noiseTexture2 = Dokev::LoadTextureFromImage(perlin2);
 
+    map.SetMapVariant(mapVariant);
     map.ResetPerlinTexture();
     map.ResetIsoGridMapArray();
     map.InitializePathFinding();
@@ -97,6 +99,15 @@ void DEMO::DrawImGui()
 {
     if (ImGui::Begin("Controller"))
     {
+        if (ImGui::Button("Back to Main Menu"))
+        {
+            auto& gsm = Engine::GetGameStateManager();
+            gsm.PopState();
+            gsm.PushState<MainMenu>();
+            ImGui::End();
+            return;
+        }
+
         float zoom = camera.GetZoom();
         if (ImGui::SliderFloat("Zoom", &zoom, 0.1f, 1.0f))
         {

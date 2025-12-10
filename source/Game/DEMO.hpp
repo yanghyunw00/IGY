@@ -32,13 +32,15 @@ public:
     void          SwitchRenderer(Dokev::RenderState type);
     void          DrawImGui() override;
     gsl::czstring GetName() const override;
+    void          SetMapVariant(MapVariant variant) { mapVariant = variant; }
 
-private:
+protected:
     Dokev::Texture2D testTexture;
     Dokev::Texture2D noiseTexture;
     Dokev::Texture2D noiseTexture2;
 
     GridMap map;
+    MapVariant mapVariant = MapVariant::Balanced;
 
     //Iso grid
     int index = 1;
