@@ -24,6 +24,8 @@ namespace Dokev
 
         bool ShouldDrawAtTile(int tileX, int tileY) const;
         void DrawAtTile(int screenX, int topY) const;
+        Math::fvec2 GetGridPosition() const { return position; }
+        bool        HasValidPosition() const { return hasValidPosition; }
 
     private:
         Math::fvec2 position;

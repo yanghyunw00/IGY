@@ -18,12 +18,43 @@
 #include "Engine/Texture.hpp"
 #include "Engine/TextureManager.hpp"
 #include "Engine/Window.hpp"
+
 #include "OpenGL/GL.hpp"
 #include <GL/glew.h>
 #include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <cmath>
+
+namespace
+{
+    MapGenerationProfile MakeProfile(MapVariant variant)
+    {
+        switch (variant)
+        {
+            case MapVariant::WaterHeavy:
+                return MapGenerationProfile{ MapVariant::WaterHeavy, TerrainThresholds{ 170.0, 210.0, 235.0 }, 0.08f, "Water Heavy" };
+            case MapVariant::PlainsHeavy:
+                return MapGenerationProfile{ MapVariant::PlainsHeavy, TerrainThresholds{ 50.0, 235.0, 255.0 }, 0.12f, "Plains Heavy" };
+            case MapVariant::MountainHeavy:
+                return MapGenerationProfile{ MapVariant::MountainHeavy, TerrainThresholds{ 70.0, 130.0, 180.0 }, 0.09f, "Mountain Heavy" };
+            case MapVariant::Balanced:
+            default:
+                return MapGenerationProfile{ MapVariant::Balanced, TerrainThresholds{ 80.0, 155.0, 210.0 }, 0.1f, "Balanced" };
+        }
+    }
+}
+
+MapGenerationProfile GetMapProfile(MapVariant variant)
+{
+    return MakeProfile(variant);
+}
+
+const char* GetMapVariantLabel(MapVariant variant)
+{
+    return MakeProfile(variant).label;
+}
 
 GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 {
@@ -43,18 +74,6 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     ResetPerlinTexture();
 
     ResetIsoGridMapArray();
-
-    if (!IsoGridMapArray.empty())
-    {
-        // isoOriginX = ((TILE_WIDTH / 2) * GRID_SIZE_X) - TILE_WIDTH / 2;
-        isoOriginX = 0;
-        isoOriginY = static_cast<int>(IsoGridMapArray[0].getHeight());
-        std::cout << "isoOrigin set: X=" << isoOriginX << ", Y=" << isoOriginY << std::endl;
-    }
-
-
-    InitializeIsoView();
-
 
     // Initialize TileManager
     tileManager = std::make_unique<Dokev::TileManager>();
@@ -93,16 +112,86 @@ void GridMap::ReGenerateMap()
 {
     ResetPerlinTexture();
     ResetIsoGridMapArray();
-    InitializeIsoView();
-    IsometricDrawMap(1);
-    IsometricDrawMap(2);
-    IsometricDrawMap(3);
-    IsometricDrawMap(4);
+}
+
+namespace
+{
+    constexpr int MOUSE_ATLAS_WIDTH  = 1200;
+    constexpr int MOUSE_ATLAS_HEIGHT = 800;
+}
+
+void GridMap::EnsureMouseAtlasInitialized() const
+{
+    auto windowSize = Engine::GetWindow().GetSize();
+    int targetWidth  = std::max(1, windowSize.x);
+    int targetHeight = std::max(1, windowSize.y);
+
+    if (mouseAtlasFBO != 0 && mouseAtlasTex != 0)
+    {
+        // Resize texture if window size changed
+        glBindTexture(GL_TEXTURE_2D, mouseAtlasTex);
+        int currentW = 0, currentH = 0;
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &currentW);
+        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &currentH);
+        if (currentW == targetWidth && currentH == targetHeight)
+        {
+            glBindTexture(GL_TEXTURE_2D, 0);
+            return;
+        }
+    }
+
+    if (mouseAtlasFBO == 0)
+    {
+        glGenFramebuffers(1, &mouseAtlasFBO);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
+
+    if (mouseAtlasTex == 0)
+    {
+        glGenTextures(1, &mouseAtlasTex);
+    }
+    glBindTexture(GL_TEXTURE_2D, mouseAtlasTex);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, targetWidth, targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mouseAtlasTex, 0);
+
+    GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+    glDrawBuffers(1, drawBuffers);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        Engine::GetLogger().LogError("mouseAtlasFBO incomplete; skipping mouse atlas draw.");
+        if (mouseAtlasTex != 0)
+        {
+            glDeleteTextures(1, &mouseAtlasTex);
+            mouseAtlasTex = 0;
+        }
+        if (mouseAtlasFBO != 0)
+        {
+            glDeleteFramebuffers(1, &mouseAtlasFBO);
+            mouseAtlasFBO = 0;
+        }
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        return;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GridMap::ResetIsoGridMapArray()
 {
     m_gridCells.assign(GRID_SIZE_Y, std::vector<GridCell>(GRID_SIZE_X));
+
+    TerrainThresholds thresholds = mapProfile.thresholds;
+
+    std::vector<unsigned int> heights;
+    heights.reserve(GRID_SIZE_X * GRID_SIZE_Y);
 
     // Process sequentially as GetImageColor may not be thread-safe
     for (int y = 0; y < GRID_SIZE_Y; ++y)
@@ -111,14 +200,55 @@ void GridMap::ResetIsoGridMapArray()
         {
             CS200::RGBA  color  = Dokev::GetImageColor(PerlinNoiseImage, x, y);
             unsigned int Height = (color >> 24) & 0xFF;
-
-            m_gridCells[y][x] = GridCell{ (double)Height, x, y };
+            heights.push_back(Height);
         }
+    }
+
+    if (mapVariant == MapVariant::WaterHeavy && !heights.empty())
+    {
+        // Raise the water cutoff to at least the median height so 50%+ of tiles become water.
+        auto medianIt = heights.begin() + heights.size() / 2;
+        std::nth_element(heights.begin(), medianIt, heights.end());
+        double medianHeight = static_cast<double>(*medianIt);
+        thresholds.waterMax = std::max(thresholds.waterMax, medianHeight);
+        thresholds.plainsMax = std::max(thresholds.plainsMax, thresholds.waterMax + 1.0);
+    }
+
+    mapProfile.thresholds = thresholds;
+
+    size_t idx = 0;
+    for (int y = 0; y < GRID_SIZE_Y; ++y)
+    {
+        for (int x = 0; x < GRID_SIZE_X; ++x)
+        {
+            double heightVal = static_cast<double>(heights[idx++]);
+
+            m_gridCells[y][x] = GridCell{ heightVal, x, y, thresholds };
+        }
+    }
+
+    UpdateIsoOrigin();
+    InitializeIsoView();
+}
+
+void GridMap::UpdateIsoOrigin()
+{
+    isoOriginX = 0;
+    isoOriginY = 0;
+
+    if (!m_gridCells.empty() && !m_gridCells[0].empty())
+    {
+        isoOriginY = static_cast<int>(m_gridCells[0][0].getHeight());
     }
 }
 
 void GridMap::InitializeIsoView()
 {
+    std::fill(std::begin(view1), std::end(view1), nullptr);
+    std::fill(std::begin(view2), std::end(view2), nullptr);
+    std::fill(std::begin(view3), std::end(view3), nullptr);
+    std::fill(std::begin(view4), std::end(view4), nullptr);
+
     float new_x = 0;
     float new_y = 0;
 
@@ -131,21 +261,21 @@ void GridMap::InitializeIsoView()
 
             // 90 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, new_x, new_y);
-            size_t rotIndex90 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
-            if (rotIndex90 < GRID_SIZE_X * GRID_SIZE_Y)
-                view2[rotIndex90] = &m_gridCells[y][x];
+            int rx90 = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
+            int ry90 = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
+            view2[Dokev::Meta::grid_to_index(static_cast<size_t>(rx90), static_cast<size_t>(ry90), GRID_SIZE_X)] = &m_gridCells[y][x];
 
             // 180 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, new_x, new_y);
-            size_t rotIndex180 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
-            if (rotIndex180 > 0 && rotIndex180 < GRID_SIZE_X * GRID_SIZE_Y)
-                view3[rotIndex180] = &m_gridCells[y][x];
+            int rx180 = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
+            int ry180 = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
+            view3[Dokev::Meta::grid_to_index(static_cast<size_t>(rx180), static_cast<size_t>(ry180), GRID_SIZE_X)] = &m_gridCells[y][x];
 
             // 270 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, new_x, new_y);
-            size_t rotIndex270 = Dokev::Meta::grid_to_index(static_cast<size_t>(new_x), static_cast<size_t>(new_y), GRID_SIZE_X);
-            if (rotIndex270 < GRID_SIZE_X * GRID_SIZE_Y)
-                view4[rotIndex270] = &m_gridCells[y][x];
+            int rx270 = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
+            int ry270 = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
+            view4[Dokev::Meta::grid_to_index(static_cast<size_t>(rx270), static_cast<size_t>(ry270), GRID_SIZE_X)] = &m_gridCells[y][x];
         }
     }
 }
@@ -169,9 +299,8 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
         return;
     }
 
-    // int offsetupper = static_cast<int>(selectedView[0]->getHeight());
-    int originX = 0;
-    int originY = 0;
+    int originX = isoOriginX;
+    int originY = isoOriginY;
     for (int sum = 0; sum < GRID_SIZE_X + GRID_SIZE_Y - 1; ++sum)
     {
         for (int x = 0; x <= sum; ++x)
@@ -184,28 +313,46 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                 int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
 
                 int    count  = y * GRID_SIZE_X + x;
+                if (!selectedView[count])
+                {
+                    continue;
+                }
                 double height = selectedView[count]->getHeight();
-                int    topY   = static_cast<int>(height) - screenY;
+                double renderHeight = height;
+                int    topY         = static_cast<int>(renderHeight) - screenY;
 
                 int originalX = selectedView[count]->x;
                 int originalY = selectedView[count]->y;
 
                 Dokev::TileType tileType = tileManager->GetTileType(originalX, originalY);
+                int current_texture = 3;
+                    if (height < mapProfile.thresholds.mountainMax)
+                        current_texture = 2;
+                    if (height < mapProfile.thresholds.plainsMax)
+                        current_texture = 1;
+                    if (height < mapProfile.thresholds.waterMax)
+                        current_texture = 0;
 
                 if (tileType == Dokev::TileType::ROAD)
                 {
+                    if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
+                    {
+                        renderHeight += GetWaterWaveOffset(originalX, originalY);
+                    }
+                    topY = static_cast<int>(renderHeight) - screenY;
                     Dokev::DrawTexture(RoadTexture, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    std::cout << "doodoo" <<std::endl;
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                 }
                 else
                 {
-                    int current_texture = 3;
-                    if (height < 205)
-                        current_texture = 2;
-                    if (height < 150)
-                        current_texture = 1;
-                    if (height < 75)
-                        current_texture = 0;
+                    
+                    // Only apply wave height animation on non-water-heavy variants to avoid visual overlap with buildings/roads.
+                    if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
+                    {
+                        renderHeight += GetWaterWaveOffset(originalX, originalY);
+                    }
+                    topY = static_cast<int>(renderHeight) - screenY;
                     Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                 }
@@ -224,6 +371,13 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
 void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer) const
 {
     (void)selected_renderer;
+    EnsureMouseAtlasInitialized();
+    if (mouseAtlasFBO == 0 || mouseAtlasTex == 0)
+    {
+        Engine::GetLogger().LogError("mouseAtlas FBO/texture not initialized; skipping mouse atlas draw.");
+        return;
+    }
+
     GL::BindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
     currentView = (index % 4) + 1;
@@ -244,10 +398,8 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
         return;
     }
 
-    // int offsetupper = static_cast<int>(selectedView[0]->getHeight());
-
-    int originX = 0;
-    int originY = 0;
+    int originX = isoOriginX;
+    int originY = isoOriginY;
 
     for (int sum = 0; sum < GRID_SIZE_X + GRID_SIZE_Y - 1; ++sum)
     {
@@ -262,6 +414,10 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
 
 
                 int    count  = y * GRID_SIZE_X + x;
+                if (!selectedView[count])
+                {
+                    continue;
+                }
                 double height = selectedView[count]->getHeight();
                 int    topY   = static_cast<int>(height) - screenY;
 
@@ -280,11 +436,11 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
 
 
                 int current_texture = 3;
-                if (height < 205)
+                if (height < mapProfile.thresholds.mountainMax)
                     current_texture = 2;
-                if (height < 150)
+                if (height < mapProfile.thresholds.plainsMax)
                     current_texture = 1;
-                if (height < 75)
+                if (height < mapProfile.thresholds.waterMax)
                     current_texture = 0;
 
 
@@ -308,7 +464,8 @@ void GridMap::ResetPerlinTexture()
 {
     int seedX          = Dokev::GetRandomValue(1, 10000);
     int seedY          = Dokev::GetRandomValue(1, 10000);
-    PerlinNoiseImage   = Dokev::GenImagePerlinNoise(GRID_SIZE_X, GRID_SIZE_Y, seedX, seedY, 0.1f);
+    float noiseScale   = mapProfile.noiseScale <= 0.0f ? 0.1f : mapProfile.noiseScale;
+    PerlinNoiseImage   = Dokev::GenImagePerlinNoise(GRID_SIZE_X, GRID_SIZE_Y, seedX, seedY, noiseScale);
     PerlinNoiseTexture = LoadTextureFromImage(PerlinNoiseImage);
 
     ExportImage(PerlinNoiseImage, "PerlinNoise.png");
@@ -317,6 +474,22 @@ void GridMap::ResetPerlinTexture()
 const Dokev::Texture2D* GridMap::GetPerlinTexture() const
 {
     return &PerlinNoiseTexture;
+}
+
+double GridMap::GetWaterWaveOffset(int gridX, int gridY) const
+{
+    const auto& env    = Engine::GetWindowEnvironment();
+    double      time   = env.ElapsedTime;
+    // Wave travels from top-right toward bottom-left by using inverse X in the phase.
+    double      phase  = (static_cast<double>((GRID_SIZE_X - gridX) + gridY) * 0.35);
+    double      wave   = std::sin(time * 1.8 + phase) * 6.0; // amplitude in pixels
+    return wave;
+}
+
+void GridMap::SetMapVariant(MapVariant variant)
+{
+    mapVariant = variant;
+    mapProfile = GetMapProfile(variant);
 }
 
 GridCell** GridMap::GetViewArray(int viewIndex) const

@@ -17,6 +17,18 @@ enum class TerrainType
 	None
 };
 
+struct TerrainThresholds
+{
+    double waterMax      = 75.0;
+    double plainsMax     = 150.0;
+    double mountainMax   = 205.0;
+};
+
+inline TerrainThresholds DefaultTerrainThresholds()
+{
+    return TerrainThresholds{};
+}
+
 // the basis for all gridMap occupiers. implement a basic is full and is destoryed fuction to be used.
 struct GridCell
 {
@@ -24,27 +36,18 @@ struct GridCell
 	{
 
 	}
-	GridCell(double height) : Height(height), isOccupied(false), isDestroyed(false)//should accept a normalized height value between 0 and 1 from the perlin noisemap
+	GridCell(double height) : Height(height), Type(TerrainType::None), isOccupied(false), isDestroyed(false)//should accept a normalized height value between 0 and 1 from the perlin noisemap
 	{
-		if (Height < 75.0)      { Type = TerrainType::Water; isWater = true; }
-		else if (Height < 150.0) Type = TerrainType::Plains;
-		else if (Height < 205.0) Type = TerrainType::Mountain;
-		else                    Type = TerrainType::Snow;
+        ApplyTerrain(height, DefaultTerrainThresholds());
 	}
 
 
 
-	GridCell(double height, int x_param, int y_param) : isOccupied(false), isDestroyed(false)//should accept a normalized height value between 0 and 1 from the perlin noisemap
+	GridCell(double height, int x_param, int y_param, const TerrainThresholds& thresholds = DefaultTerrainThresholds()) : Type(TerrainType::None), isOccupied(false), isDestroyed(false)//should accept a normalized height value between 0 and 1 from the perlin noisemap
 	{
-		Height = height;
+        ApplyTerrain(height, thresholds);
 		x = x_param;
 		y = y_param;
-
-		// Set terrain type based on height
-		if (Height < 75.0)      { Type = TerrainType::Water; isWater = true; }
-		else if (Height < 150.0) Type = TerrainType::Plains;
-		else if (Height < 205.0) Type = TerrainType::Mountain;
-		else                    Type = TerrainType::Snow;
 	}
 
 	float getMovementCost() const
@@ -78,11 +81,21 @@ struct GridCell
 	bool getDestroyed() const { return isDestroyed; }
 	void setWater(bool water) { isWater = water; }
 	bool getWater() const { return isWater; }
+    void ApplyTerrain(double height, const TerrainThresholds& thresholds)
+    {
+        Height = height;
+
+        // Set terrain type based on height
+        if (Height < thresholds.waterMax)      { Type = TerrainType::Water; isWater = true; }
+        else if (Height < thresholds.plainsMax) Type = TerrainType::Plains;
+        else if (Height < thresholds.mountainMax) Type = TerrainType::Mountain;
+        else                    Type = TerrainType::Snow;
+    }
 
 	int x = 0, y = 0;
 private:
 	double Height = 0.0;
-	TerrainType Type;
+	TerrainType Type = TerrainType::None;
 	double Temperature = 0.0;
 	int resources = 0;
 

@@ -40,6 +40,7 @@
 #include "Game/Stone.hpp"
 #include "Game/Wood.hpp"
 #include "OpenGL/GL.hpp"
+#include "MainMenu.hpp"
 
 #include <GL/glew.h>
 #include <SDL.h>
@@ -136,6 +137,7 @@ void GamePlayState::Load()
 
 void GamePlayState::Update(double dt)
 {
+    Engine::GetLogger().LogEvent("GamePlayState::Update start");
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     camera.UpdateZoomInterpolation(dt);
 
@@ -143,7 +145,9 @@ void GamePlayState::Update(double dt)
     if (!uiManager.IsMenuActive())
     {
         worldEditor.UpdateInput();
+       Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
     }
+
 
     if (worldEditor.IsSaveRequested())
     {
@@ -157,24 +161,30 @@ void GamePlayState::Update(double dt)
     }
 
     UpdateGSComponents(dt);
+    Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
 
     auto cityMetrics = GetGSComponent<CityMetrics>();
     if (cityMetrics)
     {
         cityMetrics->Update(static_cast<float>(dt));
     }
+    Engine::GetLogger().LogEvent("GamePlayState::Update after cityMetrics Update");
 
     // Update all humans
     auto  mapMgr = GetGSComponent<MapManager>();
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
+    Engine::GetLogger().LogEvent("GamePlayState::Update humans count " + std::to_string(humans.size()));
 
     if (!humans.empty())
     {
-        for (auto& human : humans)
+        for (size_t i = 0; i < humans.size(); ++i)
         {
-            human->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+            Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
+            humans[i]->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+            Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
+    Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
 
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 
@@ -187,6 +197,7 @@ void GamePlayState::Update(double dt)
             building->Update(static_cast<float>(dt));
         }
     }
+    Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
 
     //smokeEmitter.Update(environment.DeltaTime);
 
@@ -205,11 +216,13 @@ void GamePlayState::Update(double dt)
 
     // Update city metrics with new systems
     bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(dt, gameObjMgr.get(), resourceMgr.get());
+    Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
 
     if (shouldSpawnImmigrant)
     {
         gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
     }
+    Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
 
     // End condition
     if (cityMetrics->GetHappiness() <= 10.0f)
@@ -241,6 +254,7 @@ void GamePlayState::Update(double dt)
     const auto& input       = Engine::GetInput();
     bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
     tutorialManager.Update(static_cast<float>(dt), mouseClicked, skipPressed);
+    Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
 
     if (buttonClicked)
     {
@@ -272,8 +286,17 @@ void GamePlayState::Update(double dt)
 
             mapMgr->GetMap()->IsometricDrawMouseAtlas(index, selected_renderer);
 
+            mapMgr->GetMap()->EnsureMouseAtlasInitialized();
+            if (mapMgr->GetMap()->GetMouseAtlasFBO() == 0)
+            {
+                Engine::GetLogger().LogError("Mouse atlas FBO not initialized; skipping placement read.");
+                return;
+            }
+
             GLubyte pixel[4] = { 0 };
+
             GL::BindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
+
 
             mouseScreen.y = windowSize.y - mouseScreen.y;
 
@@ -469,10 +492,12 @@ void GamePlayState::Update(double dt)
     }
 
     mouseSelection.SetViewIndex(index);
+    Engine::GetLogger().LogEvent("GamePlayState::Update end");
 }
 
 void GamePlayState::Draw() const
 {
+    Engine::GetLogger().LogEvent("GamePlayState::Draw start");
     auto windowSize = Engine::GetWindow().GetSize();
     CS200::RenderingAPI::Clear();
 
@@ -532,12 +557,26 @@ void GamePlayState::Draw() const
     tutorialManager.Draw();
 
     renderer2d.EndScene();
+    Engine::GetLogger().LogEvent("GamePlayState::Draw end");
 }
 
 void GamePlayState::DrawImGui()
 {
     // Developer UI
     worldEditor.DrawImGui();
+
+    if (ImGui::Begin("Game Menu"))
+    {
+        if (ImGui::Button("Back to Main Menu"))
+        {
+            auto& gsm = Engine::GetGameStateManager();
+            gsm.PopState();
+            gsm.PushState<MainMenu>();
+            ImGui::End();
+            return;
+        }
+    }
+    ImGui::End();
 
     // Player UI
     auto cityMetrics = GetGSComponent<CityMetrics>();
