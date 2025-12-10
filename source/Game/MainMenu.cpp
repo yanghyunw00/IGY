@@ -10,6 +10,8 @@
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "GamePlayState.hpp"
+#include "Setting.hpp"
+#include "GameCredit.hpp"
 
 // #include "Engine/Windwow.hpp"
 
@@ -51,11 +53,29 @@ void MainMenu::Update(double dt)
     {
         case Main_Keys::GamePlayKey:
             TextColor_PlayIGY = Dokev::ColorPalette::HOTPINK;
+            TextColor_Setting = Dokev::ColorPalette::WHITE;
+            TextColor_Credit  = Dokev::ColorPalette::WHITE;
+            TextColor_Exit    = Dokev::ColorPalette::WHITE;
+
+            break;
+        case Main_Keys::SettingKey:
+            TextColor_PlayIGY = Dokev::ColorPalette::WHITE;
+            TextColor_Setting = Dokev::ColorPalette::HOTPINK;
+            TextColor_Credit  = Dokev::ColorPalette::WHITE;
+            TextColor_Exit    = Dokev::ColorPalette::WHITE;
+
+            break;
+        case Main_Keys::CreditKey:
+            TextColor_PlayIGY = Dokev::ColorPalette::WHITE;
+            TextColor_Setting = Dokev::ColorPalette::WHITE;
+            TextColor_Credit  = Dokev::ColorPalette::HOTPINK;
             TextColor_Exit    = Dokev::ColorPalette::WHITE;
 
             break;
         case Main_Keys::ExitKey:
             TextColor_PlayIGY = Dokev::ColorPalette::WHITE;
+            TextColor_Setting = Dokev::ColorPalette::WHITE;
+            TextColor_Credit  = Dokev::ColorPalette::WHITE;
             TextColor_Exit    = Dokev::ColorPalette::HOTPINK;
 
             break;
@@ -94,6 +114,16 @@ void MainMenu::Update(double dt)
             case Main_Keys::GamePlayKey:
                 Engine::GetGameStateManager().PopState();
                 Engine::GetGameStateManager().PushState<GamePlayState>();
+                return;
+                break;
+            case Main_Keys::SettingKey:
+                Engine::GetGameStateManager().PopState();
+                Engine::GetGameStateManager().PushState<Setting>();
+                return;
+                break;
+            case Main_Keys::CreditKey:
+                Engine::GetGameStateManager().PopState();
+                Engine::GetGameStateManager().PushState<GameCredit>();
                 return;
                 break;
             case Main_Keys::ExitKey:
@@ -136,20 +166,32 @@ void MainMenu::Draw() const
     ////////////////////////////////
     //          PlayIGY           //
     ////////////////////////////////
-    Math::vec2 pos{ static_cast<double>(PlayIGY_x), static_cast<double>(PlayIGY_y) };
-    DrawText(text_PlayIGY, pos, *Font_simple, TextColor_PlayIGY, TextScale_PlayIGY);
+
+    DrawText(text_PlayIGY, Text_Position_GamePlayKey, *Font_simple, TextColor_PlayIGY, TextScale_PlayIGY);
+
+    ////////////////////////////////
+    //          Setting           //
+    ////////////////////////////////
+
+    DrawText(text_Setting, Text_Position_SettingKey, *Font_simple, TextColor_Setting, TextScale_Setting);
+
+    ////////////////////////////////
+    //           Credit           //
+    ////////////////////////////////
+
+    DrawText(text_Credit, Text_Position_CreditKey, *Font_simple, TextColor_Credit, TextScale_Credit);
 
     ////////////////////////////////
     //           Exit             //
     ////////////////////////////////
-    Math::vec2 pos2{ static_cast<double>(Exit_x), static_cast<double>(Exit_y) };
-    DrawText(text_Exit, pos2, *Font_simple, TextColor_Exit, TextScale_Exit);
+
+    DrawText(text_Exit, Text_Position_ExitKey, *Font_simple, TextColor_Exit, TextScale_Exit);
 
     ////////////////////////////////
     //      Antartic_Monkeys      //
     ////////////////////////////////
 
-    DrawText(text_Antartic_Monkeys, Text_Position_Center_Bottom, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
+    DrawText(text_Antartic_Monkeys, Text_Position_Teamname, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
 
     renderer2d.EndScene();
 }
