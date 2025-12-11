@@ -21,7 +21,9 @@ protected:
     class ResourceManager* resourceManager;
 
     // Static texture cache to prevent memory leaks
-    static Dokev::Texture2D workshopTexture;
+    static Dokev::Texture2D loggingCampTexture;
+    static Dokev::Texture2D quarryTexture;
+    static Dokev::Texture2D ironMineTexture;
     static Dokev::Texture2D missingTexture;
     static bool texturesLoaded;
 

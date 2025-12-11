@@ -279,7 +279,6 @@ void GamePlayState::Update(double dt)
         tutorialManager.OnButtonClicked();
     }
 
-    // If road was selected while the mouse is still held, wait for release before allowing drag placement
     if (selectionChanged && currentSelection == BuildingType::ROAD && ismouseheld)
     {
         blockRoadPlacementUntilRelease = true;

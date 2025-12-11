@@ -12,7 +12,9 @@
 #include "Engine/Path.hpp"
 #include "../Managers/ResourceManager.hpp"
 
-Dokev::Texture2D WorkBuilding::workshopTexture;
+Dokev::Texture2D WorkBuilding::loggingCampTexture;
+Dokev::Texture2D WorkBuilding::quarryTexture;
+Dokev::Texture2D WorkBuilding::ironMineTexture;
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool WorkBuilding::texturesLoaded = false;
 
@@ -28,7 +30,9 @@ void WorkBuilding::LoadTextures()
 {
     if (!texturesLoaded)
     {
-        workshopTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        loggingCampTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
+        quarryTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
+        ironMineTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
         texturesLoaded = true;
     }
@@ -47,25 +51,25 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
     switch(bt)
     {
         case BuildingType::WOOD_WORKSHOP:
-        texture = workshopTexture; 
+        texture = loggingCampTexture;
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::ROCK_WORKSHOP:
-        texture = workshopTexture; 
+        texture = quarryTexture;
         max_capacity = 10;
         cost = 0;
         break;
 
         case BuildingType::STEEL_WORKSHOP:
-        texture = workshopTexture; 
+        texture = ironMineTexture;
         max_capacity = 10;
         cost = 0;
         break;
 
         default:
-            texture = missingTexture; 
+            texture = missingTexture;
             max_capacity = 0;
             cost = 0;
             break;
@@ -120,21 +124,6 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
     Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
     CS200::RGBA tint = CS200::WHITE;
-    switch (buildingType)
-    {
-        case BuildingType::WOOD_WORKSHOP:
-            tint = CS200::pack_color({0.6f, 0.4f, 0.2f, 1.0f});
-            break;
-        case BuildingType::ROCK_WORKSHOP:
-            tint = CS200::pack_color({0.5f, 0.5f, 0.5f, 1.0f});
-            break;
-        case BuildingType::STEEL_WORKSHOP:
-            tint = CS200::pack_color({0.7f, 0.7f, 0.8f, 1.0f});
-            break;
-        default:
-            tint = CS200::WHITE;
-            break;
-    }
 
     if (!isBuilt)
     {
