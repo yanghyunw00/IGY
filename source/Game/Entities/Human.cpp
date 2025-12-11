@@ -12,6 +12,7 @@
 #include "Engine/Path.hpp"
 #include "../World/GridMap.hpp"
 #include "Road.hpp"
+#include <cassert>
 #include <iostream>
 #include <queue>
 #include <cmath>
@@ -27,6 +28,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
 
 void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)
 {
+    assert(!newPath.empty() && "Path cannot be empty");
     (void)source;
 
     if (newPath.size() <= 1)
@@ -92,7 +94,8 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
 
         currentPathIndex++;
 
-        // Check if reached the end
+        assert(currentPathIndex <= path.size() && "Path index out of bounds");
+
         if (currentPathIndex >= path.size())
         {
             isMoving = false;

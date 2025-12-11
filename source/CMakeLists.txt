@@ -149,12 +149,9 @@ set(SOURCE_CODE
     Game/Common/BuildingType.hpp
     Game/Common/Component.hpp
 
-   # external/stb_image_write.h
+
    # external/stb_image.h
-   # external/stb_perlin.h
-
-
-
+ 
     main.cpp
 )
 
@@ -163,6 +160,9 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_CODE})
 
 target_link_libraries(cs200_fun PRIVATE project_options dependencies)
 target_include_directories(cs200_fun PRIVATE .)
+
+# Precompiled header
+target_precompile_headers(cs200_fun PRIVATE pch.hpp)
 
 # Copy Assets folder to build directory automatically
 add_custom_command(

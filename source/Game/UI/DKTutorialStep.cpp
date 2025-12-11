@@ -1,6 +1,6 @@
 /**
  * \file DKTutorialStep.cpp
- * \brief Tutorial Step implementation
+ * \brief
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology

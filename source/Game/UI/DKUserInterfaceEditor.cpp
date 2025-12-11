@@ -1,7 +1,7 @@
 /**
  * \file UserInterfaceEditor.cpp
  * \brief
- * \author
+ * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
@@ -48,18 +48,43 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
 
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(300, 550), ImGuiCond_FirstUseEver);
-    ImGui::Begin("City Status", nullptr, ImGuiWindowFlags_NoCollapse);
 
-    DrawHappinessSection(happinessManager);
+    if (!ImGui::Begin("City Status"))
+    {
+        ImGui::End();
+        return;
+    }
+
+    if (ImGui::TreeNode("CITY HAPPINESS"))
+    {
+        DrawHappinessSection(happinessManager);
+        ImGui::TreePop();
+    }
+
     ImGui::Separator();
-    DrawImmigrationSection(immigrationManager, happinessManager, availableHomes, totalResources, humanCount);
+
+    if (ImGui::TreeNode("IMMIGRATION"))
+    {
+        DrawImmigrationSection(immigrationManager, happinessManager, availableHomes, totalResources, humanCount);
+        ImGui::TreePop();
+    }
+
     ImGui::Separator();
-    DrawPopulationSection(gameObjectManager, homeCapacity, totalHouses, workplaceCount, humanCount);
+
+    if (ImGui::TreeNode("POPULATION"))
+    {
+        DrawPopulationSection(gameObjectManager, homeCapacity, totalHouses, workplaceCount, humanCount);
+        ImGui::TreePop();
+    }
 
     if (cityMetrics)
     {
         ImGui::Separator();
-        DrawWinConditionSection(cityMetrics, humanCount);
+        if (ImGui::TreeNode("WIN CONDITION"))
+        {
+            DrawWinConditionSection(cityMetrics, humanCount);
+            ImGui::TreePop();
+        }
     }
 
     ImGui::End();
@@ -70,10 +95,6 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
     float totalHappiness = happinessManager->CalculateTotalHappiness();
     auto  factors        = happinessManager->GetFactors();
 
-    //  Section Title 
-    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "CITY HAPPINESS");
-
-    //  Overall Happiness 
     ImGui::Text("Overall:");
     ImGui::SameLine();
 
@@ -127,10 +148,6 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
 void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager,
                                                   int availableHomes, int totalResources, int humanCount)
 {
-    //  Section Title 
-    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "IMMIGRATION");
-
-    //  Next check timer 
     float timeLeft = immigrationManager->GetNextImmigrationTime();
     ImGui::Text("Next check: %.1f sec", timeLeft);
 
@@ -179,12 +196,8 @@ void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immi
 void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity,
                                                  int totalHouses, int workplaceCount, int humanCount)
 {
-    (void)gameObjectManager; //unused
+    (void)gameObjectManager;
 
-    //  Section Title
-    ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "POPULATION");
-
-    //  Population
     ImGui::Text("Citizens: %d", humanCount);
 
     //  Housing
@@ -204,9 +217,6 @@ void UserInterfaceEditor::DrawWinConditionSection(Dokev::CityMetrics* cityMetric
 {
     if (!cityMetrics)
         return;
-
-    //  Section Title
-    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "WIN CONDITION");
 
     int winPopulation = cityMetrics->GetWinConditionPopulation();
     bool isWinning = cityMetrics->IsWinConditionMet(humanCount);

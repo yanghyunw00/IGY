@@ -1,6 +1,6 @@
 /**
  * \file DKTutorialManager.cpp
- * \brief Tutorial Manager implementation
+ * \brief
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology

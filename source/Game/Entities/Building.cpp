@@ -10,6 +10,7 @@
 #include "Engine/Path.hpp"
 #include "../Managers/FloatingTextManager.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
+#include <cassert>
 
 Building::Building(Math::fvec2 pos, int w, int h, float buildDuration)
     : gridPosition(pos)
@@ -23,6 +24,9 @@ Building::Building(Math::fvec2 pos, int w, int h, float buildDuration)
     , buildTime(0.0f)
     , maxBuildTime(buildDuration <= 0.0f ? 0.001f : buildDuration)
 {
+    assert(w > 0 && "Building width must be positive");
+    assert(h > 0 && "Building height must be positive");
+
     texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
 }
 
@@ -30,6 +34,8 @@ Building::~Building() = default;
 
 void Building::UpdateConstruction(float dt)
 {
+    assert(dt >= 0.0f && "Delta time cannot be negative");
+
     if (isBuilt)
     {
         progress = 1.0f;
@@ -38,6 +44,8 @@ void Building::UpdateConstruction(float dt)
 
     buildTime += dt;
     progress = buildTime / maxBuildTime;
+
+    assert(progress >= 0.0f && progress <= 1.1f && "Progress out of range");
 
     if (progress >= 1.0f)
     {
