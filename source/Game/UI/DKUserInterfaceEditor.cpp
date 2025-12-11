@@ -9,6 +9,7 @@
 #include "DKUserInterfaceEditor.hpp"
 #include "../Managers/HappinessManager.hpp"
 #include "../Managers/DKImmigrationManager.hpp"
+#include "../Managers/DKCityMetrics.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "../Entities/Building.hpp"
 #include "../Common/BuildingType.hpp"
@@ -16,7 +17,7 @@
 #include <imgui.h>
 
 void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager,
-                                 Dokev::GameObjectManager* gameObjectManager)
+                                 Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics)
 {
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
@@ -43,10 +44,10 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     }
 
     int availableHomes = homeCapacity - humanCount;
-    int totalResources = 0; 
+    int totalResources = 0;
 
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(300, 500), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(300, 550), ImGuiCond_FirstUseEver);
     ImGui::Begin("City Status", nullptr, ImGuiWindowFlags_NoCollapse);
 
     DrawHappinessSection(happinessManager);
@@ -54,6 +55,12 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     DrawImmigrationSection(immigrationManager, happinessManager, availableHomes, totalResources, humanCount);
     ImGui::Separator();
     DrawPopulationSection(gameObjectManager, homeCapacity, totalHouses, workplaceCount, humanCount);
+
+    if (cityMetrics)
+    {
+        ImGui::Separator();
+        DrawWinConditionSection(cityMetrics, humanCount);
+    }
 
     ImGui::End();
 }
@@ -174,13 +181,13 @@ void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameOb
 {
     (void)gameObjectManager; //unused
 
-    //  Section Title 
+    //  Section Title
     ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f), "POPULATION");
 
-    //  Population 
+    //  Population
     ImGui::Text("Citizens: %d", humanCount);
 
-    //  Housing 
+    //  Housing
     ImGui::Text("Housing:");
     ImGui::SameLine();
     if (homeCapacity >= humanCount)
@@ -188,7 +195,41 @@ void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameOb
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%d / %d", humanCount, homeCapacity);
 
-    //  Buildings 
+    //  Buildings
     ImGui::Text("Homes: %d", totalHouses);
     ImGui::Text("Workplaces: %d", workplaceCount);
+}
+
+void UserInterfaceEditor::DrawWinConditionSection(Dokev::CityMetrics* cityMetrics, int humanCount)
+{
+    if (!cityMetrics)
+        return;
+
+    //  Section Title
+    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "WIN CONDITION");
+
+    int winPopulation = cityMetrics->GetWinConditionPopulation();
+    bool isWinning = cityMetrics->IsWinConditionMet(humanCount);
+
+    //  Progress
+    ImGui::Text("Goal: Reach %d citizens", winPopulation);
+    ImGui::Text("Progress:");
+    ImGui::SameLine();
+
+    if (isWinning)
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%d / %d (ACHIEVED!)", humanCount, winPopulation);
+    else
+    {
+        float progress = static_cast<float>(humanCount) / static_cast<float>(winPopulation);
+        if (progress >= 0.75f)
+            ImGui::TextColored(ImVec4(0, 1, 1, 1), "%d / %d", humanCount, winPopulation);
+        else if (progress >= 0.5f)
+            ImGui::TextColored(ImVec4(1, 1, 0, 1), "%d / %d", humanCount, winPopulation);
+        else
+            ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "%d / %d", humanCount, winPopulation);
+    }
+
+    //  Progress Bar
+    float progressRatio = static_cast<float>(humanCount) / static_cast<float>(winPopulation);
+    ImGui::ProgressBar(progressRatio, ImVec2(-1, 0));
 }

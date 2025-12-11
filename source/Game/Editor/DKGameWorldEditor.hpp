@@ -16,6 +16,7 @@ namespace Dokev
 {
     class Camera;
     class GameObjectManager;
+    class CityMetrics;
 
     class GameWorldEditor
     {
@@ -24,7 +25,7 @@ namespace Dokev
 
         void Initialize(MapManager* mapManagerPtr, Camera* cameraPtr,
                        int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr,
-                       GameObjectManager* gameObjectManager, ResourceManager* resourceManagerPtr);
+                       GameObjectManager* gameObjectManager, ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr = nullptr);
 
         void UpdateInput();
         void DrawImGui();
@@ -41,6 +42,7 @@ namespace Dokev
         float* immigrationInterval = nullptr;
         GameObjectManager* goManager = nullptr;
         ResourceManager* resourceManager = nullptr;
+        CityMetrics* cityMetrics = nullptr;
 
         bool vsyncEnabled = true;
         bool saveGameRequested = false;

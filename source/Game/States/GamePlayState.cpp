@@ -126,7 +126,7 @@ void GamePlayState::Load()
     //smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
     worldEditor.Initialize(
-        GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get());
+        GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get());
 
     // Initialize UI Manager
     uiManager.Initialize();
@@ -234,7 +234,7 @@ void GamePlayState::Update(double dt)
     }
     Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
 
-    // End condition
+    // End condition (Lose)
     if (cityMetrics->GetHappiness() <= 10.0f)
     {
         SDL_Event e{};
@@ -242,6 +242,14 @@ void GamePlayState::Update(double dt)
         e.window.event = SDL_WINDOWEVENT_CLOSE;
         SDL_PushEvent(&e);
         return;
+    }
+
+    // Win condition
+    int currentPopulation = static_cast<int>(gameObjMgr->GetHumans().size());
+    if (cityMetrics->IsWinConditionMet(currentPopulation))
+    {
+        //std::cout << "Congratulations!" << std::endl;
+        // Game won ! 
     }
 
     // mouse hovering & building instructure
@@ -607,7 +615,7 @@ void GamePlayState::DrawImGui()
 
     if (cityMetrics && gameObjMgr)
     {
-        playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get());
+        playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get());
     }
 }
 

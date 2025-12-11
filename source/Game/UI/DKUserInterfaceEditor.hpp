@@ -17,11 +17,16 @@ namespace Dokev
     class ImmigrationManager;
 }
 
+namespace Dokev
+{
+    class CityMetrics;
+}
+
 class UserInterfaceEditor
 {
 public:
     UserInterfaceEditor() = default;
-    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager);
+    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr);
 
 private:
     /**
@@ -38,4 +43,9 @@ private:
      * \brief Draw population section (without Begin/End)
      */
     void DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity, int totalHouses, int workplaceCount, int humanCount);
+
+    /**
+     * \brief Draw win condition section (without Begin/End)
+     */
+    void DrawWinConditionSection(Dokev::CityMetrics* cityMetrics, int humanCount);
 };

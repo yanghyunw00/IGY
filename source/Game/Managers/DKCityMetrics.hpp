@@ -36,6 +36,9 @@ namespace Dokev
         int totalResidentialBuildings;
         int totalPopulation;
 
+        // Win condition
+        int winConditionPopulation = 20; 
+
     public:
 
         bool UpdateSystems(double dt, GameObjectManager* gameObjectManager, ResourceManager* resourceManager);
@@ -50,6 +53,11 @@ namespace Dokev
 
         HappinessManager*   GetHappinessManager() { return &happinessManager; }
         ImmigrationManager* GetImmigrationManager() { return &immigrationManager; }
+
+        // Win condition
+        int GetWinConditionPopulation() const { return winConditionPopulation; }
+        void SetWinConditionPopulation(int population) { winConditionPopulation = population; }
+        bool IsWinConditionMet(int currentPopulation) const { return currentPopulation >= winConditionPopulation; }
     };
 
 }

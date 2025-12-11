@@ -21,6 +21,7 @@
 #include "Engine/Input.hpp"
 #include "Engine/Window.hpp"
 #include "../Managers/ResourceManager.hpp"
+#include "../Managers/DKCityMetrics.hpp"
 #include <SDL.h>
 #include <imgui.h>
 
@@ -28,7 +29,7 @@ namespace Dokev
 {
     void GameWorldEditor::Initialize(
         MapManager* mapManagerPtr, Camera* cameraPtr, int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr, GameObjectManager* gameObjectManager,
-        ResourceManager* resourceManagerPtr)
+        ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr)
     {
         mapManager          = mapManagerPtr;
         camera              = cameraPtr;
@@ -37,6 +38,7 @@ namespace Dokev
         immigrationInterval = immigrationIntervalPtr;
         goManager           = gameObjectManager;
         resourceManager     = resourceManagerPtr;
+        cityMetrics         = cityMetricsPtr;
     }
 
     void GameWorldEditor::UpdateInput()
@@ -482,6 +484,41 @@ namespace Dokev
             loadGameRequested = true;
         }
         ImGui::Separator();
+
+        // WIN CONDITION CONTROLS
+        if (cityMetrics)
+        {
+            ImGui::Spacing();
+            ImGui::Text("WIN CONDITION SETTINGS");
+            ImGui::Separator();
+
+            int winPopulation = cityMetrics->GetWinConditionPopulation();
+            if (ImGui::SliderInt("Win Population", &winPopulation, 5, 100))
+            {
+                cityMetrics->SetWinConditionPopulation(winPopulation);
+            }
+
+            if (goManager)
+            {
+                int currentPopulation = static_cast<int>(goManager->GetHumans().size());
+                bool isWinning = cityMetrics->IsWinConditionMet(currentPopulation);
+
+                ImGui::Text("Current: %d / %d", currentPopulation, winPopulation);
+
+                if (isWinning)
+                {
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), "WINNER!");
+                }
+                else
+                {
+                    float progress = static_cast<float>(currentPopulation) / static_cast<float>(winPopulation);
+                    ImGui::ProgressBar(progress, ImVec2(-1, 0));
+                }
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+        }
 
         ImGui::End();
     }
