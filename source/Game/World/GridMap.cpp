@@ -341,7 +341,7 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                     }
                     topY = static_cast<int>(renderHeight) - screenY;
                     Dokev::DrawTexture(RoadTexture, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
-                    std::cout << "doodoo" <<std::endl;
+                    //std::cout << "doodoo" <<std::endl;
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                 }
                 else

@@ -13,6 +13,7 @@
 #include "Dokev/Managers/DKMapManager.hpp"
 #include "Setting.hpp"
 #include "GameCredit.hpp"
+#include "Engine/AudioManager.hpp"
 
 // #include "Engine/Windwow.hpp"
 
@@ -45,6 +46,7 @@ void MainMenu::Load()
     }
 
     selectedVariant = MapManager::GetNextMapVariant();
+    CS230::AudioManager::Instance().PlayMusic("Assets/sounds/title.mp3", true);
 }
 
 void MainMenu::Update(double dt)

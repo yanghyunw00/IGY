@@ -8,8 +8,10 @@
 
 #include "Building.hpp"
 #include "Engine/Path.hpp"
+#include "../Managers/FloatingTextManager.hpp"
+#include "Dokev/Graphics/DKShapes.hpp"
 
-Building::Building(Math::fvec2 pos, int w, int h)
+Building::Building(Math::fvec2 pos, int w, int h, float buildDuration)
     : gridPosition(pos)
     , width(w)
     , height(h)
@@ -17,12 +19,100 @@ Building::Building(Math::fvec2 pos, int w, int h)
     , max_capacity(0)
     , current_capacity(0)
     , cost(0)
+    , progress(0.0f)
+    , buildTime(0.0f)
+    , maxBuildTime(buildDuration <= 0.0f ? 0.001f : buildDuration)
 {
     texture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
-    progress = 1.0f; // TODO: after finishing time manager fix this to 0
 }
 
 Building::~Building() = default;
+
+void Building::UpdateConstruction(float dt)
+{
+    if (isBuilt)
+    {
+        progress = 1.0f;
+        return;
+    }
+
+    buildTime += dt;
+    progress = buildTime / maxBuildTime;
+
+    if (progress >= 1.0f)
+    {
+        progress = 1.0f;
+        isBuilt  = true;
+        FloatingTextManager::Instance().Add("Complete!", gridPosition * TILE_WIDTH, 0x00FF00FF);
+    }
+}
+
+Math::ivec2 Building::CalculateScreenPosition(int viewIndex, const GridMap* map) const
+{
+    if (!map)
+    {
+        return { 0, 0 };
+    }
+
+    Math::fvec2 transformedPos = map->TransformPathPointForView(Math::fvec2(gridPosition.x, gridPosition.y), viewIndex);
+
+    int gridX_int = static_cast<int>(transformedPos.x);
+    int gridY_int = static_cast<int>(transformedPos.y);
+
+    if (gridX_int < 0 || gridX_int >= GRID_SIZE_X || gridY_int < 0 || gridY_int >= GRID_SIZE_Y)
+    {
+        return { 0, 0 };
+    }
+
+    GridCell** viewArray = map->GetViewArray(viewIndex);
+    if (!viewArray)
+    {
+        return { 0, 0 };
+    }
+
+    GridCell* cell = viewArray[gridY_int * GRID_SIZE_X + gridX_int];
+    if (!cell)
+    {
+        return { 0, 0 };
+    }
+
+    float m_height = static_cast<float>(cell->getHeight());
+
+    int originX = map->GetIsoOriginX();
+    int originY = map->GetIsoOriginY();
+
+    int screenX = originX + static_cast<int>((gridX_int - gridY_int) * TILE_WIDTH_HALF);
+    int screenY = originY + static_cast<int>((gridX_int + gridY_int) * TILE_HEIGHT_HALF);
+    int topY    = static_cast<int>(m_height) - screenY;
+
+    int drawX = screenX + TILE_WIDTH_HALF - texture.GetWidth() / 2;
+    int drawY = topY + TILE_HEIGHT * 2;
+
+    return { drawX, drawY };
+}
+
+void Building::DrawProgressBar(int viewIndex, const GridMap* map) const
+{
+    if (isBuilt || !map)
+    {
+        return;
+    }
+
+    Math::ivec2 drawPos   = CalculateScreenPosition(viewIndex, map);
+    const int   barWidth  = texture.GetWidth();
+    const int   barHeight = 6;
+
+    const int barX = drawPos.x;
+    const int barY = drawPos.y + 6;
+
+    Dokev::DrawRectangle(barX, barY, barWidth, barHeight, 0x444444FF);
+
+    int filledWidth = static_cast<int>(static_cast<float>(barWidth) * progress);
+    if (filledWidth > 0)
+    {
+        Dokev::DrawRectangle(barX, barY, filledWidth, barHeight, 0x00FF00FF);
+    }
+}
 
 int Building::GetCost() const
 {

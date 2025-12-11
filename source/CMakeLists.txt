@@ -37,6 +37,9 @@ set(SOURCE_CODE
     Engine/Timer.hpp
     Engine/Vec2.hpp Engine/Vec2.cpp
     Engine/Window.hpp Engine/Window.cpp
+    Engine/AudioManager.hpp Engine/AudioManager.cpp
+    Engine/FontManager.hpp
+
 
     OpenGL/Buffer.hpp OpenGL/Buffer.cpp
     OpenGL/Environment.hpp
@@ -123,6 +126,7 @@ set(SOURCE_CODE
     Game/Managers/HappinessManager.hpp
     Game/Managers/DKCityMetrics.hpp Game/Managers/DKCityMetrics.cpp
     Game/Managers/DKImmigrationManager.hpp Game/Managers/DKImmigrationManager.cpp
+    Game/Managers/FloatingTextManager.hpp
 
     # Game - World
     Game/World/GridMap.hpp Game/World/GridMap.cpp

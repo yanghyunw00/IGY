@@ -8,6 +8,7 @@
 
 #pragma once
 #include <cstdint>
+#include <cstddef>
 
 namespace Dokev
 {
@@ -52,6 +53,6 @@ namespace Dokev
         static MemoryInfo GetMemoryInfo();
 
         // Get memory info as formatted string
-        static void GetMemoryInfoString(char* buffer, size_t bufferSize);
+        static void GetMemoryInfoString(char* buffer, std::size_t bufferSize);
     };
 }

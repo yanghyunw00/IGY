@@ -33,14 +33,19 @@
 #include "Engine/Matrix.hpp"
 #include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
+#include "Engine/AudioManager.hpp"
+#include "Engine/FontManager.hpp"
+
 #include "../Resources/Resource.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "../Entities/Road.hpp"
 #include "../Resources/Steel.hpp"
 #include "../Resources/Stone.hpp"
 #include "../Resources/Wood.hpp"
-#include "OpenGL/GL.hpp"
+#include "../Managers/FloatingTextManager.hpp"
 #include "MainMenu.hpp"
+
+#include "OpenGL/GL.hpp"
 
 #include <GL/glew.h>
 #include <SDL.h>
@@ -95,6 +100,10 @@ void GamePlayState::Load()
     auto perlin2  = Dokev::GenImagePerlinNoise(256, 256, 256, 256, 0.01f);
     noiseTexture  = Dokev::LoadTextureFromImage(perlin);
     noiseTexture2 = Dokev::LoadTextureFromImage(perlin2);
+
+    CS230::FontManager::Instance().Load("MainFont", assets::locate_asset("Assets/fonts/Font_Simple.png"));
+    CS230::AudioManager::Instance().PlayMusic("Assets/sounds/BGM.mp3", true);
+    roadBuildSoundCount = 0;
 
     // Initialize MapManager component
     AddGSComponent<MapManager>();
@@ -198,6 +207,7 @@ void GamePlayState::Update(double dt)
         }
     }
     Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
+    FloatingTextManager::Instance().Update(static_cast<float>(dt));
 
     //smokeEmitter.Update(environment.DeltaTime);
 
@@ -473,6 +483,19 @@ void GamePlayState::Update(double dt)
 
                     if (placed)
                     {
+                        if (selectedBuild == BuildingType::ROAD)
+                        {
+                            roadBuildSoundCount++;
+                            if (roadBuildSoundCount == 1 || ((roadBuildSoundCount - 1) % 8 == 0))
+                            {
+                                CS230::AudioManager::Instance().PlaySFX("Assets/sounds/road.mp3");
+                            }
+                        }
+                        else if (selectedBuild != BuildingType::DELETE)
+                        {
+                            CS230::AudioManager::Instance().PlaySFX("Assets/sounds/building.mp3");
+                        }
+
                         if(input.KeyJustPressed(CS230::Input::Keys::Escape))
                         {
                              uiManager.SetSelectedBuilding(BuildingType::NONE);
@@ -544,7 +567,7 @@ void GamePlayState::Draw() const
     {
         building->Draw(index, mapMgr->GetMap());
     }
-
+    FloatingTextManager::Instance().Draw(cameraTransform);
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();
 
