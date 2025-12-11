@@ -39,10 +39,10 @@
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Window.hpp"
 
-#include "Game/GamePlayState.hpp"
-#include "Game/DEMO.hpp"
-#include "Game/MainMenu.hpp"
-#include "Game/Splash.hpp"
+#include "Game/States/GamePlayState.hpp"
+#include "Game/States/DEMO.hpp"
+#include "Game/States/MainMenu.hpp"
+#include "Game/States/Splash.hpp"
 namespace
 {
     [[maybe_unused]] int  gWindowWidth  = 1200;

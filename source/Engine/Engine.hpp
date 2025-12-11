@@ -12,8 +12,8 @@
 #include <gsl/gsl>
 #include <memory>
 #include <string_view>
-#include "Dokev/DKMouseInput.hpp"
-#include "Dokev/DKRenderState.hpp"
+#include "Dokev/Input/DKMouseInput.hpp"
+#include "Dokev/Graphics/DKRenderState.hpp"
 
 namespace CS230
 {
