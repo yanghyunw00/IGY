@@ -21,6 +21,7 @@
 #include "Engine/Input.hpp"
 #include "Engine/Window.hpp"
 #include "../Managers/ResourceManager.hpp"
+#include "../Managers/DKCityMetrics.hpp"
 #include <SDL.h>
 #include <imgui.h>
 
@@ -28,7 +29,7 @@ namespace Dokev
 {
     void GameWorldEditor::Initialize(
         MapManager* mapManagerPtr, Camera* cameraPtr, int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr, GameObjectManager* gameObjectManager,
-        ResourceManager* resourceManagerPtr)
+        ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr)
     {
         mapManager          = mapManagerPtr;
         camera              = cameraPtr;
@@ -37,6 +38,7 @@ namespace Dokev
         immigrationInterval = immigrationIntervalPtr;
         goManager           = gameObjectManager;
         resourceManager     = resourceManagerPtr;
+        cityMetrics         = cityMetricsPtr;
     }
 
     void GameWorldEditor::UpdateInput()
@@ -183,13 +185,50 @@ namespace Dokev
 
         if (resourceManager)
         {
-            ImGui::Text("PLAYER RESOURCES");
-            ImGui::Separator();
-            ImGui::Text("Wood: %d", resourceManager->totalWood);
-            ImGui::Text("Stone: %d", resourceManager->totalStone);
-            ImGui::Text("Steel: %d", resourceManager->totalSteel);
-            ImGui::Spacing();
-            ImGui::Spacing();
+            if (ImGui::TreeNode("PLAYER RESOURCES"))
+            {
+                ImGui::Separator();
+
+                int wood = resourceManager->totalWood;
+                if (ImGui::SliderInt("Wood", &wood, 0, 1000))
+                {
+                    resourceManager->totalWood = wood;
+                }
+
+                int stone = resourceManager->totalStone;
+                if (ImGui::SliderInt("Stone", &stone, 0, 1000))
+                {
+                    resourceManager->totalStone = stone;
+                }
+
+                int steel = resourceManager->totalSteel;
+                if (ImGui::SliderInt("Steel", &steel, 0, 1000))
+                {
+                    resourceManager->totalSteel = steel;
+                }
+
+                ImGui::Spacing();
+
+                if (ImGui::Button("Set All to 100"))
+                {
+                    resourceManager->totalWood = 100;
+                    resourceManager->totalStone = 100;
+                    resourceManager->totalSteel = 100;
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Set All to 0"))
+                {
+                    resourceManager->totalWood = 0;
+                    resourceManager->totalStone = 0;
+                    resourceManager->totalSteel = 0;
+                }
+
+                ImGui::Spacing();
+                ImGui::Spacing();
+                ImGui::TreePop();
+            }
         }
         ImGui::Separator();
 
@@ -482,6 +521,41 @@ namespace Dokev
             loadGameRequested = true;
         }
         ImGui::Separator();
+
+        // WIN CONDITION CONTROLS
+        if (cityMetrics)
+        {
+            ImGui::Spacing();
+            ImGui::Text("WIN CONDITION SETTINGS");
+            ImGui::Separator();
+
+            int winPopulation = cityMetrics->GetWinConditionPopulation();
+            if (ImGui::SliderInt("Win Population", &winPopulation, 5, 100))
+            {
+                cityMetrics->SetWinConditionPopulation(winPopulation);
+            }
+
+            if (goManager)
+            {
+                int currentPopulation = static_cast<int>(goManager->GetHumans().size());
+                bool isWinning = cityMetrics->IsWinConditionMet(currentPopulation);
+
+                ImGui::Text("Current: %d / %d", currentPopulation, winPopulation);
+
+                if (isWinning)
+                {
+                    ImGui::TextColored(ImVec4(0, 1, 0, 1), "WINNER!");
+                }
+                else
+                {
+                    float progress = static_cast<float>(currentPopulation) / static_cast<float>(winPopulation);
+                    ImGui::ProgressBar(progress, ImVec2(-1, 0));
+                }
+            }
+
+            ImGui::Spacing();
+            ImGui::Separator();
+        }
 
         ImGui::End();
     }

@@ -30,9 +30,9 @@ namespace Dokev
     void UIManager::Initialize()
     {
         CreateMainButtons();
-        woodIcon  = LoadTexture(assets::locate_asset("Assets/resources/tree_1.png").string());
-        rockIcon  = LoadTexture(assets::locate_asset("Assets/resources/rock_1.png").string());
-        steelIcon = LoadTexture(assets::locate_asset("Assets/resources/steel_1.png").string());
+        woodIcon  = LoadTexture(assets::locate_asset("Assets/resources/wood_icon.png").string());
+        rockIcon  = LoadTexture(assets::locate_asset("Assets/resources/rock_icon.png").string());
+        steelIcon = LoadTexture(assets::locate_asset("Assets/resources/steel_icon.png").string());
         happyIcon = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
         humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/human.png").string());
         outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/Font_Outlined.png").string());
@@ -81,7 +81,7 @@ namespace Dokev
 
                     BuildingButton woodButton;
                     woodButton.type     = BuildingType::WOOD_WORKSHOP;
-                    woodButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+                    woodButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
                     woodButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
                     woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
                     woodButton.name     = "Wood Workshop";
@@ -90,7 +90,7 @@ namespace Dokev
 
                     BuildingButton rockButton;
                     rockButton.type     = BuildingType::ROCK_WORKSHOP;
-                    rockButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+                    rockButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
                     rockButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
                     rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
                     rockButton.name     = "Rock Workshop";
@@ -99,7 +99,7 @@ namespace Dokev
 
                     BuildingButton steelButton;
                     steelButton.type     = BuildingType::STEEL_WORKSHOP;
-                    steelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+                    steelButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
                     steelButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
                     steelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
                     steelButton.name     = "Steel Workshop";
@@ -146,7 +146,6 @@ namespace Dokev
         }
     }
 
-    // Create the very first Buttons
     void UIManager::CreateMainButtons()
     {
         mainButtons.clear();
@@ -185,7 +184,6 @@ namespace Dokev
         mainButtons.push_back(cancelButton);
     }
 
-    // Create the buttons after clicking construction
     void UIManager::CreateCategoryButtons()
     {
         categoryButtons.clear();
@@ -630,7 +628,6 @@ namespace Dokev
                     nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + nameYPos }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }), Dokev::ColorPalette::WHITE);
                 }
 
-                // Draw resource requirements dynamically
                 float yOffset = 5.0f;
                 if (cost.wood > 0)
                 {

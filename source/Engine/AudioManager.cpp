@@ -32,7 +32,6 @@ namespace CS230
             return true;
         }
 
-        // Ensure audio subsystem is initialized (SDL_Init in Window only enables video)
         if (SDL_WasInit(SDL_INIT_AUDIO) == 0)
         {
             if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)

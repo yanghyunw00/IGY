@@ -22,6 +22,7 @@
 #include "OpenGL/GL.hpp"
 #include <GL/glew.h>
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -494,6 +495,8 @@ void GridMap::SetMapVariant(MapVariant variant)
 
 GridCell** GridMap::GetViewArray(int viewIndex) const
 {
+    assert(viewIndex >= 0 && viewIndex < 4 && "View index out of range");
+
     switch (viewIndex)
     {
         case 0: return view1;

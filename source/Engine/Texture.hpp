@@ -184,8 +184,6 @@ namespace CS230
         }
 
     private:
-        // Private constructors - textures can only be created through TextureManager or Font
-        // This ensures proper resource management and prevents accidental texture duplication
         explicit Texture(const std::filesystem::path& file_name);
         Texture(OpenGL::TextureHandle given_texture, Math::ivec2 the_size);
 

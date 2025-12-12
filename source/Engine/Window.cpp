@@ -88,7 +88,6 @@ namespace CS230
         sdl_window = create_window(title, default_width, default_height);
         if (sdl_window == nullptr)
         {
-            // Retry with relaxed attributes to handle systems without multisample/alpha visuals
             Engine::GetLogger().LogEvent(std::string{ "Initial window creation failed: " } + SDL_GetError() + ". Retrying with reduced GL requirements.");
             set_reduced_gl_attributes();
             sdl_window = create_window(title, default_width, default_height);
