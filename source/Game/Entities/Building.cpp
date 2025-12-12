@@ -7,22 +7,15 @@
  */
 
 #include "Building.hpp"
-#include "Engine/Path.hpp"
 #include "../Managers/FloatingTextManager.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
+#include "Engine/Path.hpp"
 #include <cassert>
 
+
 Building::Building(Math::fvec2 pos, int w, int h, float buildDuration)
-    : gridPosition(pos)
-    , width(w)
-    , height(h)
-    , isBuilt(false)
-    , max_capacity(0)
-    , current_capacity(0)
-    , cost(0)
-    , progress(0.0f)
-    , buildTime(0.0f)
-    , maxBuildTime(buildDuration <= 0.0f ? 0.001f : buildDuration)
+    : gridPosition(pos), width(w), height(h), isBuilt(false), max_capacity(0), current_capacity(0), cost(0), progress(0.0f), buildTime(0.0f),
+      maxBuildTime(buildDuration <= 0.0f ? 0.001f : buildDuration)
 {
     assert(w > 0 && "Building width must be positive");
     assert(h > 0 && "Building height must be positive");

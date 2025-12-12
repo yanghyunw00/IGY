@@ -1,10 +1,11 @@
- #include "Setting.hpp"
- #include "GamePlayState.hpp"
- #include "Engine/Engine.hpp"
- #include "Engine/GameStateManager.hpp"
- #include "Engine/AudioManager.hpp"
- #include "Engine/Window.hpp"
- #include "MainMenu.hpp"
+#include "Setting.hpp"
+#include "Engine/AudioManager.hpp"
+#include "Engine/Engine.hpp"
+#include "Engine/GameStateManager.hpp"
+#include "Engine/Window.hpp"
+#include "GamePlayState.hpp"
+#include "MainMenu.hpp"
+
 
 void Setting::Load()
 {
@@ -20,7 +21,7 @@ void Setting::Load()
         std::cerr << e.what() << '\n';
     }
 
-     try
+    try
     {
         Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/Font_Outlined.png");
     }
@@ -94,25 +95,21 @@ void Setting::Update(double dt)
         switch (current)
         {
             case Setting_Keys::Volume:
-            {
-
-                int Temp_volume = volume;
-                Temp_volume -= 1;
-
-                if (Temp_volume < volume_min)
                 {
-                    Temp_volume = volume_max;
+                    int Temp_volume = volume;
+                    Temp_volume -= 1;
+
+                    if (Temp_volume < volume_min)
+                    {
+                        Temp_volume = volume_max;
+                    }
+
+                    SetVolume(Temp_volume);
+                    return;
+                    break;
                 }
-
-                SetVolume(Temp_volume);
-                return;
-                break;
-            
-            }
             default: break;
-            
         }
-
     }
 
     if (input.KeyJustPressed(CS230::Input::Keys::D) || input.KeyJustPressed(CS230::Input::Keys::Right))
@@ -120,24 +117,21 @@ void Setting::Update(double dt)
         switch (current)
         {
             case Setting_Keys::Volume:
-            {
-                int Temp_volume = volume;
-                Temp_volume += 1;
-
-                if (Temp_volume > volume_max)
                 {
-                    Temp_volume = volume_min;
+                    int Temp_volume = volume;
+                    Temp_volume += 1;
+
+                    if (Temp_volume > volume_max)
+                    {
+                        Temp_volume = volume_min;
+                    }
+
+                    SetVolume(Temp_volume);
+                    return;
+                    break;
                 }
-
-                SetVolume(Temp_volume);
-                return;
-                break;
-            
-            }
             default: break;
-            
         }
-
     }
 }
 
@@ -166,13 +160,13 @@ void Setting::Draw() const
     ////////////////////////////////
     //         volume_num         //
     ////////////////////////////////
-    
+
     DrawText(std::to_string(volume), Text_Position_volume_num, *Font_simple, TextColor_volume_num, TextScale_volume_num);
 
     ////////////////////////////////
     //           Back             //
     ////////////////////////////////
-    
+
     DrawText(text_Back, Text_Position_Center_Bottom, *Font_outlined, TextColor_Back, TextScale_Back);
 
     renderer2d.EndScene();
@@ -212,5 +206,4 @@ void Setting::DrawText(const std::string& text, const Math::vec2& position, CS23
 
 void Setting::DrawImGui()
 {
-    
 }

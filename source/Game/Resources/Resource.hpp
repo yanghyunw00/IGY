@@ -1,6 +1,7 @@
 #pragma once
-#include <string>
 #include "Dokev/Graphics/DKTexture.hpp"
+#include <string>
+
 
 class GridMap;
 
@@ -14,13 +15,13 @@ enum class ResourceType
 class Resource
 {
 protected:
-    int gridX;
-    int gridY;
-    int currentAmount;
-    int maxAmount;
+    int          gridX;
+    int          gridY;
+    int          currentAmount;
+    int          maxAmount;
     ResourceType type;
-    bool isOccupied;
-    
+    bool         isOccupied;
+
     Dokev::Texture2D texture;
 
 public:
@@ -28,19 +29,54 @@ public:
     virtual ~Resource() = default;
 
     // Getter
-    int GetGridX() const { return gridX; }
-    int GetGridY() const { return gridY; }
-    int GetCurrentAmount() const { return currentAmount; }
-    int GetMaxAmount() const { return maxAmount; }
-    ResourceType GetType() const { return type; }
-    bool IsOccupied() const { return isOccupied; }
-    bool IsDepleted() const { return currentAmount <= 0; }
+    int GetGridX() const
+    {
+        return gridX;
+    }
+
+    int GetGridY() const
+    {
+        return gridY;
+    }
+
+    int GetCurrentAmount() const
+    {
+        return currentAmount;
+    }
+
+    int GetMaxAmount() const
+    {
+        return maxAmount;
+    }
+
+    ResourceType GetType() const
+    {
+        return type;
+    }
+
+    bool IsOccupied() const
+    {
+        return isOccupied;
+    }
+
+    bool IsDepleted() const
+    {
+        return currentAmount <= 0;
+    }
 
     // Setter
-    void SetOccupied(bool occupied) { isOccupied = occupied; }
+    void SetOccupied(bool occupied)
+    {
+        isOccupied = occupied;
+    }
 
     virtual int Mine(int amount);
-    virtual float GetMiningSpeed() const { return 1.0f; }
+
+    virtual float GetMiningSpeed() const
+    {
+        return 1.0f;
+    }
+
     virtual std::string GetName() const = 0;
 
     virtual void Draw(int viewIndex, const GridMap* map) const;

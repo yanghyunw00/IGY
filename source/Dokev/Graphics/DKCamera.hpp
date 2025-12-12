@@ -1,6 +1,6 @@
 /**
  * \file DKCamera.hpp
- * \brief 
+ * \brief
  * \author Youngwoo Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology

@@ -23,28 +23,44 @@ namespace Dokev
     public:
         GameWorldEditor() = default;
 
-        void Initialize(MapManager* mapManagerPtr, Camera* cameraPtr,
-                       int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr,
-                       GameObjectManager* gameObjectManager, ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr = nullptr);
+        void Initialize(
+            MapManager* mapManagerPtr, Camera* cameraPtr, int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr, GameObjectManager* gameObjectManager,
+            ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr = nullptr);
 
         void UpdateInput();
         void DrawImGui();
-        bool IsSaveRequested() const { return saveGameRequested; }
-        bool IsLoadRequested() const { return loadGameRequested; }
-        void ClearSaveRequest() { saveGameRequested = false; }
-        void ClearLoadRequest() { loadGameRequested = false; }
+
+        bool IsSaveRequested() const
+        {
+            return saveGameRequested;
+        }
+
+        bool IsLoadRequested() const
+        {
+            return loadGameRequested;
+        }
+
+        void ClearSaveRequest()
+        {
+            saveGameRequested = false;
+        }
+
+        void ClearLoadRequest()
+        {
+            loadGameRequested = false;
+        }
 
     private:
-        MapManager* mapManager = nullptr;
-        Camera* camera = nullptr;
-        int* rotationIndex = nullptr;
-        float* immigrationTimer = nullptr;
-        float* immigrationInterval = nullptr;
-        GameObjectManager* goManager = nullptr;
-        ResourceManager* resourceManager = nullptr;
-        CityMetrics* cityMetrics = nullptr;
+        MapManager*        mapManager          = nullptr;
+        Camera*            camera              = nullptr;
+        int*               rotationIndex       = nullptr;
+        float*             immigrationTimer    = nullptr;
+        float*             immigrationInterval = nullptr;
+        GameObjectManager* goManager           = nullptr;
+        ResourceManager*   resourceManager     = nullptr;
+        CityMetrics*       cityMetrics         = nullptr;
 
-        bool vsyncEnabled = true;
+        bool vsyncEnabled      = true;
         bool saveGameRequested = false;
         bool loadGameRequested = false;
     };

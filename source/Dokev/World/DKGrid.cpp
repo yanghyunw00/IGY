@@ -86,7 +86,8 @@ namespace Dokev
             }
         }
 
-        Math::fvec2 ScreenToGridIsometricWithHeight(Math::fvec2 screenPos, int originX, int originY, int tileWidthHalf, int tileHeightHalf, const std::vector<double>& heightMap, int gridWidth, int gridHeight)
+        Math::fvec2
+            ScreenToGridIsometricWithHeight(Math::fvec2 screenPos, int originX, int originY, int tileWidthHalf, int tileHeightHalf, const std::vector<double>& heightMap, int gridWidth, int gridHeight)
         {
             float localX = screenPos.x - static_cast<float>(originX);
             float localY = screenPos.y - static_cast<float>(originY);

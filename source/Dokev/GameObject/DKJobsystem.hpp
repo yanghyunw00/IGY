@@ -1,7 +1,10 @@
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <mutex>
+#include <queue>
 #include <thread>
 #include <vector>
 #include <queue>
@@ -15,11 +18,11 @@ public:
     using Job = std::function<void(void)>;
     /**
      * @brief Adds a job to the job queue
-     * @param job 
+     * @param job
      * @return none
      */
     void DoJob(Job job);
-    
+
     /**
      * @brief Waits until all jobs are completed
      */
@@ -29,21 +32,21 @@ public:
 
     /**
      * @brief Divides the work among available threads and executes the compute function for each index
-     * @param how_many 
-     * @param compute 
+     * @param how_many
+     * @param compute
      * @return none
      */
     void DoJobs(int how_many, ComputeAtIndex compute);
 
 public:
     /**
-    * @brief Constructor
-    */
+     * @brief Constructor
+     */
     JobSystem();
 
     /**
-    * @brief Destructor
-    */
+     * @brief Destructor
+     */
     ~JobSystem(); // RAII
 public:
     // Rule of 5
@@ -67,12 +70,12 @@ private:
     // fields
     std::vector<std::thread> t;
     std::mutex               m;
-    std::condition_variable cv;
-    std::queue<Job>         job_queue;
+    std::condition_variable  cv;
+    std::queue<Job>          job_queue;
 
-    std::atomic_bool isDone  = false;
+    std::atomic_bool isDone = false;
 
     std::atomic_int numberOfJobs = 0;
-    size_t num_workers  = 0;
-    int num_threads  = 0;
+    size_t          num_workers  = 0;
+    int             num_threads  = 0;
 };

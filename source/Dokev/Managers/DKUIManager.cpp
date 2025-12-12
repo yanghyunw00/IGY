@@ -8,8 +8,8 @@
 
 
 #include "DKUIManager.hpp"
-#include "../World/DKCollision.hpp"
 #include "../Graphics/DKShapes.hpp"
+#include "../World/DKCollision.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Input.hpp"
 #include "Engine/Matrix.hpp"
@@ -19,6 +19,7 @@
 #include "Game/Managers/ResourceManager.hpp"
 #include <cmath>
 #include <string>
+
 
 namespace Dokev
 {
@@ -699,15 +700,13 @@ namespace Dokev
             Math::fvec2 tooltipPos = Math::fvec2(button.position.x - tooltipWidth - 10.0f, button.position.y);
 
             DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::TOOLTIP_BACKGROUND);
-            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 2.0f,
-                                 Dokev::ColorPalette::LIGHTGRAY);
+            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 2.0f, Dokev::ColorPalette::LIGHTGRAY);
 
             if (outlined)
             {
                 if (auto nameTexture = outlined->PrintToTexture(tooltipText, Dokev::ColorPalette::WHITE))
                 {
-                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 15.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
-                                      Dokev::ColorPalette::WHITE);
+                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 15.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }), Dokev::ColorPalette::WHITE);
                 }
 
                 // Draw hotkey at the bottom
@@ -750,9 +749,12 @@ namespace Dokev
         // Category buttons
         if (currentMenuState == MenuState::CATEGORY)
         {
-            if (button.name == "Home") return "H";
-            if (button.name == "Work") return "W";
-            if (button.name == "Road") return "R";
+            if (button.name == "Home")
+                return "H";
+            if (button.name == "Work")
+                return "W";
+            if (button.name == "Road")
+                return "R";
         }
 
         // Building buttons
@@ -760,26 +762,34 @@ namespace Dokev
         {
             if (currentCategory == CategoryType::HOME_CATEGORY)
             {
-                if (button.type == BuildingType::HOME) return "H";
+                if (button.type == BuildingType::HOME)
+                    return "H";
             }
             else if (currentCategory == CategoryType::WORK_CATEGORY)
             {
-                if (button.type == BuildingType::WOOD_WORKSHOP) return "W";
-                if (button.type == BuildingType::ROCK_WORKSHOP) return "R";
-                if (button.type == BuildingType::STEEL_WORKSHOP) return "S";
+                if (button.type == BuildingType::WOOD_WORKSHOP)
+                    return "W";
+                if (button.type == BuildingType::ROCK_WORKSHOP)
+                    return "R";
+                if (button.type == BuildingType::STEEL_WORKSHOP)
+                    return "S";
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
             {
-                if (button.type == BuildingType::ROAD) return "R";
+                if (button.type == BuildingType::ROAD)
+                    return "R";
             }
-            if (button.name == "Cancel") return "C";
+            if (button.name == "Cancel")
+                return "C";
         }
 
         // Main menu buttons
         if (currentMenuState == MenuState::MAIN)
         {
-            if (button.name == "Build") return "B";
-            if (button.name == "Cancel") return "C";
+            if (button.name == "Build")
+                return "B";
+            if (button.name == "Cancel")
+                return "C";
         }
 
         return ""; // No hotkey

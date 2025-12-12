@@ -9,6 +9,10 @@
 class PlainsDemo : public DEMO
 {
 public:
-    void          Load() override;
-    gsl::czstring GetName() const override { return "PlainsDemo"; }
+    void Load() override;
+
+    gsl::czstring GetName() const override
+    {
+        return "PlainsDemo";
+    }
 };

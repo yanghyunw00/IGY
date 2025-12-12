@@ -8,15 +8,16 @@
  */
 
 #include "Human.hpp"
+#include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
 #include "Engine/Path.hpp"
-#include "../World/GridMap.hpp"
 #include "Road.hpp"
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <queue>
-#include <cmath>
 #include <unordered_map>
+
 
 Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false), color(Dokev::ColorPalette::BLUE)
 {
@@ -144,8 +145,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
     if (ai.isFollowingRoad && road)
     {
-        bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x),
-                                    static_cast<int>(currentGridPos.y));
+        bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
 
         if (onRoad)
         {
@@ -197,8 +197,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
 
         if (ai.isFollowingRoad && road)
         {
-            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x),
-                                               static_cast<int>(currentGridPos.y));
+            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
 
             if (!onRoad)
             {
@@ -207,7 +206,6 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
                 ChangeState(HumanState::FindingDestination);
                 return;
             }
-
         }
 
         if (isMoving)
@@ -216,12 +214,11 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
 
             if (!isMoving)
             {
-                bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x),
-                                                    static_cast<int>(currentGridPos.y));
+                bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
 
                 if (onRoad)
                 {
-                    ai.isFollowingRoad = true;
+                    ai.isFollowingRoad    = true;
                     ai.roadReturnAttempts = 0;
                     ChangeState(HumanState::FindingDestination);
                 }
@@ -233,7 +230,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
                     }
                     else
                     {
-                        ai.isFollowingRoad = false;
+                        ai.isFollowingRoad    = false;
                         ai.roadReturnAttempts = 0;
                         ChangeState(HumanState::Idle);
                     }
@@ -277,8 +274,8 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawY = topY + TILE_HEIGHT_HALF;
 
     // For Debugging stuffs
-   // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
-   // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
+    // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
+    // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
     humanTexture.Draw(drawX, drawY);
 }
 
@@ -321,8 +318,7 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
     {
         if (ai.isFollowingRoad)
         {
-            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x),
-                                       static_cast<int>(currentGridPos.y));
+            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
 
             if (onRoad)
             {
@@ -331,9 +327,9 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
 
                 if (foundRoad)
                 {
-                    ai.lastDirection.x = nextRoadTile.x - currentGridPos.x;
-                    ai.lastDirection.y = nextRoadTile.y - currentGridPos.y;
-                    ai.roadReturnAttempts = 0;  
+                    ai.lastDirection.x    = nextRoadTile.x - currentGridPos.x;
+                    ai.lastDirection.y    = nextRoadTile.y - currentGridPos.y;
+                    ai.roadReturnAttempts = 0;
                     return nextRoadTile;
                 }
             }
@@ -354,7 +350,7 @@ Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
                 ai.roadReturnAttempts++;
                 if (ai.roadReturnAttempts >= ai.maxRoadReturnAttempts)
                 {
-                    ai.isFollowingRoad = false;
+                    ai.isFollowingRoad    = false;
                     ai.roadReturnAttempts = 0;
                 }
             }
@@ -519,7 +515,7 @@ Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
     else
     {
         // Intersection - choose randomly
-        outFoundRoad = true;
+        outFoundRoad    = true;
         int randomIndex = rand() % nextMoveOptions.size();
         return nextMoveOptions[randomIndex];
     }

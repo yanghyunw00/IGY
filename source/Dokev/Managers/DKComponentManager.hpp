@@ -1,17 +1,18 @@
 /**
  * \file DKComponentManager.hpp
- * \brief 
+ * \brief
  * \author Hyunseok Choi
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
 
 #pragma once
-#include <vector>
+#include "../GameObject/DKComponent.hpp"
 #include <memory>
 #include <typeindex>
 #include <unordered_map>
-#include "../GameObject/DKComponent.hpp"
+#include <vector>
+
 
 namespace Dokev
 {
@@ -19,11 +20,12 @@ namespace Dokev
     {
     private:
         std::unordered_map<std::type_index, std::shared_ptr<IComponent>> m_components;
+
     public:
         template <typename T, typename... TArgs>
         std::shared_ptr<T> AddComponent(TArgs&&... args)
         {
-            auto newComponent = std::make_shared<T>(std::forward<TArgs>(args)...);
+            auto newComponent                        = std::make_shared<T>(std::forward<TArgs>(args)...);
             m_components[std::type_index(typeid(T))] = newComponent;
             return newComponent;
         }

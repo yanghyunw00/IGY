@@ -6,9 +6,10 @@
  * \copyright DigiPen Institute of Technology
  */
 #pragma once
-#include "Dokev/GameObject/DKComponent.hpp"
 #include "../Managers/HappinessManager.hpp"
 #include "DKImmigrationManager.hpp"
+#include "Dokev/GameObject/DKComponent.hpp"
+
 
 namespace Dokev
 {
@@ -37,7 +38,7 @@ namespace Dokev
         int totalPopulation;
 
         // Win condition
-        int winConditionPopulation = 20; 
+        int winConditionPopulation = 20;
 
     public:
 
@@ -45,19 +46,46 @@ namespace Dokev
 
         void Update(double dt) override;
 
-        float GetHappiness() const { return averageHappiness; }
+        float GetHappiness() const
+        {
+            return averageHappiness;
+        }
 
-        void SetHappinessChangeRate(float rate) { happinessChangeRate = rate; }
+        void SetHappinessChangeRate(float rate)
+        {
+            happinessChangeRate = rate;
+        }
 
-        float GetHappinessChangeRate() const { return happinessChangeRate; }
+        float GetHappinessChangeRate() const
+        {
+            return happinessChangeRate;
+        }
 
-        HappinessManager*   GetHappinessManager() { return &happinessManager; }
-        ImmigrationManager* GetImmigrationManager() { return &immigrationManager; }
+        HappinessManager* GetHappinessManager()
+        {
+            return &happinessManager;
+        }
+
+        ImmigrationManager* GetImmigrationManager()
+        {
+            return &immigrationManager;
+        }
 
         // Win condition
-        int GetWinConditionPopulation() const { return winConditionPopulation; }
-        void SetWinConditionPopulation(int population) { winConditionPopulation = population; }
-        bool IsWinConditionMet(int currentPopulation) const { return currentPopulation >= winConditionPopulation; }
+        int GetWinConditionPopulation() const
+        {
+            return winConditionPopulation;
+        }
+
+        void SetWinConditionPopulation(int population)
+        {
+            winConditionPopulation = population;
+        }
+
+        bool IsWinConditionMet(int currentPopulation) const
+        {
+            return currentPopulation >= winConditionPopulation;
+        }
     };
 
 }

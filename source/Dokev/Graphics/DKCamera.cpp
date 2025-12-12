@@ -1,6 +1,6 @@
 /**
  * \file DKCamera.cpp
- * \brief 
+ * \brief
  * \author Youngwoo Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -10,8 +10,7 @@
 
 namespace Dokev
 {
-    Camera::Camera(Math::vec2 position, float zoom)
-        : position(position), zoom(zoom)
+    Camera::Camera(Math::vec2 position, float zoom) : position(position), zoom(zoom)
     {
     }
 
@@ -47,7 +46,7 @@ namespace Dokev
 
     void Camera::AdjustZoom(float factor)
     {
-        // should translate 
+        // should translate
         zoom *= factor;
     }
 
@@ -93,7 +92,7 @@ namespace Dokev
         if (std::abs(zoom - targetZoom) > 0.001f)
         {
             float step = zoomSpeed * static_cast<float>(dt);
-            zoom = zoom + (targetZoom - zoom) * step;
+            zoom       = zoom + (targetZoom - zoom) * step;
 
             if (std::abs(zoom - targetZoom) < 0.001f)
             {
@@ -104,9 +103,9 @@ namespace Dokev
 
     void Camera::Reset()
     {
-        position = { 0.0, 0.0 };
-        zoom = 1.0f;
+        position   = { 0.0, 0.0 };
+        zoom       = 1.0f;
         targetZoom = 1.0f;
-        zoomLevel = 1;
+        zoomLevel  = 1;
     }
 }

@@ -7,21 +7,23 @@
  */
 
 #pragma once
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
+
 
 namespace Dokev
 {
     struct MemoryInfo
     {
-        uint64_t totalPhysical = 0;      // Total physical RAM in bytes
-        uint64_t availablePhysical = 0;  // Available physical RAM in bytes
-        uint64_t usedPhysical = 0;       // Used physical RAM in bytes
-        uint64_t processUsed = 0;        // RAM used by current process in bytes
+        uint64_t totalPhysical     = 0; // Total physical RAM in bytes
+        uint64_t availablePhysical = 0; // Available physical RAM in bytes
+        uint64_t usedPhysical      = 0; // Used physical RAM in bytes
+        uint64_t processUsed       = 0; // RAM used by current process in bytes
 
         float GetUsagePercent() const
         {
-            if (totalPhysical == 0) return 0.0f;
+            if (totalPhysical == 0)
+                return 0.0f;
             return (static_cast<float>(usedPhysical) / static_cast<float>(totalPhysical)) * 100.0f;
         }
 

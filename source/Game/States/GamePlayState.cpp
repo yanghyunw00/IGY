@@ -8,42 +8,44 @@
  */
 #include "GamePlayState.hpp"
 #include "../Entities/Building.hpp"
+#include "../Entities/Human.hpp"
+#include "../Entities/ResidentBuilding.hpp"
+#include "../Entities/WorkBuilding.hpp"
+#include "../Managers/DKCityMetrics.hpp"
+#include "../World/GridMap.hpp"
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
 #include "CS200/RenderingAPI.hpp"
-#include "../Managers/DKCityMetrics.hpp"
 #include "Dokev/Core/DKColor.hpp"
-#include "Dokev/Managers/DKGameObjectManager.hpp"
-#include "Dokev/Graphics/DKImage.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
+#include "Dokev/Graphics/DKImage.hpp"
 #include "Dokev/Graphics/DKParticles.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
-#include "../World/GridMap.hpp"
-#include "../Entities/Human.hpp"
-#include "../Entities/ResidentBuilding.hpp"
-#include "../Entities/WorkBuilding.hpp"
+#include "Dokev/Managers/DKGameObjectManager.hpp"
 
 
+#include "Engine/AudioManager.hpp"
 #include "Engine/Engine.hpp"
+#include "Engine/FontManager.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Input.hpp"
 #include "Engine/Logger.hpp"
 #include "Engine/Matrix.hpp"
 #include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
-#include "Engine/AudioManager.hpp"
-#include "Engine/FontManager.hpp"
 
-#include "../Resources/Resource.hpp"
-#include "../Managers/ResourceManager.hpp"
+
 #include "../Entities/Road.hpp"
+#include "../Managers/FloatingTextManager.hpp"
+#include "../Managers/ResourceManager.hpp"
+#include "../Resources/Resource.hpp"
 #include "../Resources/Steel.hpp"
 #include "../Resources/Stone.hpp"
 #include "../Resources/Wood.hpp"
-#include "../Managers/FloatingTextManager.hpp"
 #include "MainMenu.hpp"
+
 
 #include "OpenGL/GL.hpp"
 
@@ -81,7 +83,7 @@ namespace
         return map->TransformPathPointForView(tileCoord, inverseRotation);
     }
 
-    Math::ivec2 lastPlacedRoadPos = {-1, -1};
+    Math::ivec2 lastPlacedRoadPos              = { -1, -1 };
     bool        blockRoadPlacementUntilRelease = false; // avoid placing road with the same click used to select it
 }
 
@@ -123,10 +125,11 @@ void GamePlayState::Load()
 
     camera.SetZoom(0.3f);
 
-    //smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
+    // smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
     worldEditor.Initialize(
-        GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get());
+        GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get(),
+        GetGSComponent<CityMetrics>().get());
 
     // Initialize UI Manager
     uiManager.Initialize();
@@ -154,7 +157,7 @@ void GamePlayState::Update(double dt)
     if (!uiManager.IsMenuActive())
     {
         worldEditor.UpdateInput();
-       Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
+        Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
     }
 
 
@@ -209,7 +212,7 @@ void GamePlayState::Update(double dt)
     Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
     FloatingTextManager::Instance().Update(static_cast<float>(dt));
 
-    //smokeEmitter.Update(environment.DeltaTime);
+    // smokeEmitter.Update(environment.DeltaTime);
 
     // const auto& input = Engine::GetInput();
     //  if (input.KeyJustPressed(CS230::Input::Keys::P))
@@ -220,7 +223,7 @@ void GamePlayState::Update(double dt)
     //      smokeEmitter.Emit(5, emit_pos, emit_vel, direction, 3.14159 / 4, 0.5);
     //  }
 
-    // Happiness & Immigration System 
+    // Happiness & Immigration System
     auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
     auto resourceMgr = GetGSComponent<ResourceManager>();
 
@@ -248,8 +251,8 @@ void GamePlayState::Update(double dt)
     int currentPopulation = static_cast<int>(gameObjMgr->GetHumans().size());
     if (cityMetrics->IsWinConditionMet(currentPopulation))
     {
-        //std::cout << "Congratulations!" << std::endl;
-        // Game won ! 
+        // std::cout << "Congratulations!" << std::endl;
+        //  Game won !
     }
 
     // mouse hovering & building instructure
@@ -264,9 +267,9 @@ void GamePlayState::Update(double dt)
     uiManager.Update(mouseScreenPos, mouseClicked);
 
     // Check if button was clicked
-    auto currentSelection   = uiManager.GetSelectedBuilding();
-    bool selectionChanged   = previousUISelection != currentSelection;
-    bool buttonClicked      = selectionChanged && (currentSelection != BuildingType::NONE);
+    auto currentSelection = uiManager.GetSelectedBuilding();
+    bool selectionChanged = previousUISelection != currentSelection;
+    bool buttonClicked    = selectionChanged && (currentSelection != BuildingType::NONE);
 
     // Update tutorial
     const auto& input       = Engine::GetInput();
@@ -293,7 +296,7 @@ void GamePlayState::Update(double dt)
     ///////////////////////////////////////////////////////////
 
     auto selectBuildingType = uiManager.GetSelectedBuilding();
-    bool shouldplace = mouseClicked || (ismouseheld && selectBuildingType == BuildingType::ROAD && !blockRoadPlacementUntilRelease);
+    bool shouldplace        = mouseClicked || (ismouseheld && selectBuildingType == BuildingType::ROAD && !blockRoadPlacementUntilRelease);
 
     if (shouldplace)
     {
@@ -320,7 +323,7 @@ void GamePlayState::Update(double dt)
             GL::ReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
             GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
-            
+
 
             float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.0f;
             float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.0f;
@@ -411,8 +414,8 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::ROAD))
                                     break;
                                 road->addRoad(gridX, gridY, *map);
-                                placed = true;
-                                lastPlacedRoadPos = {gridX, gridY};
+                                placed            = true;
+                                lastPlacedRoadPos = { gridX, gridY };
                                 break;
                             }
                         case BuildingType::HOME:
@@ -503,9 +506,9 @@ void GamePlayState::Update(double dt)
                             CS230::AudioManager::Instance().PlaySFX("Assets/sounds/building.mp3");
                         }
 
-                        if(input.KeyJustPressed(CS230::Input::Keys::Escape))
+                        if (input.KeyJustPressed(CS230::Input::Keys::Escape))
                         {
-                             uiManager.SetSelectedBuilding(BuildingType::NONE);
+                            uiManager.SetSelectedBuilding(BuildingType::NONE);
                         }
                         tutorialManager.OnBuildingPlaced();
                     }
@@ -518,7 +521,7 @@ void GamePlayState::Update(double dt)
 
     if (!ismouseheld)
     {
-        lastPlacedRoadPos = {-1, -1};
+        lastPlacedRoadPos = { -1, -1 };
     }
 
     mouseSelection.SetViewIndex(index);
@@ -534,7 +537,7 @@ void GamePlayState::Draw() const
     auto& renderer2d           = Engine::GetRenderer2D(selected_renderer);
     auto& renderer2d_IMMEDIATE = Engine::GetRenderer2D(Dokev::RenderState::IMMEDIATE);
 
-    auto ndcMatrix  = CS200::build_ndc_matrix(windowSize);
+    auto ndcMatrix = CS200::build_ndc_matrix(windowSize);
 
     auto cameraTransform = camera.GetViewMatrix();
 
@@ -555,12 +558,12 @@ void GamePlayState::Draw() const
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
     // Draw smoke animation at position (200, 200)
-    //Math::TransformationMatrix smokeTransform;
-    //smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
+    // Math::TransformationMatrix smokeTransform;
+    // smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
     // smokeSprite.Draw(smokeTransform);
 
     // Draw particles
-    //smokeEmitter.Draw(cameraTransform * ndcMatrix);
+    // smokeEmitter.Draw(cameraTransform * ndcMatrix);
 
     // Draw all humans
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();

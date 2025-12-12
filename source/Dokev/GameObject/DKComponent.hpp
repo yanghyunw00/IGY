@@ -10,5 +10,5 @@
 struct IComponent
 {
     virtual ~IComponent() = default;
-    virtual void Update([[maybe_unused]] double dt) {};
+    virtual void Update([[maybe_unused]] double dt) { };
 };

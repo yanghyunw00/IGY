@@ -1,12 +1,13 @@
 #pragma once
-#include "Dokev/GameObject/DKComponent.hpp"
 #include "../Resources/Resource.hpp"
+#include "Dokev/GameObject/DKComponent.hpp"
 #include <cassert>
+
 
 class ResourceManager : public IComponent
 {
 public:
-    int totalWood = 5;
+    int totalWood  = 5;
     int totalStone = 5;
     int totalSteel = 5;
 
@@ -16,7 +17,7 @@ public:
 
         switch (type)
         {
-            case ResourceType::Wood:  totalWood += amount; break;
+            case ResourceType::Wood: totalWood += amount; break;
             case ResourceType::Stone: totalStone += amount; break;
             case ResourceType::Steel: totalSteel += amount; break;
         }
@@ -28,7 +29,7 @@ public:
 
     void SetResources(int wood, int stone, int steel)
     {
-        totalWood = wood;
+        totalWood  = wood;
         totalStone = stone;
         totalSteel = steel;
     }

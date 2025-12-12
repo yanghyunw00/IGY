@@ -21,28 +21,28 @@ class GridMap;
 
 class Road
 {
-
 private:
-	Texture2D roadTexture;
-	std::vector<Math::fvec2> roadPositions;
+    Texture2D                roadTexture;
+    std::vector<Math::fvec2> roadPositions;
 
 public:
-	Road()
-	{
-		roadTexture = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
-	};
+    Road()
+    {
+        roadTexture = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
+    };
 
-	~Road()
-	{
-	};
+    ~Road() { };
 
-	void addRoad(int x, int y, GridMap& map);
-	void removeRoad(int x, int y, GridMap& map);
-	void removeAllRoad();
-	void removeAllRoad(GridMap& map);
-	bool hasRoad(int x, int y) const;
-	void drawRoads(const GridMap& map, int currentview);
-	void buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY);
+    void addRoad(int x, int y, GridMap& map);
+    void removeRoad(int x, int y, GridMap& map);
+    void removeAllRoad();
+    void removeAllRoad(GridMap& map);
+    bool hasRoad(int x, int y) const;
+    void drawRoads(const GridMap& map, int currentview);
+    void buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY);
 
-	size_t getRoadCount() const { return roadPositions.size(); }
+    size_t getRoadCount() const
+    {
+        return roadPositions.size();
+    }
 };

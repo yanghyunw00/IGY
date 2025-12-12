@@ -21,18 +21,26 @@ namespace CS230
         void PlaySFX(const std::filesystem::path& path, int loops = 0);
         void SetMuted(bool mute);
         void SetVolumeLevel(int level, int maxLevel = 5);
-        int  GetVolumeLevel() const { return volumeLevel; }
-        bool IsMuted() const { return muted; }
+
+        int GetVolumeLevel() const
+        {
+            return volumeLevel;
+        }
+
+        bool IsMuted() const
+        {
+            return muted;
+        }
 
     private:
         AudioManager()  = default;
         ~AudioManager() = default;
 
-        bool initialized = false;
-        bool muted       = false;
-        int  volumeLevel = 5;
-        int  volumeMax   = 5;
-        void applyVolumes();
+        bool        initialized = false;
+        bool        muted       = false;
+        int         volumeLevel = 5;
+        int         volumeMax   = 5;
+        void        applyVolumes();
         std::string currentMusicKey;
 
         std::unordered_map<std::string, Mix_Chunk*> sfxCache;

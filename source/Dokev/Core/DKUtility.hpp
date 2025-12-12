@@ -11,11 +11,11 @@
 
 namespace Dokev
 {
-    int GetRandomValue(int min, int max);
+    int  GetRandomValue(int min, int max);
     bool ChanceRoll(float probability);
     vec2 GetRandomGridPosition(int gridWidth, int gridHeight);
 
-    int GetRandomInt(int min, int max);
+    int   GetRandomInt(int min, int max);
     float GetRandomFloat(float min, float max);
 
 }

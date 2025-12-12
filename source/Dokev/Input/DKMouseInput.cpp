@@ -1,6 +1,6 @@
 /**
  * \file DKMouseInput.cpp
- * \brief 
+ * \brief
  * \author Junseok Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -19,7 +19,7 @@ namespace Dokev
     void Mouse::Update()
     {
         previousButtonsDown = buttonsDown;
-        previousPosition = position;
+        previousPosition    = position;
 
         Uint32 mouseState = SDL_GetMouseState(&position.x, &position.y);
 

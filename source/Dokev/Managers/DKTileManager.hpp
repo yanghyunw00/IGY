@@ -6,9 +6,10 @@
  * \copyright DigiPen Institute of Technology
  */
 #pragma once
+#include "Engine/Vec2.hpp"
 #include <memory>
 #include <vector>
-#include "Engine/Vec2.hpp"
+
 
 class GridMap;
 
@@ -16,17 +17,17 @@ namespace Dokev
 {
     enum class TileType
     {
-        WILDERNESS,    
-        ROAD,           
-        RESIDENTIAL,   
-        INDUSTRIAL      
+        WILDERNESS,
+        ROAD,
+        RESIDENTIAL,
+        INDUSTRIAL
     };
 
     struct TileOccupancy
     {
-        TileType type = TileType::WILDERNESS;
-        bool isOccupied = false;
-        int buildingId = -1;  
+        TileType type       = TileType::WILDERNESS;
+        bool     isOccupied = false;
+        int      buildingId = -1;
     };
 
     class TileManager
@@ -43,9 +44,9 @@ namespace Dokev
         bool DeallocateArea(int startX, int startY, int width, int height);
 
         TileType GetTileType(int x, int y) const;
-        bool IsTileOccupied(int x, int y) const;
-        bool CanPlaceTile(int x, int y) const;
-        bool CanPlaceArea(int startX, int startY, int width, int height) const;
+        bool     IsTileOccupied(int x, int y) const;
+        bool     CanPlaceTile(int x, int y) const;
+        bool     CanPlaceArea(int startX, int startY, int width, int height) const;
 
         int GetTileCount(TileType type) const;
         int GetTotalOccupiedTiles() const;
@@ -57,8 +58,8 @@ namespace Dokev
 
     private:
         std::vector<std::vector<TileOccupancy>> tiles;
-        int gridSizeX = 0;
-        int gridSizeY = 0;
+        int                                     gridSizeX = 0;
+        int                                     gridSizeY = 0;
 
         bool IsValidCoordinate(int x, int y) const;
     };

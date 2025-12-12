@@ -1,6 +1,6 @@
 /**
  * \file DKColor.cpp
- * \brief 
+ * \brief
  * \author Young woo Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -53,7 +53,8 @@ namespace Dokev
 
     CS200::RGBA ColorFromRGBA(int r, int g, int b, int a)
     {
-        auto clamp_byte = [](int value) -> uint8_t {
+        auto clamp_byte = [](int value) -> uint8_t
+        {
             return static_cast<uint8_t>(std::clamp(value, 0, 255));
         };
 
@@ -62,20 +63,12 @@ namespace Dokev
         uint8_t B = clamp_byte(b);
         uint8_t A = clamp_byte(a);
 
-        return (static_cast<CS200::RGBA>(R) << 24) |
-               (static_cast<CS200::RGBA>(G) << 16) |
-               (static_cast<CS200::RGBA>(B) << 8) |
-               (static_cast<CS200::RGBA>(A) << 0);
+        return (static_cast<CS200::RGBA>(R) << 24) | (static_cast<CS200::RGBA>(G) << 16) | (static_cast<CS200::RGBA>(B) << 8) | (static_cast<CS200::RGBA>(A) << 0);
     }
 
     CS200::RGBA ColorFromNormalized(float r, float g, float b, float a)
     {
-        std::array<float, 4> color = {
-            std::clamp(r, 0.0f, 1.0f),
-            std::clamp(g, 0.0f, 1.0f),
-            std::clamp(b, 0.0f, 1.0f),
-            std::clamp(a, 0.0f, 1.0f)
-        };
+        std::array<float, 4> color = { std::clamp(r, 0.0f, 1.0f), std::clamp(g, 0.0f, 1.0f), std::clamp(b, 0.0f, 1.0f), std::clamp(a, 0.0f, 1.0f) };
 
         return CS200::pack_color(color);
     }

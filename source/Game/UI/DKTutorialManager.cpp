@@ -7,31 +7,27 @@
  */
 
 #include "DKTutorialManager.hpp"
-#include "Dokev/Managers/DKUIManager.hpp"
-#include "Dokev/Graphics/DKShapes.hpp"
-#include "Engine/Engine.hpp"
-#include "Engine/Window.hpp"
-#include "Engine/Path.hpp"
 #include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Graphics/DKShapes.hpp"
+#include "Dokev/Managers/DKUIManager.hpp"
+#include "Engine/Engine.hpp"
+#include "Engine/Path.hpp"
+#include "Engine/Window.hpp"
 #include <cmath>
+
 
 namespace Dokev
 {
-    TutorialManager::TutorialManager()
-        : currentStepIndex(0)
-        , isActive(false)
-        , currentStepTime(0.0f)
-        , canSkip(true)
-        , uiManager(nullptr)
+    TutorialManager::TutorialManager() : currentStepIndex(0), isActive(false), currentStepTime(0.0f), canSkip(true), uiManager(nullptr)
     {
     }
 
     void TutorialManager::Initialize(UIManager* ui)
     {
-        uiManager = ui;
+        uiManager        = ui;
         currentStepIndex = 0;
-        isActive = true;
-        currentStepTime = 0.0f;
+        isActive         = true;
+        currentStepTime  = 0.0f;
 
         font = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/Font_Outlined.png").string());
 
@@ -44,74 +40,74 @@ namespace Dokev
         auto windowSize = Engine::GetWindow().GetSize();
 
         TutorialStep step1;
-        step1.text = "Welcome! Build your own city and gather citizens!";
+        step1.text           = "Welcome! Build your own city and gather citizens!";
         step1.completionType = CompletionType::CLICK_ANYWHERE;
-        step1.highlightType = HighlightType::NONE;
-        step1.showArrow = false;
-        step1.blockInput = false;
+        step1.highlightType  = HighlightType::NONE;
+        step1.showArrow      = false;
+        step1.blockInput     = false;
         steps.push_back(step1);
 
         TutorialStep step2;
-        step2.text = "Here you can check your resources and population";
+        step2.text           = "Here you can check your resources and population";
         step2.completionType = CompletionType::TIME_PASSED;
-        step2.duration = 2.0f;
-        step2.highlightType = HighlightType::CIRCLE;
-        step2.highlightPos = Math::fvec2(static_cast<float>(windowSize.x) - 150.0f, static_cast<float>(windowSize.y) - 200.0f);
-        step2.highlightSize = Math::fvec2(200.0f, 200.0f);
-        step2.showArrow = false;
-        step2.blockInput = true;
+        step2.duration       = 2.0f;
+        step2.highlightType  = HighlightType::CIRCLE;
+        step2.highlightPos   = Math::fvec2(static_cast<float>(windowSize.x) - 150.0f, static_cast<float>(windowSize.y) - 200.0f);
+        step2.highlightSize  = Math::fvec2(200.0f, 200.0f);
+        step2.showArrow      = false;
+        step2.blockInput     = true;
         steps.push_back(step2);
 
         TutorialStep step3;
-        step3.text = "Use WASD to move camera, Q/E to zoom in/out";
+        step3.text           = "Use WASD to move camera, Q/E to zoom in/out";
         step3.completionType = CompletionType::TIME_PASSED;
-        step3.duration = 3.0f;
-        step3.highlightType = HighlightType::NONE;
-        step3.showArrow = false;
-        step3.blockInput = false;
+        step3.duration       = 3.0f;
+        step3.highlightType  = HighlightType::NONE;
+        step3.showArrow      = false;
+        step3.blockInput     = false;
         steps.push_back(step3);
 
         TutorialStep step4;
-        step4.text = "Now let's build a Wood Workshop to gather resources!";
+        step4.text           = "Now let's build a Wood Workshop to gather resources!";
         step4.completionType = CompletionType::BUTTON_CLICKED;
-        step4.highlightType = HighlightType::RECTANGLE;
-        step4.highlightPos = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 110.0f, 370.0f);
-        step4.highlightSize = Math::fvec2(60.0f, 60.0f);
-        step4.showArrow = true;
-        step4.arrowPos = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 140.0f, 390.0f);
-        step4.blockInput = false;
+        step4.highlightType  = HighlightType::RECTANGLE;
+        step4.highlightPos   = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 110.0f, 370.0f);
+        step4.highlightSize  = Math::fvec2(60.0f, 60.0f);
+        step4.showArrow      = true;
+        step4.arrowPos       = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 140.0f, 390.0f);
+        step4.blockInput     = false;
         steps.push_back(step4);
 
         TutorialStep step5;
-        step5.text = "Click on the map to place your Wood Workshop!";
+        step5.text           = "Click on the map to place your Wood Workshop!";
         step5.completionType = CompletionType::BUILDING_PLACED;
-        step5.highlightType = HighlightType::FULL_SCREEN;
-        step5.showArrow = false;
-        step5.blockInput = false;
+        step5.highlightType  = HighlightType::FULL_SCREEN;
+        step5.showArrow      = false;
+        step5.blockInput     = false;
         steps.push_back(step5);
 
         TutorialStep step6;
-        step6.text = "Building placed successfully!";
+        step6.text           = "Building placed successfully!";
         step6.completionType = CompletionType::CLICK_ANYWHERE;
-        step6.highlightType = HighlightType::NONE;
-        step6.showArrow = false;
-        step6.blockInput = false;
+        step6.highlightType  = HighlightType::NONE;
+        step6.showArrow      = false;
+        step6.blockInput     = false;
         steps.push_back(step6);
 
         TutorialStep step7;
-        step7.text = "Each building produces specific resources!";
+        step7.text           = "Each building produces specific resources!";
         step7.completionType = CompletionType::CLICK_ANYWHERE;
-        step7.highlightType = HighlightType::NONE;
-        step7.showArrow = false;
-        step7.blockInput = false;
+        step7.highlightType  = HighlightType::NONE;
+        step7.showArrow      = false;
+        step7.blockInput     = false;
         steps.push_back(step7);
 
         TutorialStep step8;
-        step8.text = "Build houses and roads to attract citizens.\n Create your city!";
+        step8.text           = "Build houses and roads to attract citizens.\n Create your city!";
         step8.completionType = CompletionType::CLICK_ANYWHERE;
-        step8.highlightType = HighlightType::NONE;
-        step8.showArrow = false;
-        step8.blockInput = false;
+        step8.highlightType  = HighlightType::NONE;
+        step8.showArrow      = false;
+        step8.blockInput     = false;
         steps.push_back(step8);
     }
 
@@ -172,12 +168,10 @@ namespace Dokev
 
     void TutorialManager::DrawOverlay() const
     {
-        auto windowSize = Engine::GetWindow().GetSize();
+        auto        windowSize  = Engine::GetWindow().GetSize();
         const auto& currentStep = steps[currentStepIndex];
 
-        CS200::RGBA overlayColor = currentStep.highlightType == HighlightType::NONE
-            ? ColorPalette::TUTORIAL_OVERLAY
-            : ColorPalette::TUTORIAL_OVERLAY_DARK;
+        CS200::RGBA overlayColor = currentStep.highlightType == HighlightType::NONE ? ColorPalette::TUTORIAL_OVERLAY : ColorPalette::TUTORIAL_OVERLAY_DARK;
 
         DrawRectangle(0, 0, windowSize.x, windowSize.y, overlayColor);
     }
@@ -189,14 +183,14 @@ namespace Dokev
         if (currentStep.highlightType == HighlightType::NONE || currentStep.highlightType == HighlightType::FULL_SCREEN)
             return;
 
-        int x = static_cast<int>(currentStep.highlightPos.x);
-        int y = static_cast<int>(currentStep.highlightPos.y);
-        int width = static_cast<int>(currentStep.highlightSize.x);
+        int x      = static_cast<int>(currentStep.highlightPos.x);
+        int y      = static_cast<int>(currentStep.highlightPos.y);
+        int width  = static_cast<int>(currentStep.highlightSize.x);
         int height = static_cast<int>(currentStep.highlightSize.y);
 
         if (currentStep.highlightType == HighlightType::CIRCLE)
         {
-            //float pulse = 1.0f + 0.1f * std::sin(currentStepTime * 3.0f);
+            // float pulse = 1.0f + 0.1f * std::sin(currentStepTime * 3.0f);
 
             DrawRectangle(x, y, width, height, ColorPalette::TUTORIAL_HIGHLIGHT);
         }
@@ -210,28 +204,23 @@ namespace Dokev
 
     void TutorialManager::DrawSpeechBubble() const
     {
-        auto windowSize = Engine::GetWindow().GetSize();
+        auto        windowSize  = Engine::GetWindow().GetSize();
         const auto& currentStep = steps[currentStepIndex];
 
-        float bubbleWidth = 900.0f;
+        float bubbleWidth  = 900.0f;
         float bubbleHeight = 120.0f;
-        float bubbleX = (windowSize.x - bubbleWidth) / 2.0f;
-        float bubbleY = windowSize.y - bubbleHeight - 50.0f;
+        float bubbleX      = (windowSize.x - bubbleWidth) / 2.0f;
+        float bubbleY      = windowSize.y - bubbleHeight - 50.0f;
 
-        DrawRectangle(static_cast<int>(bubbleX), static_cast<int>(bubbleY),
-                     static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight),
-                     ColorPalette::TOOLTIP_BACKGROUND);
+        DrawRectangle(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), ColorPalette::TOOLTIP_BACKGROUND);
 
-        DrawRectangleLinesEx(static_cast<int>(bubbleX), static_cast<int>(bubbleY),
-                            static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight),
-                            3.0f, ColorPalette::WHITE);
+        DrawRectangleLinesEx(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), 3.0f, ColorPalette::WHITE);
 
         if (font)
         {
             if (auto textTexture = font->PrintToTexture(currentStep.text, ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{bubbleX + 20.0f, bubbleY + 40.0f}) *
-                                 Math::ScaleMatrix(Math::vec2{0.5, 0.5}), ColorPalette::WHITE);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + 20.0f, bubbleY + 40.0f }) * Math::ScaleMatrix(Math::vec2{ 0.5, 0.5 }), ColorPalette::WHITE);
             }
         }
     }
@@ -251,8 +240,7 @@ namespace Dokev
             std::string skipText = "Press F to Skip";
             if (auto textTexture = font->PrintToTexture(skipText, ColorPalette::YELLOW))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{hintX, hintY}) *
-                                 Math::ScaleMatrix(Math::vec2{0.4, 0.4}), ColorPalette::YELLOW);
+                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ hintX, hintY }) * Math::ScaleMatrix(Math::vec2{ 0.4, 0.4 }), ColorPalette::YELLOW);
             }
         }
     }
@@ -260,10 +248,10 @@ namespace Dokev
     void TutorialManager::DrawArrow() const
     {
         const auto& currentStep = steps[currentStepIndex];
-        // Animated arrow 
-        float offset = 10.0f * std::sin(currentStepTime * 5.0f);
-        int arrowX = static_cast<int>(currentStep.arrowPos.x);
-        int arrowY = static_cast<int>(currentStep.arrowPos.y + offset);
+        // Animated arrow
+        float       offset      = 10.0f * std::sin(currentStepTime * 5.0f);
+        int         arrowX      = static_cast<int>(currentStep.arrowPos.x);
+        int         arrowY      = static_cast<int>(currentStep.arrowPos.y + offset);
 
         int arrowSize = 15;
 
@@ -296,7 +284,7 @@ namespace Dokev
 
     void TutorialManager::Skip()
     {
-        isActive = false;
+        isActive         = false;
         currentStepIndex = static_cast<int>(steps.size());
     }
 

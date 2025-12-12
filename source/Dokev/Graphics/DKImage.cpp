@@ -1,16 +1,17 @@
 /**
  * \file DKImage.cpp
- * \brief 
+ * \brief
  * \author Hyunseok Choi
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
 #include "DKImage.hpp"
-#include "CS200/Image.hpp"
 #include "../Core/DKMath.hpp"
+#include "CS200/Image.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
@@ -19,8 +20,7 @@ namespace Dokev
 {
 
 
-    Image::Image(int width, int height)
-        : width(width), height(height)
+    Image::Image(int width, int height) : width(width), height(height)
     {
         pixels.resize(width * height, 0xFFFFFFFF); // White by default
     }
@@ -28,8 +28,8 @@ namespace Dokev
     Image::Image(const std::string& fileName)
     {
         auto engineImage = CS200::Image(fileName);
-        width = engineImage.GetSize().x;
-        height = engineImage.GetSize().y;
+        width            = engineImage.GetSize().x;
+        height           = engineImage.GetSize().y;
 
         // Convert BGRA to RGBA
         pixels.resize(width * height);
@@ -54,8 +54,6 @@ namespace Dokev
         pixels[y * width + x] = color;
     }
 
-   
-
     Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale)
     {
         Image img(width, height);
@@ -73,7 +71,7 @@ namespace Dokev
 
                 noiseValue = std::max(0.0f, std::min(1.0f, noiseValue));
 
-                uint8_t gray = static_cast<uint8_t>(noiseValue * 255.0f);
+                uint8_t     gray  = static_cast<uint8_t>(noiseValue * 255.0f);
                 CS200::RGBA color = (gray << 24) | (gray << 16) | (gray << 8) | 0xFF;
 
                 img.SetPixel(x, y, color);
@@ -90,9 +88,6 @@ namespace Dokev
         return img;
     }
 
-
-   
-
     Image LoadImage(const std::string& fileName)
     {
         return Image(fileName);
@@ -101,7 +96,7 @@ namespace Dokev
     void UnloadImage(Image& image)
     {
         image.pixels.clear();
-        image.width = 0;
+        image.width  = 0;
         image.height = 0;
     }
 
@@ -114,7 +109,7 @@ namespace Dokev
 
         for (int i = 0; i < image.width * image.height; ++i)
         {
-            CS200::RGBA pixel = image.pixels[i];
+            CS200::RGBA pixel    = image.pixels[i];
             rgba_data[i * 4 + 0] = (pixel >> 24) & 0xFF; // R
             rgba_data[i * 4 + 1] = (pixel >> 16) & 0xFF; // G
             rgba_data[i * 4 + 2] = (pixel >> 8) & 0xFF;  // B
@@ -125,8 +120,6 @@ namespace Dokev
 
         return result != 0;
     }
-
-    
 
     CS200::RGBA* LoadImageColors(const Image& image)
     {
@@ -148,15 +141,13 @@ namespace Dokev
         return image.GetPixel(x, y);
     }
 
-    
-
     void ImageVerticalFlip(Image& image)
     {
         for (int y = 0; y < image.height / 2; y++)
         {
             for (int x = 0; x < image.width; x++)
             {
-                int topIndex = y * image.width + x;
+                int topIndex    = y * image.width + x;
                 int bottomIndex = (image.height - 1 - y) * image.width + x;
                 std::swap(image.pixels[topIndex], image.pixels[bottomIndex]);
             }
@@ -169,7 +160,7 @@ namespace Dokev
         {
             for (int x = 0; x < image.width / 2; x++)
             {
-                int leftIndex = y * image.width + x;
+                int leftIndex  = y * image.width + x;
                 int rightIndex = y * image.width + (image.width - 1 - x);
                 std::swap(image.pixels[leftIndex], image.pixels[rightIndex]);
             }
@@ -179,42 +170,42 @@ namespace Dokev
     void ImageRotateCW(Image& image)
     {
         std::vector<CS200::RGBA> newPixels(image.width * image.height);
-        int newWidth = image.height;
-        int newHeight = image.width;
+        int                      newWidth  = image.height;
+        int                      newHeight = image.width;
 
         for (int y = 0; y < image.height; y++)
         {
             for (int x = 0; x < image.width; x++)
             {
-                int newX = image.height - 1 - y;
-                int newY = x;
+                int newX                          = image.height - 1 - y;
+                int newY                          = x;
                 newPixels[newY * newWidth + newX] = image.pixels[y * image.width + x];
             }
         }
 
         image.pixels = std::move(newPixels);
-        image.width = newWidth;
+        image.width  = newWidth;
         image.height = newHeight;
     }
 
     void ImageRotateCCW(Image& image)
     {
         std::vector<CS200::RGBA> newPixels(image.width * image.height);
-        int newWidth = image.height;
-        int newHeight = image.width;
+        int                      newWidth  = image.height;
+        int                      newHeight = image.width;
 
         for (int y = 0; y < image.height; y++)
         {
             for (int x = 0; x < image.width; x++)
             {
-                int newX = y;
-                int newY = image.width - 1 - x;
+                int newX                          = y;
+                int newY                          = image.width - 1 - x;
                 newPixels[newY * newWidth + newX] = image.pixels[y * image.width + x];
             }
         }
 
         image.pixels = std::move(newPixels);
-        image.width = newWidth;
+        image.width  = newWidth;
         image.height = newHeight;
     }
 
@@ -232,10 +223,7 @@ namespace Dokev
             float pb = ((pixel >> 8) & 0xFF) / 255.0f;
             float pa = (pixel & 0xFF) / 255.0f;
 
-            pixel = (static_cast<uint8_t>(pr * r * 255) << 24) |
-                    (static_cast<uint8_t>(pg * g * 255) << 16) |
-                    (static_cast<uint8_t>(pb * b * 255) << 8) |
-                    static_cast<uint8_t>(pa * a * 255);
+            pixel = (static_cast<uint8_t>(pr * r * 255) << 24) | (static_cast<uint8_t>(pg * g * 255) << 16) | (static_cast<uint8_t>(pb * b * 255) << 8) | static_cast<uint8_t>(pa * a * 255);
         }
     }
 

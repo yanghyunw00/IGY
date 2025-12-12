@@ -13,7 +13,7 @@
 #include <iostream>
 
 
-#define PI 3.14159265358979323f
+#define PI      3.14159265358979323f
 #define EPSILON 0.000001f
 
 using vec2 = Math::fvec2;

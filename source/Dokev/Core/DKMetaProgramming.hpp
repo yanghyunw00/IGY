@@ -38,31 +38,31 @@ namespace Dokev
         // Compile-time type traits for enums
         // ============================================================
 
-        template<typename BuildingType>
+        template <typename BuildingType>
         constexpr bool is_workshop_type(BuildingType type)
         {
-            using underlying = std::underlying_type_t<BuildingType>;
-            constexpr underlying rock_workshop = static_cast<underlying>(1);
-            constexpr underlying wood_workshop = static_cast<underlying>(2);
+            using underlying                    = std::underlying_type_t<BuildingType>;
+            constexpr underlying rock_workshop  = static_cast<underlying>(1);
+            constexpr underlying wood_workshop  = static_cast<underlying>(2);
             constexpr underlying steel_workshop = static_cast<underlying>(3);
 
             underlying val = static_cast<underlying>(type);
             return val == wood_workshop || val == rock_workshop || val == steel_workshop;
         }
 
-        template<typename BuildingType>
+        template <typename BuildingType>
         constexpr bool is_residential_type(BuildingType type)
         {
-            using underlying = std::underlying_type_t<BuildingType>;
+            using underlying          = std::underlying_type_t<BuildingType>;
             constexpr underlying home = static_cast<underlying>(4);
 
             return static_cast<underlying>(type) == home;
         }
 
-        template<typename BuildingType>
+        template <typename BuildingType>
         constexpr bool is_road_type(BuildingType type)
         {
-            using underlying = std::underlying_type_t<BuildingType>;
+            using underlying          = std::underlying_type_t<BuildingType>;
             constexpr underlying road = static_cast<underlying>(5);
 
             return static_cast<underlying>(type) == road;
@@ -90,19 +90,19 @@ namespace Dokev
         // Compile-time min/max
         // ============================================================
 
-        template<typename T>
+        template <typename T>
         constexpr T min(T a, T b)
         {
             return a < b ? a : b;
         }
 
-        template<typename T>
+        template <typename T>
         constexpr T max(T a, T b)
         {
             return a > b ? a : b;
         }
 
-        template<typename T>
+        template <typename T>
         constexpr T clamp(T val, T min_val, T max_val)
         {
             return min(max(val, min_val), max_val);

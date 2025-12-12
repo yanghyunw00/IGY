@@ -1,6 +1,6 @@
 /**
  * \file DKGameObjectTypes.hpp
- * \brief 
+ * \brief
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -8,7 +8,8 @@
 
 #pragma once
 
-enum class GameObjectType {
+enum class GameObjectType
+{
     None,
     Human,
     Building,

@@ -8,16 +8,15 @@
 
 #pragma once
 
-#include "CS200/RGBA.hpp"
-#include "Game/Managers/DKCityMetrics.hpp"
 #include "../Core/DKColor.hpp"
 #include "../Graphics/DKTexture.hpp"
+#include "CS200/RGBA.hpp"
 #include "Engine/Font.hpp"
 #include "Engine/Vec2.hpp"
 #include "Game/Common/BuildingType.hpp"
+#include "Game/Managers/DKCityMetrics.hpp"
 #include <string>
 #include <vector>
-
 
 
 class ResourceManager;
@@ -83,7 +82,7 @@ namespace Dokev
         void OpenBuildingCategory(CategoryType category)
         {
             currentMenuState = MenuState::BUILDING;
-            currentCategory = category;
+            currentCategory  = category;
             CreateCategoryButtons();
             CreateBuildingButtons(category);
         }

@@ -7,26 +7,28 @@
  */
 
 #include "GridMap.hpp"
-#include "Game/Input/DKMouseSelection.hpp"
 #include "Dokev/Core/DKColor.hpp"
-#include "Dokev/World/DKGrid.hpp"
-#include "Dokev/Core/DKUtility.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
+#include "Dokev/Core/DKUtility.hpp"
+#include "Dokev/World/DKGrid.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
 #include "Engine/Path.hpp"
 #include "Engine/Texture.hpp"
 #include "Engine/TextureManager.hpp"
 #include "Engine/Window.hpp"
+#include "Game/Input/DKMouseSelection.hpp"
+
 
 #include "OpenGL/GL.hpp"
 #include <GL/glew.h>
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cmath>
+
 
 namespace
 {
@@ -35,14 +37,26 @@ namespace
         switch (variant)
         {
             case MapVariant::WaterHeavy:
-                return MapGenerationProfile{ MapVariant::WaterHeavy, TerrainThresholds{ 170.0, 210.0, 235.0 }, 0.08f, "Water Heavy" };
+                return MapGenerationProfile{
+                    MapVariant::WaterHeavy, TerrainThresholds{ 170.0, 210.0, 235.0 },
+                     0.08f, "Water Heavy"
+                };
             case MapVariant::PlainsHeavy:
-                return MapGenerationProfile{ MapVariant::PlainsHeavy, TerrainThresholds{ 50.0, 235.0, 255.0 }, 0.12f, "Plains Heavy" };
+                return MapGenerationProfile{
+                    MapVariant::PlainsHeavy, TerrainThresholds{ 50.0, 235.0, 255.0 },
+                     0.12f, "Plains Heavy"
+                };
             case MapVariant::MountainHeavy:
-                return MapGenerationProfile{ MapVariant::MountainHeavy, TerrainThresholds{ 70.0, 130.0, 180.0 }, 0.09f, "Mountain Heavy" };
+                return MapGenerationProfile{
+                    MapVariant::MountainHeavy, TerrainThresholds{ 70.0, 130.0, 180.0 },
+                     0.09f, "Mountain Heavy"
+                };
             case MapVariant::Balanced:
             default:
-                return MapGenerationProfile{ MapVariant::Balanced, TerrainThresholds{ 80.0, 155.0, 210.0 }, 0.1f, "Balanced" };
+                return MapGenerationProfile{
+                    MapVariant::Balanced, TerrainThresholds{ 80.0, 155.0, 210.0 },
+                     0.1f, "Balanced"
+                };
         }
     }
 }
@@ -123,9 +137,9 @@ namespace
 
 void GridMap::EnsureMouseAtlasInitialized() const
 {
-    auto windowSize = Engine::GetWindow().GetSize();
-    int targetWidth  = std::max(1, windowSize.x);
-    int targetHeight = std::max(1, windowSize.y);
+    auto windowSize   = Engine::GetWindow().GetSize();
+    int  targetWidth  = std::max(1, windowSize.x);
+    int  targetHeight = std::max(1, windowSize.y);
 
     if (mouseAtlasFBO != 0 && mouseAtlasTex != 0)
     {
@@ -210,8 +224,8 @@ void GridMap::ResetIsoGridMapArray()
         // Raise the water cutoff to at least the median height so 50%+ of tiles become water.
         auto medianIt = heights.begin() + heights.size() / 2;
         std::nth_element(heights.begin(), medianIt, heights.end());
-        double medianHeight = static_cast<double>(*medianIt);
-        thresholds.waterMax = std::max(thresholds.waterMax, medianHeight);
+        double medianHeight  = static_cast<double>(*medianIt);
+        thresholds.waterMax  = std::max(thresholds.waterMax, medianHeight);
         thresholds.plainsMax = std::max(thresholds.plainsMax, thresholds.waterMax + 1.0);
     }
 
@@ -262,20 +276,20 @@ void GridMap::InitializeIsoView()
 
             // 90 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 90, new_x, new_y);
-            int rx90 = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
-            int ry90 = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
+            int rx90                                                                                             = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
+            int ry90                                                                                             = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
             view2[Dokev::Meta::grid_to_index(static_cast<size_t>(rx90), static_cast<size_t>(ry90), GRID_SIZE_X)] = &m_gridCells[y][x];
 
             // 180 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 180, new_x, new_y);
-            int rx180 = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
-            int ry180 = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
+            int rx180                                                                                              = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
+            int ry180                                                                                              = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
             view3[Dokev::Meta::grid_to_index(static_cast<size_t>(rx180), static_cast<size_t>(ry180), GRID_SIZE_X)] = &m_gridCells[y][x];
 
             // 270 degree rotation
             rotatePoint90(static_cast<float>(x), static_cast<float>(y), GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, new_x, new_y);
-            int rx270 = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
-            int ry270 = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
+            int rx270                                                                                              = std::clamp(static_cast<int>(std::round(new_x)), 0, GRID_SIZE_X - 1);
+            int ry270                                                                                              = std::clamp(static_cast<int>(std::round(new_y)), 0, GRID_SIZE_Y - 1);
             view4[Dokev::Meta::grid_to_index(static_cast<size_t>(rx270), static_cast<size_t>(ry270), GRID_SIZE_X)] = &m_gridCells[y][x];
         }
     }
@@ -313,26 +327,26 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                 int screenX = originX + (x - y) * TILE_WIDTH_HALF;
                 int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
 
-                int    count  = y * GRID_SIZE_X + x;
+                int count = y * GRID_SIZE_X + x;
                 if (!selectedView[count])
                 {
                     continue;
                 }
-                double height = selectedView[count]->getHeight();
+                double height       = selectedView[count]->getHeight();
                 double renderHeight = height;
                 int    topY         = static_cast<int>(renderHeight) - screenY;
 
                 int originalX = selectedView[count]->x;
                 int originalY = selectedView[count]->y;
 
-                Dokev::TileType tileType = tileManager->GetTileType(originalX, originalY);
-                int current_texture = 3;
-                    if (height < mapProfile.thresholds.mountainMax)
-                        current_texture = 2;
-                    if (height < mapProfile.thresholds.plainsMax)
-                        current_texture = 1;
-                    if (height < mapProfile.thresholds.waterMax)
-                        current_texture = 0;
+                Dokev::TileType tileType        = tileManager->GetTileType(originalX, originalY);
+                int             current_texture = 3;
+                if (height < mapProfile.thresholds.mountainMax)
+                    current_texture = 2;
+                if (height < mapProfile.thresholds.plainsMax)
+                    current_texture = 1;
+                if (height < mapProfile.thresholds.waterMax)
+                    current_texture = 0;
 
                 if (tileType == Dokev::TileType::ROAD)
                 {
@@ -342,12 +356,11 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                     }
                     topY = static_cast<int>(renderHeight) - screenY;
                     Dokev::DrawTexture(RoadTexture, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
-                    //std::cout << "doodoo" <<std::endl;
+                    // std::cout << "doodoo" <<std::endl;
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                 }
                 else
                 {
-                    
                     // Only apply wave height animation on non-water-heavy variants to avoid visual overlap with buildings/roads.
                     if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
                     {
@@ -414,7 +427,7 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
                 int screenY = originY + (x + y) * TILE_HEIGHT_HALF;
 
 
-                int    count  = y * GRID_SIZE_X + x;
+                int count = y * GRID_SIZE_X + x;
                 if (!selectedView[count])
                 {
                     continue;
@@ -463,8 +476,8 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
 
 void GridMap::ResetPerlinTexture()
 {
-    int seedX          = Dokev::GetRandomValue(1, 10000);
-    int seedY          = Dokev::GetRandomValue(1, 10000);
+    int   seedX        = Dokev::GetRandomValue(1, 10000);
+    int   seedY        = Dokev::GetRandomValue(1, 10000);
     float noiseScale   = mapProfile.noiseScale <= 0.0f ? 0.1f : mapProfile.noiseScale;
     PerlinNoiseImage   = Dokev::GenImagePerlinNoise(GRID_SIZE_X, GRID_SIZE_Y, seedX, seedY, noiseScale);
     PerlinNoiseTexture = LoadTextureFromImage(PerlinNoiseImage);
@@ -479,11 +492,11 @@ const Dokev::Texture2D* GridMap::GetPerlinTexture() const
 
 double GridMap::GetWaterWaveOffset(int gridX, int gridY) const
 {
-    const auto& env    = Engine::GetWindowEnvironment();
-    double      time   = env.ElapsedTime;
+    const auto& env   = Engine::GetWindowEnvironment();
+    double      time  = env.ElapsedTime;
     // Wave travels from top-right toward bottom-left by using inverse X in the phase.
-    double      phase  = (static_cast<double>((GRID_SIZE_X - gridX) + gridY) * 0.35);
-    double      wave   = std::sin(time * 1.8 + phase) * 6.0; // amplitude in pixels
+    double      phase = (static_cast<double>((GRID_SIZE_X - gridX) + gridY) * 0.35);
+    double      wave  = std::sin(time * 1.8 + phase) * 6.0; // amplitude in pixels
     return wave;
 }
 

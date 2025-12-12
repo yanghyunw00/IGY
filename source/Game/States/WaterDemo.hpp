@@ -9,6 +9,10 @@
 class WaterDemo : public DEMO
 {
 public:
-    void          Load() override;
-    gsl::czstring GetName() const override { return "WaterDemo"; }
+    void Load() override;
+
+    gsl::czstring GetName() const override
+    {
+        return "WaterDemo";
+    }
 };

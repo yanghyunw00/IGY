@@ -1,10 +1,11 @@
 #include "DKMouseSelection.hpp"
-#include "Dokev/Core/DKColor.hpp"
-#include "Dokev/Graphics/DKShapes.hpp"
 #include "../World/GridCell.hpp"
 #include "../World/GridMap.hpp"
+#include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Graphics/DKShapes.hpp"
 #include <algorithm>
 #include <cmath>
+
 
 namespace Dokev
 {
@@ -63,7 +64,6 @@ namespace Dokev
 
     bool MouseSelection::ShouldDrawAtTile(int tileX, int tileY) const
     {
-
         int x = static_cast<int>(std::round(position.x));
         int y = static_cast<int>(std::round(position.y));
 

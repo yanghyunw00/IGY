@@ -10,33 +10,37 @@
 #include <array>
 #include <memory>
 
-#include "CS200/RGBA.hpp"
 #include "CS200/OffscreenFramebuffer.hpp"
 #include "CS200/PostProcessingPipeline.hpp"
+#include "CS200/RGBA.hpp"
 #include "OpenGL/Shader.hpp"
 
-#include "Dokev/Graphics/DKTexture.hpp"
-#include "Dokev/Graphics/DKCamera.hpp"
-#include "Dokev/Input/DKMouseInput.hpp"
+
 #include "Dokev/Graphics/DKAnimationSprite.hpp"
+#include "Dokev/Graphics/DKCamera.hpp"
 #include "Dokev/Graphics/DKParticleEmitter.hpp"
 #include "Dokev/Graphics/DKParticles.hpp"
+#include "Dokev/Graphics/DKRenderState.hpp"
+#include "Dokev/Graphics/DKTexture.hpp"
+#include "Dokev/Input/DKMouseInput.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
-#include "Game/Editor/DKGameWorldEditor.hpp"
 #include "Dokev/Managers/DKMapManager.hpp"
 #include "Dokev/Managers/DKUIManager.hpp"
-#include "Game/UI/DKTutorialManager.hpp"
-#include "Dokev/Graphics/DKRenderState.hpp"
 #include "Dokev/State/DKGameState.hpp"
+#include "Game/Editor/DKGameWorldEditor.hpp"
 #include "Game/Input/DKMouseSelection.hpp"
+#include "Game/UI/DKTutorialManager.hpp"
 
-#include "Engine/Vec2.hpp"
+
 #include "Engine/GameState.hpp"
 #include "Engine/Matrix.hpp"
+#include "Engine/Vec2.hpp"
 
-#include "../Managers/ResourceManager.hpp"
+
 #include "../Managers/BuildingCostManager.hpp"
+#include "../Managers/ResourceManager.hpp"
 #include "Game/UI/DKUserInterfaceEditor.hpp"
+
 
 class GamePlayState : public Dokev::GameState
 {
@@ -55,27 +59,27 @@ private:
     Dokev::Texture2D noiseTexture;
     Dokev::Texture2D noiseTexture2;
 
-    //Iso grid
+    // Iso grid
     int index = 0;
 
     Dokev::Camera camera;
-    Dokev::Mouse mouse;
+    Dokev::Mouse  mouse;
 
     // Smoke animation demo
-    //Dokev::AnimatedSprite smokeSprite;
+    // Dokev::AnimatedSprite smokeSprite;
 
     // Particle emitter demo
-    //Dokev::ParticleEmitter<Dokev::Smoke> smokeEmitter;
+    // Dokev::ParticleEmitter<Dokev::Smoke> smokeEmitter;
 
     // Immigration system
-    float immigrationTimer = 0.0f;
-    float immigrationInterval = 5.0f;
-    Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED;
+    float              immigrationTimer    = 0.0f;
+    float              immigrationInterval = 5.0f;
+    Dokev::RenderState selected_renderer   = Dokev::RenderState::INSTANCED;
 
     // World editor
     Dokev::GameWorldEditor worldEditor;
-    bool saveGameRequested = false;
-    bool loadGameRequested = false;
+    bool                   saveGameRequested = false;
+    bool                   loadGameRequested = false;
 
     // UI Manager
     Dokev::UIManager uiManager;
@@ -86,12 +90,12 @@ private:
     // Building cost manager
     BuildingCostManager buildingCostManager;
 
-    //Mouse Selection
+    // Mouse Selection
     Dokev::MouseSelection mouseSelection;
 
     // Player UI
     UserInterfaceEditor playerUI;
 
-    Math::ivec2 lastPlaceRoadPos = {-1,-1};
-    int roadBuildSoundCount = 0;
+    Math::ivec2 lastPlaceRoadPos    = { -1, -1 };
+    int         roadBuildSoundCount = 0;
 };

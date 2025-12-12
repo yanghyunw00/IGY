@@ -11,7 +11,7 @@
 
 Dokev::Texture2D ResidentBuilding::homeTexture;
 Dokev::Texture2D ResidentBuilding::missingTexture;
-bool ResidentBuilding::texturesLoaded = false;
+bool             ResidentBuilding::texturesLoaded = false;
 
 namespace
 {
@@ -25,7 +25,7 @@ void ResidentBuilding::LoadTextures()
 {
     if (!texturesLoaded)
     {
-        homeTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+        homeTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
         texturesLoaded = true;
     }
@@ -33,7 +33,7 @@ void ResidentBuilding::LoadTextures()
 
 ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), satisfaction(1.0f), taxrate(10)
 {
-    LoadTextures(); 
+    LoadTextures();
 
     max_capacity     = 50;
     current_capacity = 0;
@@ -44,7 +44,7 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
     {
         case BuildingType::HOME:
             texture      = homeTexture;
-            max_capacity = 2;  // Each home can house 2 people
+            max_capacity = 2; // Each home can house 2 people
             cost         = 0;
             break;
 

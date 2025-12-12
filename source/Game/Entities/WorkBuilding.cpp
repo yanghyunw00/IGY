@@ -8,15 +8,16 @@
  */
 
 #include "WorkBuilding.hpp"
+#include "../Managers/ResourceManager.hpp"
 #include "CS200/RGBA.hpp"
 #include "Engine/Path.hpp"
-#include "../Managers/ResourceManager.hpp"
+
 
 Dokev::Texture2D WorkBuilding::loggingCampTexture;
 Dokev::Texture2D WorkBuilding::quarryTexture;
 Dokev::Texture2D WorkBuilding::ironMineTexture;
 Dokev::Texture2D WorkBuilding::missingTexture;
-bool WorkBuilding::texturesLoaded = false;
+bool             WorkBuilding::texturesLoaded = false;
 
 namespace
 {
@@ -31,16 +32,16 @@ void WorkBuilding::LoadTextures()
     if (!texturesLoaded)
     {
         loggingCampTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
-        quarryTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
-        ironMineTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
-        missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
-        texturesLoaded = true;
+        quarryTexture      = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
+        ironMineTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
+        missingTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        texturesLoaded     = true;
     }
 }
 
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {
-    LoadTextures(); 
+    LoadTextures();
 
     max_capacity     = 20;
     current_capacity = 0;
@@ -48,30 +49,30 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
 
     buildingType = bt;
 
-    switch(bt)
+    switch (bt)
     {
         case BuildingType::WOOD_WORKSHOP:
-        texture = loggingCampTexture;
-        max_capacity = 10;
-        cost = 0;
-        break;
+            texture      = loggingCampTexture;
+            max_capacity = 10;
+            cost         = 0;
+            break;
 
         case BuildingType::ROCK_WORKSHOP:
-        texture = quarryTexture;
-        max_capacity = 10;
-        cost = 0;
-        break;
+            texture      = quarryTexture;
+            max_capacity = 10;
+            cost         = 0;
+            break;
 
         case BuildingType::STEEL_WORKSHOP:
-        texture = ironMineTexture;
-        max_capacity = 10;
-        cost = 0;
-        break;
+            texture      = ironMineTexture;
+            max_capacity = 10;
+            cost         = 0;
+            break;
 
         default:
-            texture = missingTexture;
+            texture      = missingTexture;
             max_capacity = 0;
-            cost = 0;
+            cost         = 0;
             break;
     }
 }
@@ -96,20 +97,13 @@ void WorkBuilding::Update(float dt)
 
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP:
-                resourceManager->AddResource(ResourceType::Wood, amountToProduce);
-                break;
+            case BuildingType::WOOD_WORKSHOP: resourceManager->AddResource(ResourceType::Wood, amountToProduce); break;
 
-            case BuildingType::ROCK_WORKSHOP:
-                resourceManager->AddResource(ResourceType::Stone, amountToProduce);
-                break;
+            case BuildingType::ROCK_WORKSHOP: resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
 
-            case BuildingType::STEEL_WORKSHOP:
-                resourceManager->AddResource(ResourceType::Steel, amountToProduce);
-                break;
+            case BuildingType::STEEL_WORKSHOP: resourceManager->AddResource(ResourceType::Steel, amountToProduce); break;
 
-            default:
-                break;
+            default: break;
         }
     }
 }

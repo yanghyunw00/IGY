@@ -6,24 +6,26 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKGameWorldEditor.hpp"
+#include "Dokev/Core/DKSystemInfo.hpp"
 #include "Dokev/Graphics/DKCamera.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "Dokev/Managers/DKMapManager.hpp"
-#include "Dokev/Core/DKSystemInfo.hpp"
+
 
 #include "../Entities/Building.hpp"
-#include "../World/GridMap.hpp"
 #include "../Entities/Human.hpp"
 #include "../Entities/ResidentBuilding.hpp"
 #include "../Entities/Road.hpp"
 #include "../Entities/WorkBuilding.hpp"
+#include "../Managers/DKCityMetrics.hpp"
+#include "../Managers/ResourceManager.hpp"
+#include "../World/GridMap.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Input.hpp"
 #include "Engine/Window.hpp"
-#include "../Managers/ResourceManager.hpp"
-#include "../Managers/DKCityMetrics.hpp"
 #include <SDL.h>
 #include <imgui.h>
+
 
 namespace Dokev
 {
@@ -117,10 +119,7 @@ namespace Dokev
 
             // Memory usage
             auto memInfo = Dokev::SystemInfo::GetMemoryInfo();
-            ImGui::Text("Memory: %.1f / %.1f MB (%.1f%%)",
-                memInfo.GetUsedPhysicalMB(),
-                memInfo.GetTotalPhysicalMB(),
-                memInfo.GetUsagePercent());
+            ImGui::Text("Memory: %.1f / %.1f MB (%.1f%%)", memInfo.GetUsedPhysicalMB(), memInfo.GetTotalPhysicalMB(), memInfo.GetUsagePercent());
             ImGui::Text("Process: %.1f MB", memInfo.GetProcessUsageMB());
 
             ImGui::Spacing();
@@ -211,7 +210,7 @@ namespace Dokev
 
                 if (ImGui::Button("Set All to 100"))
                 {
-                    resourceManager->totalWood = 100;
+                    resourceManager->totalWood  = 100;
                     resourceManager->totalStone = 100;
                     resourceManager->totalSteel = 100;
                 }
@@ -220,7 +219,7 @@ namespace Dokev
 
                 if (ImGui::Button("Set All to 0"))
                 {
-                    resourceManager->totalWood = 0;
+                    resourceManager->totalWood  = 0;
                     resourceManager->totalStone = 0;
                     resourceManager->totalSteel = 0;
                 }
@@ -285,7 +284,7 @@ namespace Dokev
         }
         // BUILDING CONTROLS=============================================================
         ImGui::Separator();
-       
+
         if (ImGui::TreeNode("BUILDING CONTROLS"))
         {
             if (goManager && mapManager)
@@ -412,7 +411,7 @@ namespace Dokev
                     }
                     auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP);
                     workshop->SetResourceManager(resourceManager);
-                    workshop->AddWorker(1); 
+                    workshop->AddWorker(1);
                     goManager->AddBuilding(workshop);
                 }
                 ImGui::TreePop();
@@ -537,8 +536,8 @@ namespace Dokev
 
             if (goManager)
             {
-                int currentPopulation = static_cast<int>(goManager->GetHumans().size());
-                bool isWinning = cityMetrics->IsWinConditionMet(currentPopulation);
+                int  currentPopulation = static_cast<int>(goManager->GetHumans().size());
+                bool isWinning         = cityMetrics->IsWinConditionMet(currentPopulation);
 
                 ImGui::Text("Current: %d / %d", currentPopulation, winPopulation);
 

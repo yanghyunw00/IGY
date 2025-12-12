@@ -7,17 +7,17 @@
  */
 
 #include "DKUserInterfaceEditor.hpp"
-#include "../Managers/HappinessManager.hpp"
-#include "../Managers/DKImmigrationManager.hpp"
-#include "../Managers/DKCityMetrics.hpp"
-#include "Dokev/Managers/DKGameObjectManager.hpp"
-#include "../Entities/Building.hpp"
 #include "../Common/BuildingType.hpp"
+#include "../Entities/Building.hpp"
+#include "../Managers/DKCityMetrics.hpp"
+#include "../Managers/DKImmigrationManager.hpp"
+#include "../Managers/HappinessManager.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
+#include "Dokev/Managers/DKGameObjectManager.hpp"
 #include <imgui.h>
 
-void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager,
-                                 Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics)
+
+void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics)
 {
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
@@ -145,13 +145,12 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.waterScore);
 }
 
-void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager,
-                                                  int availableHomes, int totalResources, int humanCount)
+void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager, int availableHomes, int totalResources, int humanCount)
 {
     float timeLeft = immigrationManager->GetNextImmigrationTime();
     ImGui::Text("Next check: %.1f sec", timeLeft);
 
-    //  Current chance 
+    //  Current chance
     float happiness = happinessManager->CalculateTotalHappiness();
     float chance    = immigrationManager->CalculateImmigrationChance(availableHomes, happiness, humanCount, totalResources);
 
@@ -171,7 +170,7 @@ void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immi
 
     ImGui::Spacing();
 
-    //  Requirements 
+    //  Requirements
     ImGui::Text("Requirements:");
 
     // Housing check
@@ -193,8 +192,7 @@ void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immi
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "Critical");
 }
 
-void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity,
-                                                 int totalHouses, int workplaceCount, int humanCount)
+void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity, int totalHouses, int workplaceCount, int humanCount)
 {
     (void)gameObjectManager;
 
@@ -218,8 +216,8 @@ void UserInterfaceEditor::DrawWinConditionSection(Dokev::CityMetrics* cityMetric
     if (!cityMetrics)
         return;
 
-    int winPopulation = cityMetrics->GetWinConditionPopulation();
-    bool isWinning = cityMetrics->IsWinConditionMet(humanCount);
+    int  winPopulation = cityMetrics->GetWinConditionPopulation();
+    bool isWinning     = cityMetrics->IsWinConditionMet(humanCount);
 
     //  Progress
     ImGui::Text("Goal: Reach %d citizens", winPopulation);

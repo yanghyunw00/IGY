@@ -15,9 +15,9 @@
 class WorkBuilding : public Building
 {
 protected:
-    float productionRate;
-    int   resourceProduce;
-    Dokev::Timer productionTimer;
+    float                  productionRate;
+    int                    resourceProduce;
+    Dokev::Timer           productionTimer;
     class ResourceManager* resourceManager;
 
     // Static texture cache to prevent memory leaks
@@ -25,7 +25,7 @@ protected:
     static Dokev::Texture2D quarryTexture;
     static Dokev::Texture2D ironMineTexture;
     static Dokev::Texture2D missingTexture;
-    static bool texturesLoaded;
+    static bool             texturesLoaded;
 
     static void LoadTextures();
 
@@ -38,7 +38,10 @@ public:
     void Update(float dt) override;
     void Draw(int viewIndex, const GridMap* map) override;
 
-    std::string TypeName() override {return "WorkBuilding";}
+    std::string TypeName() override
+    {
+        return "WorkBuilding";
+    }
 
     // Workplace functions
     void  AddWorker(int count);

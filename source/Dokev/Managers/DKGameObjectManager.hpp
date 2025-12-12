@@ -15,6 +15,7 @@
 class Human;
 class Building;
 class Resources;
+
 namespace Dokev
 {
     class GameObjectManager : public IComponent
@@ -24,14 +25,14 @@ namespace Dokev
         void AddBuilding(Building* building);
         void RemoveBuilding(int gridX, int gridY);
 
-        std::vector<std::unique_ptr<Human>>& GetHumans();
+        std::vector<std::unique_ptr<Human>>&    GetHumans();
         std::vector<std::unique_ptr<Building>>& GetBuildings();
 
         void Unload();
         void Refresh();
 
     private:
-        std::vector<std::unique_ptr<Human>> m_humans;
+        std::vector<std::unique_ptr<Human>>    m_humans;
         std::vector<std::unique_ptr<Building>> m_buildings;
     };
 }

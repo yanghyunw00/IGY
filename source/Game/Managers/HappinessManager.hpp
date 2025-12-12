@@ -14,9 +14,9 @@ class HappinessManager
 public:
     struct HappinessFactors
     {
-        float housingScore     = 100.0f; // house
-        float employmentScore  = 100.0f; // workshop
-        float waterScore       = 100.0f; // water
+        float housingScore    = 100.0f; // house
+        float employmentScore = 100.0f; // workshop
+        float waterScore      = 100.0f; // water
     };
 
     HappinessFactors factors;
@@ -33,6 +33,7 @@ public:
 
         return total;
     }
+
     void UpdateFactors(int humanCount, int homeCapacity, int workplaceCount, int housesWithWater, int totalHouses)
     {
         // housing
@@ -47,7 +48,7 @@ public:
         else if (housingRatio >= 0.5f)
             factors.housingScore = 30.0f; // 30%
         else
-            factors.housingScore = 10.0f; 
+            factors.housingScore = 10.0f;
 
         // workshop
         float jobRatio = (float)workplaceCount / std::max(1, humanCount);
@@ -73,5 +74,8 @@ public:
         }
     }
 
-    HappinessFactors GetFactors() const { return factors; }
+    HappinessFactors GetFactors() const
+    {
+        return factors;
+    }
 };

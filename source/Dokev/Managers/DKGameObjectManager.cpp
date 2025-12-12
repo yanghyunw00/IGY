@@ -6,9 +6,10 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKGameObjectManager.hpp"
-#include "Game/Entities/Human.hpp"
 #include "Game/Entities/Building.hpp"
+#include "Game/Entities/Human.hpp"
 #include <cmath>
+
 
 namespace Dokev
 {
@@ -35,31 +36,23 @@ namespace Dokev
     void GameObjectManager::RemoveBuilding(int gridX, int gridY)
     {
         m_buildings.erase(
-            std::remove_if(m_buildings.begin(), m_buildings.end(),
+            std::remove_if(
+                m_buildings.begin(), m_buildings.end(),
                 [gridX, gridY](const auto& building)
                 {
                     auto buildingGrid = building->GetGrid();
-                    int buildingX = static_cast<int>(std::round(buildingGrid.x));
-                    int buildingY = static_cast<int>(std::round(buildingGrid.y));
+                    int  buildingX    = static_cast<int>(std::round(buildingGrid.x));
+                    int  buildingY    = static_cast<int>(std::round(buildingGrid.y));
                     return buildingX == gridX && buildingY == gridY;
                 }),
-            m_buildings.end()
-        );
+            m_buildings.end());
     }
 
     void GameObjectManager::Refresh()
     {
-        m_humans.erase(
-            std::remove_if(m_humans.begin(), m_humans.end(),
-                [](const auto& obj) { return obj->IsDestroy(); }),
-            m_humans.end()
-        );
+        m_humans.erase(std::remove_if(m_humans.begin(), m_humans.end(), [](const auto& obj) { return obj->IsDestroy(); }), m_humans.end());
 
-      m_buildings.erase(
-          std::remove_if(m_buildings.begin(), m_buildings.end(),
-              [](const auto& obj) { return obj->IsDestroy(); }),
-          m_buildings.end()
-      );
+        m_buildings.erase(std::remove_if(m_buildings.begin(), m_buildings.end(), [](const auto& obj) { return obj->IsDestroy(); }), m_buildings.end());
     }
 
     void GameObjectManager::Unload()

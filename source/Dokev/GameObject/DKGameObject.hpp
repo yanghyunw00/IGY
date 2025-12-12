@@ -19,11 +19,25 @@ namespace Dokev
         virtual std::string    TypeName() = 0;
         virtual GameObjectType Type()     = 0;
 
-        virtual bool IsDestroy() const { return !m_isActive; }
-        virtual void Destroy() { m_isActive = false; }
+        virtual bool IsDestroy() const
+        {
+            return !m_isActive;
+        }
 
-        bool IsActive() const { return m_isActive; }
-        void SetActive(bool active) { m_isActive = active; }
+        virtual void Destroy()
+        {
+            m_isActive = false;
+        }
+
+        bool IsActive() const
+        {
+            return m_isActive;
+        }
+
+        void SetActive(bool active)
+        {
+            m_isActive = active;
+        }
 
     protected:
         bool m_isActive = true;

@@ -1,6 +1,6 @@
 /**
  * \file DKColor.hpp
- * \brief 
+ * \brief
  * \author Youngwoo Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -68,18 +68,18 @@ namespace Dokev
         constexpr CS200::RGBA BLANK     = 0x00000000;
 
         // UI Box Colors
-        constexpr CS200::RGBA BOX_INSIDE_DEFAULT  = 0x4C4C4CCC; // dark gray
-        constexpr CS200::RGBA BOX_INSIDE_SELECTED = 0x339933E5; // green
-        constexpr CS200::RGBA BOX_INSIDE_HOVERED  = 0x7F7F7FE5; // gray
+        constexpr CS200::RGBA BOX_INSIDE_DEFAULT   = 0x4C4C4CCC; // dark gray
+        constexpr CS200::RGBA BOX_INSIDE_SELECTED  = 0x339933E5; // green
+        constexpr CS200::RGBA BOX_INSIDE_HOVERED   = 0x7F7F7FE5; // gray
         constexpr CS200::RGBA BOX_OUTLINE_SELECTED = 0x4CCC4CFF; // bright green
         constexpr CS200::RGBA BOX_OUTLINE_DEFAULT  = 0x999999FF; // light gray
         constexpr CS200::RGBA TOOLTIP_BACKGROUND   = 0x191919E5; // black
 
         // Tutorial Colors
-        constexpr CS200::RGBA TUTORIAL_OVERLAY     = 0x00000096; // semi-transparent black
+        constexpr CS200::RGBA TUTORIAL_OVERLAY      = 0x00000096; // semi-transparent black
         constexpr CS200::RGBA TUTORIAL_OVERLAY_DARK = 0x00000096; // darker overlay
-        constexpr CS200::RGBA TUTORIAL_HIGHLIGHT   = 0xFFFF0064; // semi-transparent yellow
-        constexpr CS200::RGBA TUTORIAL_ARROW       = 0xFFFF00FF; // bright yellow
+        constexpr CS200::RGBA TUTORIAL_HIGHLIGHT    = 0xFFFF0064; // semi-transparent yellow
+        constexpr CS200::RGBA TUTORIAL_ARROW        = 0xFFFF00FF; // bright yellow
     }
 
     CS200::RGBA ColorLerp(CS200::RGBA color1, CS200::RGBA color2, float t);

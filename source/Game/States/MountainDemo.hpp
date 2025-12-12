@@ -9,6 +9,10 @@
 class MountainDemo : public DEMO
 {
 public:
-    void          Load() override;
-    gsl::czstring GetName() const override { return "MountainDemo"; }
+    void Load() override;
+
+    gsl::czstring GetName() const override
+    {
+        return "MountainDemo";
+    }
 };

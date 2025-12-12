@@ -1,6 +1,5 @@
 #include "DKJobsystem.hpp"
 
-
 void JobSystem::DoJob(JobSystem::Job job)
 {
     {

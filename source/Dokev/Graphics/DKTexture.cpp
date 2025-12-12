@@ -7,8 +7,9 @@
  */
 
 #include "DKTexture.hpp"
-#include "DKImage.hpp"
 #include "../Core/DKMath.hpp"
+#include "DKImage.hpp"
+
 
 #include "Engine/Engine.hpp"
 #include "Engine/Matrix.hpp"
@@ -22,7 +23,7 @@
 
 namespace Dokev
 {
-    
+
 
     Texture2D::Texture2D(const std::filesystem::path& fileName)
     {
@@ -56,7 +57,7 @@ namespace Dokev
         return texture->GetSize();
     }
 
-    void Texture2D::Draw(int posX, int posY, CS200::RGBA tint,Dokev::RenderState selected_renderer) const
+    void Texture2D::Draw(int posX, int posY, CS200::RGBA tint, Dokev::RenderState selected_renderer) const
     {
         if (!texture)
         {
@@ -68,7 +69,7 @@ namespace Dokev
 
         auto transform = Math::TranslationMatrix(adjustedPosition);
 
-        texture->Draw(transform, tint,selected_renderer);
+        texture->Draw(transform, tint, selected_renderer);
     }
 
     void Texture2D::Draw(Math::vec2 position, CS200::RGBA tint) const
@@ -85,7 +86,7 @@ namespace Dokev
 
         Math::vec2 position{ static_cast<double>(posX), static_cast<double>(posY) };
 
-        double rad = static_cast<double>(rotation) * PI / 180.0;
+        double     rad = static_cast<double>(rotation) * PI / 180.0;
         Math::vec2 scaleVec{ scale, scale };
 
         auto transform = Math::TranslationMatrix(position) * Math::RotationMatrix(rad) * Math::ScaleMatrix(scaleVec);
@@ -156,9 +157,9 @@ namespace Dokev
         // dont need to implement -> sharedptr!
     }
 
-    void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint,Dokev::RenderState selected_renderer)
+    void DrawTexture(const Texture2D& texture, int posX, int posY, CS200::RGBA tint, Dokev::RenderState selected_renderer)
     {
-        texture.Draw(posX, posY, tint,selected_renderer);
+        texture.Draw(posX, posY, tint, selected_renderer);
     }
 
     void DrawTextureV(const Texture2D& texture, Math::vec2 position, CS200::RGBA tint)
@@ -209,7 +210,7 @@ namespace Dokev
 
         auto handle = texture.texture->GetHandle();
         GL::FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, handle, 0);
-        
+
         GL::ReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, img.GetPixels().data());
 
         GL::BindFramebuffer(GL_FRAMEBUFFER, 0);

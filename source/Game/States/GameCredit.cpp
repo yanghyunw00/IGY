@@ -6,17 +6,17 @@
  * \copyright DigiPen Institute of Technology
  */
 
-#include "MainMenu.hpp"
+#include "GameCredit.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "GamePlayState.hpp"
+#include "MainMenu.hpp"
 #include "Setting.hpp"
-#include "GameCredit.hpp"
 
-void GameCredit::Load() 
+void GameCredit::Load()
 {
     CS200::RenderingAPI::SetClearColor(0x0d0e20FF);
-     try
+    try
     {
         Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/Font_Outlined.png");
     }
@@ -24,9 +24,9 @@ void GameCredit::Load()
     {
         std::cerr << e.what() << '\n';
     }
-
 }
-void GameCredit::Update(double dt) 
+
+void GameCredit::Update(double dt)
 {
     (void)dt;
     const auto& input = Engine::GetInput();
@@ -36,19 +36,19 @@ void GameCredit::Update(double dt)
         Engine::GetGameStateManager().PopState();
         Engine::GetGameStateManager().PushState<MainMenu>();
     }
-
 }
+
 void GameCredit::Unload()
 {
-
 }
-gsl::czstring GameCredit::GetName() const 
+
+gsl::czstring GameCredit::GetName() const
 {
     return "GameCredit";
 }
-void GameCredit::Draw() const 
-{
 
+void GameCredit::Draw() const
+{
     CS200::RenderingAPI::Clear();
     auto& renderer2d = Engine::GetRenderer2D();
 
@@ -69,9 +69,9 @@ void GameCredit::Draw() const
     //            GLEW            //
     ////////////////////////////////
 
-    DrawText(GLEW, Text_Position_GLEW, *Font_outlined, TextColor_contents, TextScale_Title);    
-    Math::vec2 GlewContentPosition1 = { Text_Position_GLEW.x - 0, Text_Position_GLEW.y - (contents_padding_y * 2) +10};
-    Math::vec2 GlewContentPosition2 = { Text_Position_GLEW.x - 0, Text_Position_GLEW.y - (contents_padding_y * 3) +10};
+    DrawText(GLEW, Text_Position_GLEW, *Font_outlined, TextColor_contents, TextScale_Title);
+    Math::vec2 GlewContentPosition1 = { Text_Position_GLEW.x - 0, Text_Position_GLEW.y - (contents_padding_y * 2) + 10 };
+    Math::vec2 GlewContentPosition2 = { Text_Position_GLEW.x - 0, Text_Position_GLEW.y - (contents_padding_y * 3) + 10 };
 
     DrawText(GLEWLicense, GlewContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
     DrawText(GLEWCopyright, GlewContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
@@ -80,9 +80,9 @@ void GameCredit::Draw() const
     //            SDL2            //
     ////////////////////////////////
 
-    DrawText(SDL2, Text_Position_SDL2, *Font_outlined, TextColor_contents, TextScale_Title);   
-    Math::vec2 SDL2ContentPosition1 = { Text_Position_SDL2.x - 0, Text_Position_SDL2.y - (contents_padding_y * 2) +10};
-    Math::vec2 SDL2ContentPosition2 = { Text_Position_SDL2.x - 0, Text_Position_SDL2.y - (contents_padding_y * 3) +10};
+    DrawText(SDL2, Text_Position_SDL2, *Font_outlined, TextColor_contents, TextScale_Title);
+    Math::vec2 SDL2ContentPosition1 = { Text_Position_SDL2.x - 0, Text_Position_SDL2.y - (contents_padding_y * 2) + 10 };
+    Math::vec2 SDL2ContentPosition2 = { Text_Position_SDL2.x - 0, Text_Position_SDL2.y - (contents_padding_y * 3) + 10 };
 
     DrawText(SDL2License, SDL2ContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
     DrawText(SDL2Copyright, SDL2ContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
@@ -91,20 +91,20 @@ void GameCredit::Draw() const
     //            ImGui           //
     ////////////////////////////////
 
-    DrawText(ImGui, Text_Position_ImGui, *Font_outlined, TextColor_contents, TextScale_Title);     
-    Math::vec2 ImGuiContentPosition1 = { Text_Position_ImGui.x - 0, Text_Position_ImGui.y - (contents_padding_y * 2) +10};
-    Math::vec2 ImGuiContentPosition2 = { Text_Position_ImGui.x - 0, Text_Position_ImGui.y - (contents_padding_y * 3) +10};
+    DrawText(ImGui, Text_Position_ImGui, *Font_outlined, TextColor_contents, TextScale_Title);
+    Math::vec2 ImGuiContentPosition1 = { Text_Position_ImGui.x - 0, Text_Position_ImGui.y - (contents_padding_y * 2) + 10 };
+    Math::vec2 ImGuiContentPosition2 = { Text_Position_ImGui.x - 0, Text_Position_ImGui.y - (contents_padding_y * 3) + 10 };
 
     DrawText(ImGuiLicense, ImGuiContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
-    DrawText(ImGuiCopyright, ImGuiContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents); 
+    DrawText(ImGuiCopyright, ImGuiContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
 
     ////////////////////////////////
     //          Microsoft         //
     ////////////////////////////////
 
-    DrawText(Microsoft, Text_Position_Microsoft, *Font_outlined, TextColor_contents, TextScale_Title);   
-    Math::vec2 MicrosoftContentPosition1 = { Text_Position_Microsoft.x - 0, Text_Position_Microsoft.y - (contents_padding_y * 2) +10};
-    Math::vec2 MicrosoftContentPosition2 = { Text_Position_Microsoft.x - 0, Text_Position_Microsoft.y - (contents_padding_y * 3) +10};
+    DrawText(Microsoft, Text_Position_Microsoft, *Font_outlined, TextColor_contents, TextScale_Title);
+    Math::vec2 MicrosoftContentPosition1 = { Text_Position_Microsoft.x - 0, Text_Position_Microsoft.y - (contents_padding_y * 2) + 10 };
+    Math::vec2 MicrosoftContentPosition2 = { Text_Position_Microsoft.x - 0, Text_Position_Microsoft.y - (contents_padding_y * 3) + 10 };
 
     DrawText(MicrosoftLicense, MicrosoftContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
     DrawText(MicrosoftCopyright, MicrosoftContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
@@ -113,9 +113,9 @@ void GameCredit::Draw() const
     //             STB            //
     ////////////////////////////////
 
-    DrawText(STB, Text_Position_STB, *Font_outlined, TextColor_contents, TextScale_Title);   
-    Math::vec2 STBContentPosition1 = { Text_Position_STB.x - 0, Text_Position_STB.y - (contents_padding_y * 2) +10};
-    Math::vec2 STBContentPosition2 = { Text_Position_STB.x - 0, Text_Position_STB.y - (contents_padding_y * 3) +10};
+    DrawText(STB, Text_Position_STB, *Font_outlined, TextColor_contents, TextScale_Title);
+    Math::vec2 STBContentPosition1 = { Text_Position_STB.x - 0, Text_Position_STB.y - (contents_padding_y * 2) + 10 };
+    Math::vec2 STBContentPosition2 = { Text_Position_STB.x - 0, Text_Position_STB.y - (contents_padding_y * 3) + 10 };
 
     DrawText(STBLicense, STBContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
     DrawText(STBCopyright, STBContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
@@ -125,8 +125,8 @@ void GameCredit::Draw() const
     ////////////////////////////////
 
     DrawText(Game_Copyright, Text_Position_Game_Copyright, *Font_outlined, TextColor_GameCP, TextScale_Title);
-    Math::vec2 Game_CopyrightContentPosition1 = { Text_Position_Game_Copyright.x - 0, Text_Position_Game_Copyright.y - (contents_padding_y * 2) +10};
-   
+    Math::vec2 Game_CopyrightContentPosition1 = { Text_Position_Game_Copyright.x - 0, Text_Position_Game_Copyright.y - (contents_padding_y * 2) + 10 };
+
     DrawText(DigipenCopyright, Game_CopyrightContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
 
     ////////////////////////////////
@@ -137,11 +137,10 @@ void GameCredit::Draw() const
 
     renderer2d.EndScene();
 }
+
 void GameCredit::DrawImGui()
 {
-
 }
-
 
 void GameCredit::DrawText(const std::string& text, const Math::vec2& position, CS230::Font& font, CS200::RGBA color, Math::vec2 textscale) const
 {

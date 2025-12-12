@@ -1,6 +1,6 @@
 /**
  * \file DKMouseInput.hpp
- * \brief 
+ * \brief
  * \author Junseok Lee
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology

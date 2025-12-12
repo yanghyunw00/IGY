@@ -1,6 +1,6 @@
 /**
  * \file DKAnimationSprite.hpp
- * \brief 
+ * \brief
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -8,13 +8,14 @@
 
 #pragma once
 
-#include "DKTexture.hpp"
 #include "DKAnimation.hpp"
 #include "DKSpriteSheet.hpp"
-#include "Engine/Vec2.hpp"
+#include "DKTexture.hpp"
 #include "Engine/Matrix.hpp"
+#include "Engine/Vec2.hpp"
 #include <map>
 #include <string>
+
 
 namespace Dokev
 {
@@ -31,8 +32,7 @@ namespace Dokev
 
         void AddAnimation(const std::string& name, Animation animation);
 
-        void AddAnimationFromFile(const std::string& name, 
-                                   const std::filesystem::path& anm_file);
+        void AddAnimationFromFile(const std::string& name, const std::filesystem::path& anm_file);
 
 
         void PlayAnimation(const std::string& name, bool reset = true);
@@ -41,20 +41,27 @@ namespace Dokev
         void Draw(Math::TransformationMatrix transform) const;
 
         const std::string& GetCurrentAnimationName() const;
-        bool IsAnimationComplete() const;
-        
-        Animation& GetAnimation(const std::string& name);
+        bool               IsAnimationComplete() const;
+
+        Animation&       GetAnimation(const std::string& name);
         const Animation& GetAnimation(const std::string& name) const;
 
-        const SpriteSheet& GetSpriteSheet() const { return spriteSheet; }
-        Math::vec2 GetHotSpot() const { return spriteSheet.GetHotSpot(); }
+        const SpriteSheet& GetSpriteSheet() const
+        {
+            return spriteSheet;
+        }
+
+        Math::vec2 GetHotSpot() const
+        {
+            return spriteSheet.GetHotSpot();
+        }
 
     private:
         Math::vec4 GetCurrentFrameUV() const;
 
-        SpriteSheet spriteSheet;
+        SpriteSheet                      spriteSheet;
         std::map<std::string, Animation> animations;
-        std::string currentAnimationName;
-        Animation* currentAnimation{ nullptr };
+        std::string                      currentAnimationName;
+        Animation*                       currentAnimation{ nullptr };
     };
 }

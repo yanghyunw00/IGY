@@ -3,16 +3,15 @@
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Core/DKUtility.hpp"
 
-Resource::Resource(int x, int y, int amount, ResourceType resourceType)
-    : gridX(x), gridY(y), currentAmount(amount), maxAmount(amount), 
-      type(resourceType), isOccupied(false)
+Resource::Resource(int x, int y, int amount, ResourceType resourceType) : gridX(x), gridY(y), currentAmount(amount), maxAmount(amount), type(resourceType), isOccupied(false)
 {
 }
 
 int Resource::Mine(int amount)
 {
-    if (currentAmount <= 0) return 0;
-    
+    if (currentAmount <= 0)
+        return 0;
+
     int mined = std::min(amount, currentAmount);
     currentAmount -= mined;
     return mined;
@@ -20,7 +19,8 @@ int Resource::Mine(int amount)
 
 void Resource::Draw(int viewIndex, const GridMap* map) const
 {
-    if (!map || IsDepleted()) return;
+    if (!map || IsDepleted())
+        return;
 
     Math::fvec2 transformedPos = map->TransformPathPointForView(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), viewIndex);
 
@@ -31,10 +31,12 @@ void Resource::Draw(int viewIndex, const GridMap* map) const
         return;
 
     GridCell** viewArray = map->GetViewArray(viewIndex);
-    if (!viewArray) return;
+    if (!viewArray)
+        return;
 
     GridCell* cell = viewArray[gridY_int * GRID_SIZE_X + gridX_int];
-    if (!cell) return;
+    if (!cell)
+        return;
 
     float height = static_cast<float>(cell->getHeight());
 

@@ -18,7 +18,7 @@ protected:
     // Static texture cache to prevent memory leaks
     static Dokev::Texture2D homeTexture;
     static Dokev::Texture2D missingTexture;
-    static bool texturesLoaded;
+    static bool             texturesLoaded;
 
     static void LoadTextures();
 
@@ -29,14 +29,15 @@ public:
     void Update(float dt) override;
     void Draw(int viewIndex, const GridMap* map) override;
 
-    std::string TypeName() override {return "ResidentBuilding";}
+    std::string TypeName() override
+    {
+        return "ResidentBuilding";
+    }
 
     // Residence function
-    void AddResident(int count);
-    void RemoveResident(int count);
-    int GetTaxIncome() const;
+    void  AddResident(int count);
+    void  RemoveResident(int count);
+    int   GetTaxIncome() const;
     float GetSatisfaction() const;
-    bool IsFull() const;
-
-
+    bool  IsFull() const;
 };

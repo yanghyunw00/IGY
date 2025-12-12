@@ -6,16 +6,15 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
-#include <GL/glew.h>
 #include "DEMO.hpp"
 #include "CS200/IRenderer2D.hpp"
+#include "CS200/InstancedRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/RGBA.hpp"
 #include "CS200/RenderingAPI.hpp"
-#include "CS200/InstancedRenderer2D.hpp"
+#include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Graphics/DKImage.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
-#include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
@@ -23,14 +22,16 @@
 #include "Engine/Logger.hpp"
 #include "Engine/Matrix.hpp"
 #include "Engine/Window.hpp"
+#include "MainMenu.hpp"
+#include "OpenGL/GL.hpp"
+#include <GL/glew.h>
 #include <cmath>
 #include <filesystem>
 #include <imgui.h>
 #include <iomanip>
 #include <numbers>
 #include <sstream>
-#include "OpenGL/GL.hpp" 
-#include "MainMenu.hpp"
+
 
 void DEMO::Load()
 {
@@ -47,20 +48,15 @@ void DEMO::Load()
     map.InitializePathFinding();
 
     camera.SetZoom(0.3f);
-
 }
-
 
 void DEMO::Update(double dt)
 {
-
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
 
     camera.UpdateZoomInterpolation(dt);
     updateInput();
-
 }
-
 
 void DEMO::Draw() const
 {
@@ -81,19 +77,18 @@ void DEMO::Draw() const
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    
-    if(show_atlas)
+
+    if (show_atlas)
     {
-        map.IsometricDrawMouseAtlas(index,selected_renderer);
+        map.IsometricDrawMouseAtlas(index, selected_renderer);
     }
     else
     {
-        map.IsometricDrawMap(index,selected_renderer);
+        map.IsometricDrawMap(index, selected_renderer);
     }
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();
 }
-
 
 void DEMO::DrawImGui()
 {
@@ -135,11 +130,10 @@ void DEMO::DrawImGui()
         }
 
         ImGui::Text("Rotate Index: %d", index);
-         const auto &env = Engine::GetWindowEnvironment();
+        const auto& env = Engine::GetWindowEnvironment();
         ImGui::Text("FPS: %d", env.FPS);
         ImGui::Text("Frame time: %.2f ms", static_cast<float>(env.DeltaTime * 1000.0));
 
-       
 
         ImGui::Separator();
         ImGui::Text("select renderer");
@@ -147,11 +141,10 @@ void DEMO::DrawImGui()
         {
             SwitchRenderer(Dokev::RenderState::INSTANCED);
         }
-         if (ImGui::Button("IMMEDIATE"))
+        if (ImGui::Button("IMMEDIATE"))
         {
             SwitchRenderer(Dokev::RenderState::IMMEDIATE);
         }
-
     }
     ImGui::End();
 }
@@ -238,8 +231,7 @@ void DEMO::updateInput()
     mouse.Update();
     if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))
     {
-
-        map.IsometricDrawMouseAtlas(index, selected_renderer);// to update the atlas
+        map.IsometricDrawMouseAtlas(index, selected_renderer); // to update the atlas
 
         GLubyte pixel[4] = { 0 };
         glBindFramebuffer(GL_FRAMEBUFFER, map.mouseAtlasFBO);
@@ -252,15 +244,12 @@ void DEMO::updateInput()
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1 ) / 255.f;
-        float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1 ) / 255.f;
+        float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.f;
+        float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.f;
 
-        
+
         std::cout << "Clicked tile (" << std::ceil(tileX) << ", " << std::ceil(tileY) << ")\n";
     }
-
-
-
 }
 
 void DEMO::Unload()

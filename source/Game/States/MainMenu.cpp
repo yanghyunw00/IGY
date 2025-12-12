@@ -7,13 +7,14 @@
  */
 
 #include "MainMenu.hpp"
+#include "Dokev/Managers/DKMapManager.hpp"
+#include "Engine/AudioManager.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
-#include "GamePlayState.hpp"
-#include "Dokev/Managers/DKMapManager.hpp"
-#include "Setting.hpp"
 #include "GameCredit.hpp"
-#include "Engine/AudioManager.hpp"
+#include "GamePlayState.hpp"
+#include "Setting.hpp"
+
 
 // #include "Engine/Windwow.hpp"
 
@@ -36,7 +37,7 @@ void MainMenu::Load()
         std::cerr << e.what() << '\n';
     }
 
-     try
+    try
     {
         Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/Font_Outlined.png");
     }
@@ -57,50 +58,50 @@ void MainMenu::Update(double dt)
     TextColor_MapSelect = Dokev::ColorPalette::WHITE;
     TextColor_Exit      = Dokev::ColorPalette::WHITE;
 
-   switch (current)
-{
-    case Main_Keys::GamePlayKey:
-        TextColor_PlayIGY   = Dokev::ColorPalette::HOTPINK;
-        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
-        TextColor_Setting   = Dokev::ColorPalette::WHITE;
-        TextColor_Credit    = Dokev::ColorPalette::WHITE;
-        TextColor_Exit      = Dokev::ColorPalette::WHITE;
-        break;
+    switch (current)
+    {
+        case Main_Keys::GamePlayKey:
+            TextColor_PlayIGY   = Dokev::ColorPalette::HOTPINK;
+            TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+            TextColor_Setting   = Dokev::ColorPalette::WHITE;
+            TextColor_Credit    = Dokev::ColorPalette::WHITE;
+            TextColor_Exit      = Dokev::ColorPalette::WHITE;
+            break;
 
-    case Main_Keys::MapSelectKey:
-        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
-        TextColor_MapSelect = Dokev::ColorPalette::HOTPINK;
-        TextColor_Setting   = Dokev::ColorPalette::WHITE;
-        TextColor_Credit    = Dokev::ColorPalette::WHITE;
-        TextColor_Exit      = Dokev::ColorPalette::WHITE;
-        break;
+        case Main_Keys::MapSelectKey:
+            TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+            TextColor_MapSelect = Dokev::ColorPalette::HOTPINK;
+            TextColor_Setting   = Dokev::ColorPalette::WHITE;
+            TextColor_Credit    = Dokev::ColorPalette::WHITE;
+            TextColor_Exit      = Dokev::ColorPalette::WHITE;
+            break;
 
-    case Main_Keys::SettingKey:
-        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
-        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
-        TextColor_Setting   = Dokev::ColorPalette::HOTPINK;
-        TextColor_Credit    = Dokev::ColorPalette::WHITE;
-        TextColor_Exit      = Dokev::ColorPalette::WHITE;
-        break;
+        case Main_Keys::SettingKey:
+            TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+            TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+            TextColor_Setting   = Dokev::ColorPalette::HOTPINK;
+            TextColor_Credit    = Dokev::ColorPalette::WHITE;
+            TextColor_Exit      = Dokev::ColorPalette::WHITE;
+            break;
 
-    case Main_Keys::CreditKey:
-        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
-        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
-        TextColor_Setting   = Dokev::ColorPalette::WHITE;
-        TextColor_Credit    = Dokev::ColorPalette::HOTPINK;
-        TextColor_Exit      = Dokev::ColorPalette::WHITE;
-        break;
+        case Main_Keys::CreditKey:
+            TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+            TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+            TextColor_Setting   = Dokev::ColorPalette::WHITE;
+            TextColor_Credit    = Dokev::ColorPalette::HOTPINK;
+            TextColor_Exit      = Dokev::ColorPalette::WHITE;
+            break;
 
-    case Main_Keys::ExitKey:
-        TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
-        TextColor_MapSelect = Dokev::ColorPalette::WHITE;
-        TextColor_Setting   = Dokev::ColorPalette::WHITE;
-        TextColor_Credit    = Dokev::ColorPalette::WHITE;
-        TextColor_Exit      = Dokev::ColorPalette::HOTPINK;
-        break;
+        case Main_Keys::ExitKey:
+            TextColor_PlayIGY   = Dokev::ColorPalette::WHITE;
+            TextColor_MapSelect = Dokev::ColorPalette::WHITE;
+            TextColor_Setting   = Dokev::ColorPalette::WHITE;
+            TextColor_Credit    = Dokev::ColorPalette::WHITE;
+            TextColor_Exit      = Dokev::ColorPalette::HOTPINK;
+            break;
 
-    default: break;
-}
+        default: break;
+    }
     const auto& input = Engine::GetInput();
 
     if (input.KeyJustPressed(CS230::Input::Keys::Down) || input.KeyJustPressed(CS230::Input::Keys::S))
@@ -150,9 +151,7 @@ void MainMenu::Update(double dt)
                 Engine::GetGameStateManager().PushState<GamePlayState>();
                 return;
                 break;
-            case Main_Keys::MapSelectKey:
-                CycleMapVariant(1);
-                break;
+            case Main_Keys::MapSelectKey: CycleMapVariant(1); break;
             case Main_Keys::SettingKey:
                 Engine::GetGameStateManager().PopState();
                 Engine::GetGameStateManager().PushState<Setting>();
@@ -205,8 +204,8 @@ void MainMenu::Draw() const
     ////////////////////////////////
 
     DrawText(text_PlayIGY, Text_Position_GamePlayKey, *Font_simple, TextColor_PlayIGY, TextScale_PlayIGY);
-  
-  
+
+
     ////////////////////////////////
     //        Map Select          //
     ////////////////////////////////
@@ -236,7 +235,7 @@ void MainMenu::Draw() const
     ////////////////////////////////
 
     DrawText(text_Antartic_Monkeys, Text_Position_Left_Bottom, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
-    DrawText(text_MapInstructions, Math::vec2{Text_Position_Left_Bottom.x,static_cast<double>(Padding_y_Bottom + 50)}, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
+    DrawText(text_MapInstructions, Math::vec2{ Text_Position_Left_Bottom.x, static_cast<double>(Padding_y_Bottom + 50) }, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
 
     renderer2d.EndScene();
 }

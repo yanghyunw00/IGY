@@ -10,8 +10,7 @@
 
 namespace Dokev
 {
-    Timer::Timer(float intervalSeconds)
-        : accumulator(0.0f), interval(intervalSeconds), isActive(true)
+    Timer::Timer(float intervalSeconds) : accumulator(0.0f), interval(intervalSeconds), isActive(true)
     {
     }
 

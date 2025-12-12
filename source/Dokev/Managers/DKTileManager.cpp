@@ -1,6 +1,6 @@
 /**
  * \file DKTileManager.cpp
- * \brief 
+ * \brief
  * \author Hyunwoo Yang
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
@@ -26,7 +26,7 @@ namespace Dokev
         if (tiles[y][x].isOccupied)
             return false;
 
-        tiles[y][x].type = type;
+        tiles[y][x].type       = type;
         tiles[y][x].isOccupied = true;
         tiles[y][x].buildingId = buildingId;
 
@@ -38,7 +38,7 @@ namespace Dokev
         if (!IsValidCoordinate(x, y))
             return false;
 
-        tiles[y][x].type = TileType::WILDERNESS;
+        tiles[y][x].type       = TileType::WILDERNESS;
         tiles[y][x].isOccupied = false;
         tiles[y][x].buildingId = -1;
 
@@ -54,7 +54,7 @@ namespace Dokev
         {
             for (int x = startX; x < startX + width; ++x)
             {
-                tiles[y][x].type = type;
+                tiles[y][x].type       = type;
                 tiles[y][x].isOccupied = true;
                 tiles[y][x].buildingId = buildingId;
             }
@@ -71,7 +71,7 @@ namespace Dokev
             {
                 if (IsValidCoordinate(x, y))
                 {
-                    tiles[y][x].type = TileType::WILDERNESS;
+                    tiles[y][x].type       = TileType::WILDERNESS;
                     tiles[y][x].isOccupied = false;
                     tiles[y][x].buildingId = -1;
                 }
@@ -161,7 +161,7 @@ namespace Dokev
         {
             for (auto& tile : row)
             {
-                tile.type = TileType::WILDERNESS;
+                tile.type       = TileType::WILDERNESS;
                 tile.isOccupied = false;
                 tile.buildingId = -1;
             }

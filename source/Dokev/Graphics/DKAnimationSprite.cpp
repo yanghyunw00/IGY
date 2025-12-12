@@ -10,10 +10,8 @@
 
 namespace Dokev
 {
-    AnimatedSprite::AnimatedSprite(const std::filesystem::path& spt_file)
-        : spriteSheet(spt_file)
+    AnimatedSprite::AnimatedSprite(const std::filesystem::path& spt_file) : spriteSheet(spt_file)
     {
-
         const std::string& animFile = spriteSheet.GetAnimationFile();
         if (!animFile.empty())
         {
@@ -33,9 +31,8 @@ namespace Dokev
         }
     }
 
-    AnimatedSprite::AnimatedSprite([[maybe_unused]] Texture2D texture,[[maybe_unused]] Math::ivec2 frameSize)
+    AnimatedSprite::AnimatedSprite([[maybe_unused]] Texture2D texture, [[maybe_unused]] Math::ivec2 frameSize)
     {
-
     }
 
     void AnimatedSprite::AddAnimation(const std::string& name, Animation animation)
@@ -48,8 +45,7 @@ namespace Dokev
         }
     }
 
-    void AnimatedSprite::AddAnimationFromFile(const std::string& name,
-                                              const std::filesystem::path& anm_file)
+    void AnimatedSprite::AddAnimationFromFile(const std::string& name, const std::filesystem::path& anm_file)
     {
         Animation anim(anm_file);
         AddAnimation(name, std::move(anim));
@@ -57,7 +53,6 @@ namespace Dokev
 
     void AnimatedSprite::PlayAnimation(const std::string& name, bool reset)
     {
-
         auto it = animations.find(name);
         if (it == animations.end())
         {
@@ -71,7 +66,7 @@ namespace Dokev
         }
 
         currentAnimationName = name;
-        currentAnimation = &it->second;
+        currentAnimation     = &it->second;
 
         if (reset)
         {
@@ -117,9 +112,9 @@ namespace Dokev
             return;
         }
 
-        Math::ivec2 framePos = spriteSheet.GetFramePosition(frameIndex);
+        Math::ivec2 framePos  = spriteSheet.GetFramePosition(frameIndex);
         Math::ivec2 frameSize = spriteSheet.GetFrameSize();
-        Math::vec2 hotSpot = spriteSheet.GetHotSpot();
+        Math::vec2  hotSpot   = spriteSheet.GetHotSpot();
 
         Math::vec2 position = transform * Math::vec2(0.0, 0.0);
 

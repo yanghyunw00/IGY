@@ -6,10 +6,11 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKSpriteSheet.hpp"
+#include "Engine/Path.hpp"
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
-#include "Engine/Path.hpp"
+
 namespace Dokev
 {
     SpriteSheet::SpriteSheet(const std::filesystem::path& spt_file)
@@ -22,8 +23,8 @@ namespace Dokev
 
         std::string line;
         std::string texturePath;
-        bool texturePathFound = false;
-        
+        bool        texturePathFound = false;
+
         while (std::getline(file, line))
         {
             if (line.empty() || line[0] == '#')
@@ -36,14 +37,11 @@ namespace Dokev
                 continue;
 
             std::istringstream iss(line);
-            std::string command;
+            std::string        command;
             iss >> command;
 
             if (!texturePathFound &&
-                (command.find(".png") != std::string::npos ||
-                 command.find(".jpg") != std::string::npos ||
-                 command.find(".jpeg") != std::string::npos ||
-                 command.find("Assets/") != std::string::npos))
+                (command.find(".png") != std::string::npos || command.find(".jpg") != std::string::npos || command.find(".jpeg") != std::string::npos || command.find("Assets/") != std::string::npos))
             {
                 size_t commentPos = command.find('#');
                 if (commentPos != std::string::npos)
@@ -103,14 +101,8 @@ namespace Dokev
         }
     }
 
-    SpriteSheet::SpriteSheet(Texture2D texture, 
-                             Math::ivec2 frameSize,
-                             std::vector<Math::ivec2> framePositions,
-                             Math::vec2 hotSpot)
-        : texture(texture)
-        , frameSize(frameSize)
-        , framePositions(std::move(framePositions))
-        , hotSpot(hotSpot)
+    SpriteSheet::SpriteSheet(Texture2D texture, Math::ivec2 frameSize, std::vector<Math::ivec2> framePositions, Math::vec2 hotSpot)
+        : texture(texture), frameSize(frameSize), framePositions(std::move(framePositions)), hotSpot(hotSpot)
     {
         if (this->hotSpot.x == 0 && this->hotSpot.y == 0)
         {
@@ -141,7 +133,7 @@ namespace Dokev
         }
 
         Math::ivec2 texSize = texture.GetSize();
-        
+
         if (texSize.x == 0 || texSize.y == 0)
         {
             return { 0.0f, 0.0f, 1.0f, 1.0f };
@@ -149,8 +141,8 @@ namespace Dokev
 
         Math::ivec2 pos = framePositions[frameIndex];
 
-        float left   = static_cast<float>(pos.x) / static_cast<float>(texSize.x);
-        float right  = static_cast<float>(pos.x + frameSize.x) / static_cast<float>(texSize.x);
+        float left  = static_cast<float>(pos.x) / static_cast<float>(texSize.x);
+        float right = static_cast<float>(pos.x + frameSize.x) / static_cast<float>(texSize.x);
 
         float top    = 1.0f - (static_cast<float>(pos.y) / static_cast<float>(texSize.y));
         float bottom = 1.0f - (static_cast<float>(pos.y + frameSize.y) / static_cast<float>(texSize.y));

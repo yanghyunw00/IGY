@@ -28,9 +28,9 @@ void FloatingTextManager::Draw([[maybe_unused]] const Math::TransformationMatrix
     auto& fm = CS230::FontManager::Instance();
     for (const auto& t : texts)
     {
-        const float alphaScale = std::clamp(t.life / t.duration, 0.0f, 1.0f);
-        const auto  alpha      = static_cast<uint8_t>(alphaScale * 255.0f);
-        const CS200::RGBA tint = (t.color & 0xFFFFFF00u) | alpha;
+        const float       alphaScale = std::clamp(t.life / t.duration, 0.0f, 1.0f);
+        const auto        alpha      = static_cast<uint8_t>(alphaScale * 255.0f);
+        const CS200::RGBA tint       = (t.color & 0xFFFFFF00u) | alpha;
 
         fm.DrawText("MainFont", t.text, t.pos, CS230::TextAlign::Center, tint);
     }

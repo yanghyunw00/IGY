@@ -5,12 +5,17 @@
 
 namespace Dokev
 {
-    class Smoke : public Dokev::AnimatedParticle {
+    class Smoke : public Dokev::AnimatedParticle
+    {
     public:
         Smoke() : AnimatedParticle(assets::locate_asset("Assets/images/Smoke.spt")) { };
 
-        std::string TypeName() override { return "Smoke Particle"; }
-        static constexpr int MaxCount = 50;
-        static constexpr double MaxLife = 10.0;
+        std::string TypeName() override
+        {
+            return "Smoke Particle";
+        }
+
+        static constexpr int    MaxCount = 50;
+        static constexpr double MaxLife  = 10.0;
     };
 }

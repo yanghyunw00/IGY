@@ -7,9 +7,10 @@
  */
 
 #include "DKShapes.hpp"
+#include "CS200/IRenderer2D.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Matrix.hpp"
-#include "CS200/IRenderer2D.hpp"
+
 
 namespace Dokev
 {
@@ -17,8 +18,8 @@ namespace Dokev
     {
         auto& renderer = Engine::GetRenderer2D();
 
-        Math::vec2 center{static_cast<double>(posX) + 1.5, static_cast<double>(posY) + 1.5};
-        Math::vec2 scale{1.0, 1.0};
+        Math::vec2 center{ static_cast<double>(posX) + 1.5, static_cast<double>(posY) + 1.5 };
+        Math::vec2 scale{ 1.0, 1.0 };
 
         auto transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
 
@@ -34,8 +35,8 @@ namespace Dokev
     {
         auto& renderer = Engine::GetRenderer2D();
 
-        Math::vec2 start{static_cast<double>(startPosX), static_cast<double>(startPosY)};
-        Math::vec2 end{static_cast<double>(endPosX), static_cast<double>(endPosY)};
+        Math::vec2 start{ static_cast<double>(startPosX), static_cast<double>(startPosY) };
+        Math::vec2 end{ static_cast<double>(endPosX), static_cast<double>(endPosY) };
 
         renderer.DrawLine(start, end, color, 1.0);
     }
@@ -50,8 +51,8 @@ namespace Dokev
     {
         auto& renderer = Engine::GetRenderer2D();
 
-        Math::vec2 center{static_cast<double>(centerX), static_cast<double>(centerY)};
-        Math::vec2 scale{static_cast<double>(radius * 2.0f), static_cast<double>(radius * 2.0f)};
+        Math::vec2 center{ static_cast<double>(centerX), static_cast<double>(centerY) };
+        Math::vec2 scale{ static_cast<double>(radius * 2.0f), static_cast<double>(radius * 2.0f) };
 
         auto transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
 
@@ -62,8 +63,8 @@ namespace Dokev
     {
         auto& renderer = Engine::GetRenderer2D();
 
-        Math::vec2 scale{static_cast<double>(radius * 2.0f), static_cast<double>(radius * 2.0f)};
-        auto transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
+        Math::vec2 scale{ static_cast<double>(radius * 2.0f), static_cast<double>(radius * 2.0f) };
+        auto       transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
 
         renderer.DrawCircle(transform, color, CS200::CLEAR, 0.0);
     }
@@ -72,11 +73,8 @@ namespace Dokev
     {
         auto& renderer = Engine::GetRenderer2D();
 
-        Math::vec2 center{
-            static_cast<double>(posX) + static_cast<double>(width) * 0.5,
-            static_cast<double>(posY) + static_cast<double>(height) * 0.5
-        };
-        Math::vec2 scale{static_cast<double>(width), static_cast<double>(height)};
+        Math::vec2 center{ static_cast<double>(posX) + static_cast<double>(width) * 0.5, static_cast<double>(posY) + static_cast<double>(height) * 0.5 };
+        Math::vec2 scale{ static_cast<double>(width), static_cast<double>(height) };
 
         auto transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
 
@@ -103,11 +101,8 @@ namespace Dokev
     {
         auto& renderer = Engine::GetRenderer2D();
 
-        Math::vec2 center{
-            static_cast<double>(posX) + static_cast<double>(width) * 0.5,
-            static_cast<double>(posY) + static_cast<double>(height) * 0.5
-        };
-        Math::vec2 scale{static_cast<double>(width), static_cast<double>(height)};
+        Math::vec2 center{ static_cast<double>(posX) + static_cast<double>(width) * 0.5, static_cast<double>(posY) + static_cast<double>(height) * 0.5 };
+        Math::vec2 scale{ static_cast<double>(width), static_cast<double>(height) };
 
         auto transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
 
@@ -118,8 +113,8 @@ namespace Dokev
     {
         auto& renderer = Engine::GetRenderer2D();
 
-        Math::vec2 center{static_cast<double>(centerX), static_cast<double>(centerY)};
-        Math::vec2 scale{static_cast<double>(radius * 2.0f), static_cast<double>(radius * 2.0f)};
+        Math::vec2 center{ static_cast<double>(centerX), static_cast<double>(centerY) };
+        Math::vec2 scale{ static_cast<double>(radius * 2.0f), static_cast<double>(radius * 2.0f) };
 
         auto transform = Math::TranslationMatrix(center) * Math::ScaleMatrix(scale);
 

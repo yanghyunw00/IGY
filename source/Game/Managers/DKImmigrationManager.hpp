@@ -23,6 +23,7 @@ namespace Dokev
         float CalculateImmigrationChance(int availableHomes, float happiness, int humanCount, int totalResources) const;
 
         bool Update(float dt, int availableHomes, float happiness, int humanCount, int totalResources);
+
         /**
          * \brief Get time until next immigration check (for UI)
          */

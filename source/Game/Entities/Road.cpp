@@ -7,12 +7,13 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "Road.hpp"
+#include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Managers/DKTileManager.hpp"
 #include "Engine/Vec2.hpp"
-#include "../World/GridMap.hpp"
 #include <algorithm>
 #include <vector>
+
 
 void Road::addRoad(int x, int y, GridMap& map)
 {
@@ -35,11 +36,8 @@ void Road::removeRoad(int x, int y, GridMap& map)
     }
 
     // Remove only the specific road at position (x, y)
-    auto it = std::find_if(roadPositions.begin(), roadPositions.end(),
-        [x, y](const Math::fvec2& pos) {
-            return static_cast<int>(pos.x) == x && static_cast<int>(pos.y) == y;
-        });
-    
+    auto it = std::find_if(roadPositions.begin(), roadPositions.end(), [x, y](const Math::fvec2& pos) { return static_cast<int>(pos.x) == x && static_cast<int>(pos.y) == y; });
+
     if (it != roadPositions.end())
     {
         roadPositions.erase(it);
