@@ -1,10 +1,11 @@
 #include "DKCityMetrics.hpp"
-#include "Dokev/Managers/DKGameObjectManager.hpp"
-#include "../Managers/ResourceManager.hpp"
-#include "../Entities/Building.hpp"
 #include "../Common/BuildingType.hpp"
+#include "../Entities/Building.hpp"
 #include "../Entities/ResidentBuilding.hpp"
+#include "../Managers/ResourceManager.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
+#include "Dokev/Managers/DKGameObjectManager.hpp"
+
 
 namespace Dokev
 {
@@ -13,11 +14,11 @@ namespace Dokev
         if (!gameObjectManager || !resourceManager)
             return false;
 
-        //Gather game state data
-        int humanCount    = static_cast<int>(gameObjectManager->GetHumans().size());
-        int homeCapacity  = 0;
-        int workplaceCount = 0;
-        int totalHouses   = 0;
+        // Gather game state data
+        int humanCount      = static_cast<int>(gameObjectManager->GetHumans().size());
+        int homeCapacity    = 0;
+        int workplaceCount  = 0;
+        int totalHouses     = 0;
         int housesWithWater = 0;
 
         for (const auto& building : gameObjectManager->GetBuildings())
@@ -48,8 +49,7 @@ namespace Dokev
         int availableHomes = homeCapacity - humanCount;
         int totalResources = resourceManager->GetTotalResources();
 
-        bool shouldSpawnImmigrant = immigrationManager.Update(static_cast<float>(dt), availableHomes, averageHappiness,
-                                                             humanCount, totalResources);
+        bool shouldSpawnImmigrant = immigrationManager.Update(static_cast<float>(dt), availableHomes, averageHappiness, humanCount, totalResources);
 
         return shouldSpawnImmigrant;
     }

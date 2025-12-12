@@ -19,7 +19,10 @@ struct BuildingCost
     int steel = 0;
 
     BuildingCost() = default;
-    BuildingCost(int w, int st, int stl) : wood(w), stone(st), steel(stl) {}
+
+    BuildingCost(int w, int st, int stl) : wood(w), stone(st), steel(stl)
+    {
+    }
 };
 
 class BuildingCostManager

@@ -11,12 +11,12 @@
 #include "Engine/Logger.hpp"
 #include "Engine/Path.hpp"
 #include <fstream>
-  
+
 bool BuildingCostManager::LoadFromFile(const std::string& filepath)
 {
     try
     {
-        auto fullPath = assets::locate_asset(filepath);
+        auto          fullPath = assets::locate_asset(filepath);
         std::ifstream file(fullPath.string());
 
         if (!file.is_open())
@@ -71,7 +71,7 @@ BuildingCost BuildingCostManager::GetCost(BuildingType type) const
     {
         return it->second;
     }
-    return BuildingCost(); 
+    return BuildingCost();
 }
 
 bool BuildingCostManager::CanAfford(BuildingType type, int playerWood, int playerStone, int playerSteel) const
@@ -82,10 +82,15 @@ bool BuildingCostManager::CanAfford(BuildingType type, int playerWood, int playe
 
 BuildingType BuildingCostManager::StringToBuildingType(const std::string& str) const
 {
-    if (str == "ROAD")            return BuildingType::ROAD;
-    if (str == "HOME")            return BuildingType::HOME;
-    if (str == "WOOD_WORKSHOP")   return BuildingType::WOOD_WORKSHOP;
-    if (str == "ROCK_WORKSHOP")   return BuildingType::ROCK_WORKSHOP;
-    if (str == "STEEL_WORKSHOP")  return BuildingType::STEEL_WORKSHOP;
+    if (str == "ROAD")
+        return BuildingType::ROAD;
+    if (str == "HOME")
+        return BuildingType::HOME;
+    if (str == "WOOD_WORKSHOP")
+        return BuildingType::WOOD_WORKSHOP;
+    if (str == "ROCK_WORKSHOP")
+        return BuildingType::ROCK_WORKSHOP;
+    if (str == "STEEL_WORKSHOP")
+        return BuildingType::STEEL_WORKSHOP;
     return BuildingType::NONE;
 }
