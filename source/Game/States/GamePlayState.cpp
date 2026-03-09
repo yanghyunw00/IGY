@@ -143,8 +143,8 @@ void GamePlayState::Load()
     mouseSelection.SetGridMap(GetGSComponent<MapManager>()->GetMap());
     mouseSelection.Load(assets::locate_asset("Assets/images/textures/select.png"), assets::locate_asset("Assets/images/textures/selectRed.png"));
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GL::Enable(GL_BLEND);
+    GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void GamePlayState::Update(double dt)
@@ -547,7 +547,15 @@ void GamePlayState::Draw() const
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     auto mapMgr = GetGSComponent<MapManager>();
-    mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection);
+    mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection, GetGSComponent<Dokev::GameObjectManager>().get());
+
+    // auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+    // for (const auto& building : buildings)
+    // {
+    //     building->Draw(index, mapMgr->GetMap());
+    // }
+
+    FloatingTextManager::Instance().Draw(cameraTransform);
 
     const auto& resources = mapMgr->GetResources();
     // resource
@@ -557,14 +565,6 @@ void GamePlayState::Draw() const
     }
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
-    // Draw smoke animation at position (200, 200)
-    // Math::TransformationMatrix smokeTransform;
-    // smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
-    // smokeSprite.Draw(smokeTransform);
-
-    // Draw particles
-    // smokeEmitter.Draw(cameraTransform * ndcMatrix);
-
     // Draw all humans
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
     for (const auto& human : humans)
@@ -572,12 +572,6 @@ void GamePlayState::Draw() const
         human->Draw(index, mapMgr->GetMap());
     }
 
-    auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
-    for (const auto& building : buildings)
-    {
-        building->Draw(index, mapMgr->GetMap());
-    }
-    FloatingTextManager::Instance().Draw(cameraTransform);
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();
 
@@ -591,6 +585,15 @@ void GamePlayState::Draw() const
 
     renderer2d.EndScene();
     Engine::GetLogger().LogEvent("GamePlayState::Draw end");
+
+        // Draw smoke animation at position (200, 200)
+    // Math::TransformationMatrix smokeTransform;
+    // smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
+    // smokeSprite.Draw(smokeTransform);
+
+    // Draw particles
+    // smokeEmitter.Draw(cameraTransform * ndcMatrix);
+
 }
 
 void GamePlayState::DrawImGui()

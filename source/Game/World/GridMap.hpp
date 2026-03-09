@@ -13,6 +13,8 @@
 #include "Dokev/Graphics/DKShapes.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
 #include "Dokev/Managers/DKTileManager.hpp"
+#include "Dokev/Managers/DKGameObjectManager.hpp"
+
 #include "GridCell.hpp"
 #include "OpenGL/GL.hpp"
 #include <memory>
@@ -69,7 +71,7 @@ public:
     void ReGenerateMap();
     void ResetIsoGridMapArray();
     void InitializeIsoView();
-    void IsometricDrawMap(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr) const;
+    void IsometricDrawMap(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr, Dokev::GameObjectManager* gameObjMgr = nullptr) const;
 
     void IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
     void EnsureMouseAtlasInitialized() const;
@@ -164,7 +166,6 @@ private:
     Dokev::Texture2D Max_Height;
 
     Dokev::Texture2D IsoMouseAtlas;
-
 
     int mapOriginX = 0;
     int mapOriginY = 0;

@@ -27,7 +27,7 @@ public:
     ~ResidentBuilding() override;
 
     void Update(float dt) override;
-    void Draw(int viewIndex, const GridMap* map) override;
+    void Draw(int viewIndex, const GridMap* map, int x, int y) override;
 
     std::string TypeName() override
     {

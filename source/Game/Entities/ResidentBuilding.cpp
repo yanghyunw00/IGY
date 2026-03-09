@@ -66,8 +66,9 @@ void ResidentBuilding::Update(float dt)
     UpdateConstruction(dt);
 }
 
-void ResidentBuilding::Draw(int viewIndex, const GridMap* map)
+void ResidentBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int x, [[maybe_unused]]int y)
 {
+
     if (!map)
     {
         return;

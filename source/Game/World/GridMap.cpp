@@ -10,6 +10,8 @@
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
 #include "Dokev/Core/DKUtility.hpp"
+#include "Game/Entities/Building.hpp"
+#include "Dokev/State/DKGameState.hpp"
 #include "Dokev/World/DKGrid.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
@@ -28,7 +30,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 
 namespace
 {
@@ -144,7 +145,7 @@ void GridMap::EnsureMouseAtlasInitialized() const
     if (mouseAtlasFBO != 0 && mouseAtlasTex != 0)
     {
         // Resize texture if window size changed
-        glBindTexture(GL_TEXTURE_2D, mouseAtlasTex);
+        GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
         int currentW = 0, currentH = 0;
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &currentW);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &currentH);
@@ -157,46 +158,46 @@ void GridMap::EnsureMouseAtlasInitialized() const
 
     if (mouseAtlasFBO == 0)
     {
-        glGenFramebuffers(1, &mouseAtlasFBO);
+        GL::GenFramebuffers(1, &mouseAtlasFBO);
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
+    GL::BindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
     if (mouseAtlasTex == 0)
     {
-        glGenTextures(1, &mouseAtlasTex);
+        GL::GenTextures(1, &mouseAtlasTex);
     }
-    glBindTexture(GL_TEXTURE_2D, mouseAtlasTex);
+    GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, targetWidth, targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    GL::TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, targetWidth, targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mouseAtlasTex, 0);
+    GL::FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mouseAtlasTex, 0);
 
     GLenum drawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
-    glDrawBuffers(1, drawBuffers);
+    GL::DrawBuffers(1, drawBuffers);
 
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (GL::CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
         Engine::GetLogger().LogError("mouseAtlasFBO incomplete; skipping mouse atlas draw.");
         if (mouseAtlasTex != 0)
         {
-            glDeleteTextures(1, &mouseAtlasTex);
+            GL::DeleteTextures(1, &mouseAtlasTex);
             mouseAtlasTex = 0;
         }
         if (mouseAtlasFBO != 0)
         {
-            glDeleteFramebuffers(1, &mouseAtlasFBO);
+            GL::DeleteFramebuffers(1, &mouseAtlasFBO);
             mouseAtlasFBO = 0;
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
+        GL::BindTexture(GL_TEXTURE_2D, 0);
         return;
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
+    GL::BindTexture(GL_TEXTURE_2D, 0);
 }
 
 void GridMap::ResetIsoGridMapArray()
@@ -295,7 +296,7 @@ void GridMap::InitializeIsoView()
     }
 }
 
-void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, const Dokev::MouseSelection* mouseSelection) const
+void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, const Dokev::MouseSelection* mouseSelection, Dokev::GameObjectManager* gameObjMgr) const
 {
     currentView = index % 4;
 
@@ -366,9 +367,20 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                     {
                         renderHeight += GetWaterWaveOffset(originalX, originalY);
                     }
+
                     topY = static_cast<int>(renderHeight) - screenY;
                     Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+
+                    if (gameObjMgr)
+                    {
+                        auto& buildings = gameObjMgr->GetBuildings();
+
+                        for (const auto& building : buildings)
+                        {
+                            building->Draw(index, this, screenX, topY + 50);
+                        }
+                    }
                 }
 
                 if (mouseSelection && mouseSelection->ShouldDrawAtTile(originalX, originalY))

@@ -108,7 +108,7 @@ void WorkBuilding::Update(float dt)
     }
 }
 
-void WorkBuilding::Draw(int viewIndex, const GridMap* map)
+void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int x, [[maybe_unused]] int y)
 {
     if (!map)
     {
@@ -125,7 +125,7 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map)
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    texture.Draw(drawPos.x, drawPos.y, tint);
+    texture.Draw(x, y, tint);
 
     if (!isBuilt)
     {

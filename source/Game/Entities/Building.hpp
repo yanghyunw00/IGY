@@ -36,7 +36,7 @@ public:
     virtual ~Building();
 
     virtual void Update(float dt)                        = 0;
-    virtual void Draw(int viewIndex, const GridMap* map) = 0;
+    virtual void Draw(int viewIndex, const GridMap* map, int x, int y) = 0;
 
     void UpdateConstruction(float dt);
     void DrawProgressBar(int viewIndex, const GridMap* map) const;
