@@ -108,14 +108,14 @@ void WorkBuilding::Update(float dt)
     }
 }
 
-void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int x, [[maybe_unused]] int y)
+void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
 {
     if (!map)
     {
         return;
     }
 
-    Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
+    //Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
     CS200::RGBA tint = CS200::WHITE;
 

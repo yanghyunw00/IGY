@@ -378,7 +378,14 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
 
                         for (const auto& building : buildings)
                         {
-                            building->Draw(index, this, screenX, topY + 50);
+                            int bX = static_cast<int>(building->GetGrid().x);
+                            int bY = static_cast<int>(building->GetGrid().y);
+
+                            //이 타일이 빌딩이 설치되었느냐?
+                            if (bX == originalX && bY == originalY)
+                            {
+                                building->Draw(index, this, screenX, topY + 64);
+                            }
                         }
                     }
                 }

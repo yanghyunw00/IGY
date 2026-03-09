@@ -64,9 +64,9 @@ namespace Dokev
 
         switch (zoomLevel)
         {
-            case 0: targetZoom = 0.1f; break;
-            case 1: targetZoom = 1.0f; break;
-            case 2: targetZoom = 2.0f; break;
+            case 0: targetZoom = 0.3f; break;
+            case 1: targetZoom = 0.8f; break;
+            case 2: targetZoom = 1.3f; break;
             default: targetZoom = 1.0f; break;
         }
     }
@@ -80,9 +80,9 @@ namespace Dokev
 
         switch (zoomLevel)
         {
-            case 0: targetZoom = 0.1f; break;
-            case 1: targetZoom = 1.0f; break;
-            case 2: targetZoom = 2.0f; break;
+            case 0: targetZoom = 0.3f; break;
+            case 1: targetZoom = 0.8f; break;
+            case 2: targetZoom = 1.3f; break;
             default: targetZoom = 1.0f; break;
         }
     }
@@ -104,8 +104,8 @@ namespace Dokev
     void Camera::Reset()
     {
         position   = { 0.0, 0.0 };
-        zoom       = 1.0f;
-        targetZoom = 1.0f;
+        zoom       = 0.8f;
+        targetZoom = 0.8f;
         zoomLevel  = 1;
     }
 }

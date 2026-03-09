@@ -66,15 +66,13 @@ void ResidentBuilding::Update(float dt)
     UpdateConstruction(dt);
 }
 
-void ResidentBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int x, [[maybe_unused]]int y)
+void ResidentBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
 {
 
     if (!map)
     {
         return;
     }
-
-    Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
     CS200::RGBA tint = 0xFFFFFFFF;
     if (!isBuilt)
@@ -83,7 +81,7 @@ void ResidentBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] 
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    texture.Draw(drawPos.x, drawPos.y, tint);
+    texture.Draw(x, y, tint);
 
     if (!isBuilt)
     {

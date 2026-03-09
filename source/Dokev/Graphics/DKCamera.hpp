@@ -46,9 +46,9 @@ namespace Dokev
 
     private:
         Math::vec2 position{ 0.0, 0.0 };
-        float      zoom{ 1.0f };
+        float      zoom{ 0.8f };
         int        zoomLevel{ 1 };
-        float      targetZoom{ 1.0f };
+        float      targetZoom{ 0.8f };
         float      zoomSpeed{ 5.0f };
     };
 }
