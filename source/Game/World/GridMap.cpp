@@ -82,8 +82,14 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     RoadTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
     IsoMouseAtlas   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
+    //Test For new Asset
+    PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGridtest1.png").string());
+    PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGridtest2.png").string());
+    PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGridtest3.png").string());
+
+
     IsoGridTexture[0] = WaterTexture;
-    IsoGridTexture[1] = PlainsTexture;
+    IsoGridTexture[1] = PlainGridTest1;
     IsoGridTexture[2] = MountainTexture;
     IsoGridTexture[3] = SnowTexture;
 

@@ -165,6 +165,11 @@ private:
     Dokev::Texture2D SnowTexture;
     Dokev::Texture2D Max_Height;
 
+    Dokev::Texture2D PlainGridTest1;
+    Dokev::Texture2D PlainGridTest2;
+    Dokev::Texture2D PlainGridTest3;
+
+
     Dokev::Texture2D IsoMouseAtlas;
 
     int mapOriginX = 0;
