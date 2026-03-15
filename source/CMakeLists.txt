@@ -127,6 +127,7 @@ set(SOURCE_CODE
     Game/Managers/DKCityMetrics.hpp Game/Managers/DKCityMetrics.cpp
     Game/Managers/DKImmigrationManager.hpp Game/Managers/DKImmigrationManager.cpp
     Game/Managers/FloatingTextManager.hpp Game/Managers/FloatingTextManager.cpp
+    Game/Managers/WorkManager.hpp Game/Managers/WorkManager.cpp 
 
     # Game - World
     Game/World/GridMap.hpp Game/World/GridMap.cpp

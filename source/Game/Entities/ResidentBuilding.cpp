@@ -58,7 +58,18 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
 
 ResidentBuilding::~ResidentBuilding()
 {
-    // TODO
+}
+
+void ResidentBuilding::OnWorkerArrived(Human* human)
+{
+    (void)human;
+    AddResident(1);
+}
+
+void ResidentBuilding::OnWorkerLeft(Human* human)
+{
+    (void)human;
+    RemoveResident(1);
 }
 
 void ResidentBuilding::Update(float dt)

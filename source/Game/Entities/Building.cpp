@@ -8,6 +8,8 @@
 
 #include "Building.hpp"
 #include "../Managers/FloatingTextManager.hpp"
+#include "Game/Managers/WorkManager.hpp"
+
 #include "Dokev/Graphics/DKShapes.hpp"
 #include "Engine/Path.hpp"
 #include <cassert>
@@ -45,6 +47,7 @@ void Building::UpdateConstruction(float dt)
         progress = 1.0f;
         isBuilt  = true;
         FloatingTextManager::Instance().Add("Complete!", gridPosition * TILE_WIDTH, 0x00FF00FF);
+        OnConstructed(); // add job
     }
 }
 
@@ -148,4 +151,8 @@ float Building::GetProgress() const
 BuildingType Building::GetBuildingType() const
 {
     return buildingType;
+}
+
+void Building::OnConstructed()
+{
 }

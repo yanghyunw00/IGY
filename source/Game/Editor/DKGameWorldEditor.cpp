@@ -19,6 +19,7 @@
 #include "../Entities/WorkBuilding.hpp"
 #include "../Managers/DKCityMetrics.hpp"
 #include "../Managers/ResourceManager.hpp"
+#include "../Managers/WorkManager.hpp"
 #include "../World/GridMap.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Input.hpp"
@@ -414,10 +415,130 @@ namespace Dokev
                     workshop->AddWorker(1);
                     goManager->AddBuilding(workshop);
                 }
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Text("Building Status:");
+                ImGui::Spacing();
+
+                int bidx = 0;
+                for (auto& building : buildings)
+                {
+                    ImGui::PushID(bidx);
+
+                    BuildingType bt       = building->GetBuildingType();
+                    const char*  btName   = bt == BuildingType::HOME           ? "Home"
+                                         : bt == BuildingType::WOOD_WORKSHOP   ? "Wood Workshop"
+                                         : bt == BuildingType::ROCK_WORKSHOP   ? "Rock Workshop"
+                                         : bt == BuildingType::STEEL_WORKSHOP  ? "Steel Workshop"
+                                                                               : "Unknown";
+                    auto         gpos     = building->GetGrid();
+                    bool         isBuilt  = building->GetIsBuilt();
+                    unsigned int cur      = building->GetCurrentCapacity();
+                    unsigned int maxCap   = building->GetMaxCapacity();
+
+                    std::string blabel = std::string(btName) + " #" + std::to_string(bidx)
+                                       + "  [" + std::to_string(cur) + "/" + std::to_string(maxCap) + "]"
+                                       + (isBuilt ? "" : " (building...)");
+
+                    if (ImGui::TreeNode(blabel.c_str()))
+                    {
+                        ImGui::Text("Position : (%.0f, %.0f)", gpos.x, gpos.y);
+                        ImGui::Text("Built    : %s", isBuilt ? "Yes" : "No");
+                        if (!isBuilt)
+                            ImGui::ProgressBar(building->GetProgress(), ImVec2(-1, 0), "Construction");
+                        ImGui::Text("Workers  : %u / %u", cur, maxCap);
+
+                        if (!isBuilt)
+                        {
+                            if (ImGui::Button("Force Complete"))
+                            {
+                                ImGui::SameLine();
+                                ImGui::TextDisabled("(Update loop will complete it)");
+                            }
+                        }
+
+                        ImGui::TreePop();
+                    }
+
+                    ImGui::PopID();
+                    bidx++;
+                }
+
                 ImGui::TreePop();
             }
         }
-        // =======================================================================================================
+        ImGui::Separator();
+
+        // WORK MANAGER DEBUG Section
+        if (ImGui::TreeNode("WORK MANAGER"))
+        {
+            const auto& jobs = WorkManager::GetInstance().GetJobs();
+            ImGui::Text("Active Jobs: %d", (int)jobs.size());
+
+            ImGui::Spacing();
+
+            if (ImGui::BeginTable("JobTable", 5,
+                ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY,
+                ImVec2(0, 160)))
+            {
+                ImGui::TableSetupScrollFreeze(0, 1);
+                ImGui::TableSetupColumn("ID",       ImGuiTableColumnFlags_WidthFixed, 30);
+                ImGui::TableSetupColumn("Type",     ImGuiTableColumnFlags_WidthFixed, 70);
+                ImGui::TableSetupColumn("Pos",      ImGuiTableColumnFlags_WidthFixed, 80);
+                ImGui::TableSetupColumn("Assigned", ImGuiTableColumnFlags_WidthFixed, 60);
+                ImGui::TableSetupColumn("Worker",   ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableHeadersRow();
+
+                for (const auto& job : jobs)
+                {
+                    ImGui::TableNextRow();
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d", job.jobId);
+
+                    ImGui::TableNextColumn();
+                    const char* typeName = job.type == WorkType::Gathering ? "Gathering"
+                                        : job.type == WorkType::Building   ? "Building"
+                                        : job.type == WorkType::Farming    ? "Farming"
+                                                                           : "None";
+                    ImGui::Text("%s", typeName);
+
+                    ImGui::TableNextColumn();
+                    ImGui::Text("(%.0f,%.0f)", job.position.x, job.position.y);
+
+                    ImGui::TableNextColumn();
+                    if (job.isAssigned)
+                        ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "YES");
+                    else
+                        ImGui::TextDisabled("no");
+
+                    ImGui::TableNextColumn();
+                    if (job.isAssigned && job.assignedWorker)
+                    {
+                        auto wp = job.assignedWorker->GetGridPosition();
+                        ImGui::Text("(%.0f,%.0f) %s", wp.x, wp.y,
+                            job.assignedWorker->GetState() == HumanState::Working ? "[work]" : "[walk]");
+                    }
+                    else
+                    {
+                        ImGui::TextDisabled("-");
+                    }
+                }
+                ImGui::EndTable();
+            }
+
+            ImGui::Spacing();
+
+            if (ImGui::Button("Clear All Jobs"))
+            {
+                auto& allJobs = WorkManager::GetInstance().GetJobs();
+                std::vector<int> ids;
+                for (const auto& j : allJobs) ids.push_back(j.jobId);
+                for (int id : ids) WorkManager::GetInstance().RemoveJob(id);
+            }
+
+            ImGui::TreePop();
+        }
         ImGui::Separator();
 
         // HUMAN CONTROLS Section
@@ -461,6 +582,17 @@ namespace Dokev
 
                 ImGui::Spacing();
 
+                // Global work session time control
+                {
+                    static float globalWorkTime = 5.0f;
+                    if (ImGui::SliderFloat("Work Session Time (sec)", &globalWorkTime, 1.0f, 60.0f))
+                    {
+                        for (auto& h : humans)
+                            h->SetMaxWorkSessionTime(globalWorkTime);
+                    }
+                    ImGui::Spacing();
+                }
+
                 // Individual human controls
                 if (ImGui::TreeNode("Individual Humans"))
                 {
@@ -469,30 +601,57 @@ namespace Dokev
                     {
                         ImGui::PushID(index);
 
-                        std::string label = "Human #" + std::to_string(index);
+                        const char* stateStr = human->GetState() == HumanState::Idle                 ? "Idle"
+                                             : human->GetState() == HumanState::Walking            ? "Walking"
+                                             : human->GetState() == HumanState::FindingDestination ? "Finding"
+                                             : human->GetState() == HumanState::Working            ? "Working"
+                                                                                                   : "?";
+
+                        std::string label = "Human #" + std::to_string(index) + "  [" + stateStr + "]";
                         if (ImGui::TreeNode(label.c_str()))
                         {
                             auto pos = human->GetGridPosition();
-                            ImGui::Text("Position: (%.1f, %.1f)", pos.x, pos.y);
-                            ImGui::Text(
-                                "State: %s", human->GetState() == HumanState::Idle                 ? "Idle"
-                                             : human->GetState() == HumanState::Walking            ? "Walking"
-                                             : human->GetState() == HumanState::FindingDestination ? "Finding Destination"
-                                             : human->GetState() == HumanState::Working            ? "Working"
-                                                                                                   : "Resting");
-                            ImGui::Text("Happiness: %.1f", human->GetHappiness());
+                            ImGui::Text("Grid Pos  : (%.1f, %.1f)", pos.x, pos.y);
+                            ImGui::Text("State     : %s", stateStr);
+                            ImGui::Text("Happiness : %.1f", human->GetHappiness());
+
+                            ImGui::Spacing();
+                            ImGui::Separator();
+                            ImGui::Text("--- Work Info ---");
+
+                            int jobId = human->GetAssignedJobId();
+                            if (jobId != -1)
+                            {
+                                auto wp = human->GetWorkplacePosition();
+                                ImGui::Text("Job ID    : %d", jobId);
+                                ImGui::Text("Workplace : (%.1f, %.1f)", wp.x, wp.y);
+
+                                if (human->GetState() == HumanState::Working)
+                                {
+                                    float t    = human->GetWorkSessionTimer();
+                                    float tMax = human->GetMaxWorkSessionTime();
+                                    char  buf[32];
+                                    snprintf(buf, sizeof(buf), "%.1f / %.1fs", t, tMax);
+                                    ImGui::ProgressBar(t / tMax, ImVec2(-1, 0), buf);
+                                }
+
+                                if (ImGui::Button("Cancel Work"))
+                                    human->CancelWork();
+                            }
+                            else
+                            {
+                                ImGui::TextDisabled("No job assigned");
+                            }
+
+                            ImGui::Spacing();
 
                             if (ImGui::Button("Toggle Debug"))
-                            {
                                 human->ToggleDebug();
-                            }
 
                             ImGui::SameLine();
 
                             if (ImGui::Button("Remove"))
-                            {
                                 human->Destroy();
-                            }
 
                             ImGui::TreePop();
                         }

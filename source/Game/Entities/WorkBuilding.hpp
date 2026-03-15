@@ -43,6 +43,11 @@ public:
         return "WorkBuilding";
     }
 
+    // Building interaction callbacks
+    void OnConstructed() override;
+    void OnWorkerArrived(Human* human) override;
+    void OnWorkerLeft(Human* human) override;
+
     // Workplace functions
     void  AddWorker(int count);
     void  RemoveWorker(int count);

@@ -24,7 +24,6 @@ enum class HumanState
     Walking,            // Moving along a path
     FindingDestination, // Deciding where to go next
     Working,            // work
-    Resting             // Resting
 };
 
 struct HumanStats
@@ -64,9 +63,12 @@ struct HumanAI
     std::vector<Math::fvec2> recentDestinations;             // Recent visited positions
     static constexpr size_t  maxRecentDestinations = 5;      // How many positions to remember
 
-    WorkType    assignedWork      = WorkType::None;
-    Math::fvec2 workplacePosition = { -1, -1 };
-    bool        hasWorkplace      = false;
+    int         assignedJobId = -1;                 // -1 = No assigned any work
+    WorkType    assignedWorkType = WorkType::None;
+    Math::fvec2 workplacePosition = { -1.0f, -1.0f };
+
+    float workSessionTimer   = 0.0f;  // realtime works session
+    float maxWorkSessionTime = 5.0f;  // 5sec for work
 
     // Road following
     bool                 preferRoads           = true;  // Should try to use roads when pathfinding
@@ -121,15 +123,17 @@ public:
 
     Math::fvec2 FindNextRoadTile(const Road* road, bool& outFoundRoad) const;
 
-    WorkType GetAssignedWork() const
-    {
-        return ai.assignedWork;
-    }
+    // Work Functions
 
-    bool HasWorkAssignment() const
-    {
-        return ai.assignedWork != WorkType::None;
-    }
+    bool HasWorkAssignment() const { return ai.assignedJobId != -1; }
+    void CancelWork(); // Cancel the work when some situation happened
+
+    int         GetAssignedJobId()       const { return ai.assignedJobId; }
+    Math::fvec2 GetWorkplacePosition()   const { return ai.workplacePosition; }
+    float       GetWorkSessionTimer()    const { return ai.workSessionTimer; }
+    float       GetMaxWorkSessionTime()  const { return ai.maxWorkSessionTime; }
+    void        SetMaxWorkSessionTime(float t) { ai.maxWorkSessionTime = t; }
+
 
     // GETTERS
     Math::fvec2 GetActualPosition() const
@@ -176,6 +180,9 @@ private:
     void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road);
     void ChangeState(HumanState newState);
 
+    //Wait during the work 
+    void UpdateWorking(float deltaTime);
+
     // TERRAIN HELPERS
     std::string GetTerrainName(double height) const;
 
@@ -206,6 +213,6 @@ private:
     // RENDERING
     CS200::RGBA color;
     bool        debugMode = false;
-
+    bool isVisible = true;
     Dokev::Texture2D humanTexture;
 };

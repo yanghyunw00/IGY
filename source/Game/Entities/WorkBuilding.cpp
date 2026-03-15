@@ -9,6 +9,7 @@
 
 #include "WorkBuilding.hpp"
 #include "../Managers/ResourceManager.hpp"
+#include "../Managers/WorkManager.hpp"
 #include "CS200/RGBA.hpp"
 #include "Engine/Path.hpp"
 
@@ -79,7 +80,34 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
 
 WorkBuilding::~WorkBuilding()
 {
-    // TODO
+    WorkManager::GetInstance().RemoveAllJobsForBuilding(this);
+}
+
+void WorkBuilding::OnConstructed()
+{
+    // add job when constructed
+    if (max_capacity > 0)
+    {
+        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
+    }
+}
+
+void WorkBuilding::OnWorkerArrived(Human* human)
+{
+    (void)human;
+    AddWorker(1);
+
+    // Add next worker if not full
+    if (!IsFull())
+    {
+        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
+    }
+}
+
+void WorkBuilding::OnWorkerLeft(Human* human)
+{
+    (void)human;
+    RemoveWorker(1);
 }
 
 void WorkBuilding::Update(float dt)

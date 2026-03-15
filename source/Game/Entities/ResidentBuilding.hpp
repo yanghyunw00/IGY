@@ -34,6 +34,10 @@ public:
         return "ResidentBuilding";
     }
 
+    // Building interaction callbacks
+    void OnWorkerArrived(Human* human) override;
+    void OnWorkerLeft(Human* human) override;
+
     // Residence function
     void  AddResident(int count);
     void  RemoveResident(int count);

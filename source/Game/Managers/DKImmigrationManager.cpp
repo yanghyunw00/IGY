@@ -1,3 +1,10 @@
+/**
+ * \file DKImmigrationManager.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
 #include "DKImmigrationManager.hpp"
 
 namespace Dokev

@@ -1,3 +1,11 @@
+/**
+ * \file FloatingTextManager.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "FloatingTextManager.hpp"
 #include <algorithm>
 

@@ -1,3 +1,11 @@
+/**
+ * \file ResourceManager.hpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #pragma once
 #include "../Resources/Resource.hpp"
 #include "Dokev/GameObject/DKComponent.hpp"

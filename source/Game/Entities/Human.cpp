@@ -8,8 +8,10 @@
  */
 
 #include "Human.hpp"
+#include "Building.hpp"
 #include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
+#include "Game/Managers/WorkManager.hpp"
 #include "Engine/Path.hpp"
 #include "Road.hpp"
 #include <cassert>
@@ -25,6 +27,30 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
     humanTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
+}
+
+void Human::CancelWork()
+{
+    if (ai.assignedJobId != -1)
+    {
+        // 일자리가 잇으면 건물에 퇴장 알림 후 슬롯 재오픈
+        Job* job = WorkManager::GetInstance().GetJob(ai.assignedJobId);
+        if (job && job->targetBuilding && state == HumanState::Working)
+        {
+            job->targetBuilding->OnWorkerLeft(this);
+        }
+        WorkManager::GetInstance().UnassignJob(ai.assignedJobId);
+    }
+
+    ai.assignedJobId      = -1;
+    ai.assignedWorkType   = WorkType::None;
+    ai.workplacePosition  = { -1.0f, -1.0f };
+    ai.workSessionTimer   = 0.0f;
+
+    if (state == HumanState::Walking || state == HumanState::Working)
+    {
+        ChangeState(HumanState::Idle);
+    }
 }
 
 void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource source)
@@ -84,7 +110,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
             if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
             {
                 GridCell** viewArray   = map->GetViewArray(0);
-                GridCell*  currentCell = viewArray[gridY * GRID_SIZE_X + gridX];
+                GridCell* currentCell = viewArray[gridY * GRID_SIZE_X + gridX];
 
                 std::string terrainName;
                 double      height = currentCell->getHeight();
@@ -101,6 +127,25 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
         {
             isMoving = false;
             path.clear();
+
+            // Arrived at Job
+            if (HasWorkAssignment() &&
+                static_cast<int>(currentGridPos.x) == static_cast<int>(ai.workplacePosition.x) &&
+                static_cast<int>(currentGridPos.y) == static_cast<int>(ai.workplacePosition.y))
+            {
+                // 건물 입장 
+                Job* job = WorkManager::GetInstance().GetJob(ai.assignedJobId);
+                if (job && job->targetBuilding)
+                {
+                    job->targetBuilding->OnWorkerArrived(this);
+                }
+                ChangeState(HumanState::Working);
+            }
+            else
+            {
+                ChangeState(HumanState::Idle);
+            }
+
             if (debugMode)
             {
             }
@@ -124,6 +169,16 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
     }
 }
 
+void Human::UpdateWorking(float deltaTime)
+{
+    ai.workSessionTimer += deltaTime;
+    if (ai.workSessionTimer >= ai.maxWorkSessionTime)
+    {
+        // 근무 시간 종료
+        CancelWork();
+    }
+}
+
 void Human::UpdateIdle(float deltaTime, GridMap* map)
 {
     (void)map;
@@ -143,6 +198,36 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     if (!map)
         return;
 
+    int newJobId = -1;
+    Math::fvec2 newJobPos = { -1.0f, -1.0f };
+    WorkType newJobType = WorkType::None;
+
+    // Manager Gives Job
+    if (!HasWorkAssignment() && WorkManager::GetInstance().RequestJob(this, currentGridPos, newJobId, newJobPos, newJobType))
+    {
+        ai.assignedJobId = newJobId;
+        ai.workplacePosition = newJobPos;
+        ai.assignedWorkType = newJobType;
+
+        map->ClearPath();
+        map->FindPath(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y), 
+                      static_cast<int>(newJobPos.x), static_cast<int>(newJobPos.y));
+
+        auto path_ = map->GetCurrentPath();
+
+        if (!path_.empty() && path_.size() > 1)
+        {
+            FollowPath(path_);
+            ChangeState(HumanState::Walking);
+            return;
+        }
+        else
+        {
+            CancelWork(); 
+        }
+    }
+
+    //NO WORK , YES ROAD
     if (ai.isFollowingRoad && road)
     {
         bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
@@ -165,6 +250,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
         }
     }
 
+    //No ROAD -> Random walk
     Math::fvec2 destination = FindRandomDestination(map, road);
 
     map->ClearPath();
@@ -183,7 +269,6 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
         ai.idleTimer = ai.maxIdleTime - 0.5f;
     }
 }
-
 void Human::Update(float deltaTime, GridMap* map, const Road* road)
 {
     if (state == HumanState::Walking)
@@ -246,10 +331,16 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
     {
         UpdateFindingDestination(deltaTime, map, road);
     }
+    else if (state == HumanState::Working)
+    {
+        UpdateWorking(deltaTime);
+    }
 }
 
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
+    if (!isVisible) return;
+
     Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
 
     float gridX_float = transformedPos.x;
@@ -281,7 +372,22 @@ void Human::Draw(int viewIndex, const GridMap* map) const
 
 void Human::ChangeState(HumanState newState)
 {
+    if (state == HumanState::Working)
+    {
+        isVisible = true; // Drawing when outside of building
+    }
+
     state = newState;
+
+    if (state == HumanState::Working)
+    {
+        isVisible           = false; // 건물 안에 있으므로 렌더링 생략
+        ai.workSessionTimer = 0.0f;  // 근무 타이머 초기화
+    }
+    else if (state == HumanState::Idle)
+    {
+        ai.idleTimer = 0.0f;
+    }
 }
 
 std::string Human::GetTerrainName(double height) const

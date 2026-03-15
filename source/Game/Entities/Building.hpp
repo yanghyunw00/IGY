@@ -12,7 +12,9 @@
 #include "Dokev/Core/DKMath.hpp"
 #include "Dokev/GameObject/DKGameObject.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
+#include "Game/Entities/Human.hpp"
 
+enum class WorkType;
 
 class Building : public Dokev::GameObject
 {
@@ -48,6 +50,13 @@ public:
     unsigned int GetCurrentCapacity() const;
     float        GetProgress() const;
     BuildingType GetBuildingType() const;
+
+    // constructed 
+    virtual void OnConstructed();
+
+    virtual void OnWorkerArrived(Human* human) { (void)human; }
+
+    virtual void OnWorkerLeft(Human* human) { (void)human; }
 
     std::string TypeName() override
     {
