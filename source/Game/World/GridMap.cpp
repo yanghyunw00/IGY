@@ -83,14 +83,14 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     IsoMouseAtlas   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
     //Test For new Asset
-    PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGridtest1.png").string());
-    PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGridtest2.png").string());
-    PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGridtest3.png").string());
+    PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater2.png").string());
+    PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPlains2.png").string());
+    PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains2.png").string());
 
 
-    IsoGridTexture[0] = WaterTexture;
-    IsoGridTexture[1] = PlainGridTest1;
-    IsoGridTexture[2] = MountainTexture;
+    IsoGridTexture[0] = PlainGridTest1; // water
+    IsoGridTexture[1] = PlainGridTest2; // plane
+    IsoGridTexture[2] = PlainGridTest3; // mountain
     IsoGridTexture[3] = SnowTexture;
 
     ResetPerlinTexture();

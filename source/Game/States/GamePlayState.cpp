@@ -530,6 +530,7 @@ void GamePlayState::Update(double dt)
 
 void GamePlayState::Draw() const
 {
+    
    // Engine::GetLogger().LogEvent("GamePlayState::Draw start");
     auto windowSize = Engine::GetWindow().GetSize();
     CS200::RenderingAPI::Clear();
@@ -546,6 +547,9 @@ void GamePlayState::Draw() const
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+    //BackGround Color
+    DrawRectangle(-5000,-5000, 10000,10000, Dokev::ColorPalette::SKYBLUE);
+
     auto mapMgr = GetGSComponent<MapManager>();
     mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection, GetGSComponent<Dokev::GameObjectManager>().get());
 
@@ -558,6 +562,7 @@ void GamePlayState::Draw() const
     FloatingTextManager::Instance().Draw(cameraTransform);
 
     const auto& resources = mapMgr->GetResources();
+    
     // resource
     for (const auto& resource : resources)
     {

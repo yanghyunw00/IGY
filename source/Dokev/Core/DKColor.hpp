@@ -44,7 +44,7 @@ namespace Dokev
         constexpr CS200::RGBA TURQUOISE = 0x40E0D0FF;
         constexpr CS200::RGBA TEAL      = 0x008080FF;
 
-        constexpr CS200::RGBA SKYBLUE   = 0x66D7EEFF;
+        constexpr CS200::RGBA SKYBLUE   = 0x7FC7FCFF;
         constexpr CS200::RGBA ROYALBLUE = 0x4169E1FF;
         constexpr CS200::RGBA BLUE      = 0x0078F0FF;
         constexpr CS200::RGBA DARKBLUE  = 0x003C82FF;
