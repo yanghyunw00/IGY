@@ -11,11 +11,18 @@ void WorkManager::RemoveJob(int jobId)
                                 ? jobList[i].assignedWorker
                                 : nullptr;
 
-            jobList[i] = jobList.back();
-            jobList.pop_back();
             if (worker)
                 worker->CancelWork();
 
+            for (int j = 0; j < (int)jobList.size(); ++j)
+            {
+                if (jobList[j].jobId == jobId)
+                {
+                    jobList[j] = jobList.back();
+                    jobList.pop_back();
+                    break;
+                }
+            }
             return;
         }
     }
@@ -23,19 +30,22 @@ void WorkManager::RemoveJob(int jobId)
 
 void WorkManager::RemoveAllJobsForBuilding(Building* building)
 {
+    std::vector<Human*> workersToCancel;
+    for (auto& job : jobList)
+    {
+        if (job.targetBuilding == building && job.isAssigned && job.assignedWorker)
+            workersToCancel.push_back(job.assignedWorker);
+    }
+
+    for (Human* worker : workersToCancel)
+        worker->CancelWork();
+
     for (int i = (int)jobList.size() - 1; i >= 0; --i)
     {
         if (jobList[i].targetBuilding == building)
         {
-            Human* worker = (jobList[i].isAssigned && jobList[i].assignedWorker)
-                                ? jobList[i].assignedWorker
-                                : nullptr;
-
             jobList[i] = jobList.back();
             jobList.pop_back();
-
-            if (worker)
-                worker->CancelWork();
         }
     }
 }

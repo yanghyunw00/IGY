@@ -12,6 +12,7 @@
 #include "../Managers/WorkManager.hpp"
 #include "CS200/RGBA.hpp"
 #include "Engine/Path.hpp"
+#include <algorithm>
 
 
 Dokev::Texture2D WorkBuilding::loggingCampTexture;
@@ -119,18 +120,23 @@ void WorkBuilding::Update(float dt)
         return;
     }
 
-    if (HasWorker() && resourceManager != nullptr && productionTimer.Update(dt))
+    if (resourceManager != nullptr && productionTimer.Update(dt))
     {
-        int amountToProduce = static_cast<int>(current_capacity * productionRate);
+        int amountToProduce;
+        if (HasWorker())
+        {
+            amountToProduce = static_cast<int>(current_capacity * productionRate);
+        }
+        else
+        {
+            amountToProduce = std::max(1, static_cast<int>(resourceProduce * productionRate * 0.1f));
+        }
 
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP: resourceManager->AddResource(ResourceType::Wood, amountToProduce); break;
-
-            case BuildingType::ROCK_WORKSHOP: resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
-
+            case BuildingType::WOOD_WORKSHOP:  resourceManager->AddResource(ResourceType::Wood,  amountToProduce); break;
+            case BuildingType::ROCK_WORKSHOP:  resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
             case BuildingType::STEEL_WORKSHOP: resourceManager->AddResource(ResourceType::Steel, amountToProduce); break;
-
             default: break;
         }
     }

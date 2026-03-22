@@ -133,6 +133,8 @@ public:
     float       GetWorkSessionTimer()    const { return ai.workSessionTimer; }
     float       GetMaxWorkSessionTime()  const { return ai.maxWorkSessionTime; }
     void        SetMaxWorkSessionTime(float t) { ai.maxWorkSessionTime = t; }
+    float       GetJobSearchRadius()     const { return ai.explorationRadius; }
+    void        SetJobSearchRadius(float r)    { ai.explorationRadius = r; }
 
 
     // GETTERS

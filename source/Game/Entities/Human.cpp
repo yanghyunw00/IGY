@@ -1,4 +1,4 @@
-﻿/**
+/**
  * \file Human.cpp
  * \author Hyunwoo Yang
  * \author
@@ -33,7 +33,6 @@ void Human::CancelWork()
 {
     if (ai.assignedJobId != -1)
     {
-        // 일자리가 잇으면 건물에 퇴장 알림 후 슬롯 재오픈
         Job* job = WorkManager::GetInstance().GetJob(ai.assignedJobId);
         if (job && job->targetBuilding && state == HumanState::Working)
         {
@@ -133,13 +132,16 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
                 static_cast<int>(currentGridPos.x) == static_cast<int>(ai.workplacePosition.x) &&
                 static_cast<int>(currentGridPos.y) == static_cast<int>(ai.workplacePosition.y))
             {
-                // 건물 입장 
                 Job* job = WorkManager::GetInstance().GetJob(ai.assignedJobId);
                 if (job && job->targetBuilding)
                 {
                     job->targetBuilding->OnWorkerArrived(this);
                 }
                 ChangeState(HumanState::Working);
+            }
+            else if (HasWorkAssignment())
+            {
+                CancelWork();
             }
             else
             {
@@ -174,7 +176,6 @@ void Human::UpdateWorking(float deltaTime)
     ai.workSessionTimer += deltaTime;
     if (ai.workSessionTimer >= ai.maxWorkSessionTime)
     {
-        // 근무 시간 종료
         CancelWork();
     }
 }
@@ -203,7 +204,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     WorkType newJobType = WorkType::None;
 
     // Manager Gives Job
-    if (!HasWorkAssignment() && WorkManager::GetInstance().RequestJob(this, currentGridPos, newJobId, newJobPos, newJobType))
+    if (!HasWorkAssignment() && WorkManager::GetInstance().RequestJob(this, currentGridPos, newJobId, newJobPos, newJobType, ai.explorationRadius))
     {
         ai.assignedJobId = newJobId;
         ai.workplacePosition = newJobPos;

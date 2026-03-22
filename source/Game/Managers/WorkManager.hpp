@@ -44,18 +44,18 @@ public:
     }
 
     // Called by Human
-    bool RequestJob(Human* requester, Math::fvec2 humanPos, int& outJobId, Math::fvec2& outJobPos, WorkType& outType)
+    bool RequestJob(Human* requester, Math::fvec2 humanPos, int& outJobId, Math::fvec2& outJobPos, WorkType& outType, float maxRadius = 20.0f)
     {
-        float minDistSq = 9999999.0f;
-        int bestIndex = -1;
+        float minDistSq = maxRadius * maxRadius; // 이 값 이상이면 배정 안 함
+        int   bestIndex = -1;
 
-        for (int i = 0; i < jobList.size(); ++i)
+        for (int i = 0; i < (int)jobList.size(); ++i)
         {
             if (!jobList[i].isAssigned)
             {
-                float dx = jobList[i].position.x - humanPos.x;
-                float dy = jobList[i].position.y - humanPos.y;
-                float distSq = (dx * dx) + (dy * dy); 
+                float dx     = jobList[i].position.x - humanPos.x;
+                float dy     = jobList[i].position.y - humanPos.y;
+                float distSq = (dx * dx) + (dy * dy);
 
                 if (distSq < minDistSq)
                 {
@@ -67,12 +67,12 @@ public:
 
         if (bestIndex != -1)
         {
-            jobList[bestIndex].isAssigned = true;
+            jobList[bestIndex].isAssigned     = true;
             jobList[bestIndex].assignedWorker = requester;
-            
-            outJobId = jobList[bestIndex].jobId;
+
+            outJobId  = jobList[bestIndex].jobId;
             outJobPos = jobList[bestIndex].position;
-            outType = jobList[bestIndex].type;
+            outType   = jobList[bestIndex].type;
             return true;
         }
         return false;

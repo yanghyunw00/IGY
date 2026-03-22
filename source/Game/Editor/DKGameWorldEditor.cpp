@@ -593,6 +593,16 @@ namespace Dokev
                     ImGui::Spacing();
                 }
 
+                {
+                    static float globalJobRadius = 20.0f;
+                    if (ImGui::SliderFloat("Job Search Radius (tiles)", &globalJobRadius, 5.0f, 80.0f))
+                    {
+                        for (auto& h : humans)
+                            h->SetJobSearchRadius(globalJobRadius);
+                    }
+                    ImGui::Spacing();
+                }
+
                 // Individual human controls
                 if (ImGui::TreeNode("Individual Humans"))
                 {
