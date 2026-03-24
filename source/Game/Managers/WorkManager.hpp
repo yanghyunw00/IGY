@@ -46,7 +46,7 @@ public:
     // Called by Human
     bool RequestJob(Human* requester, Math::fvec2 humanPos, int& outJobId, Math::fvec2& outJobPos, WorkType& outType, float maxRadius = 20.0f)
     {
-        float minDistSq = maxRadius * maxRadius; // 이 값 이상이면 배정 안 함
+        float minDistSq = maxRadius * maxRadius; 
         int   bestIndex = -1;
 
         for (int i = 0; i < (int)jobList.size(); ++i)
@@ -79,6 +79,20 @@ public:
     }
 
     void RemoveJob(int jobId);
+
+    // Remove job from list without notifying the assigned worker (use when worker has already arrived)
+    void EraseJob(int jobId)
+    {
+        for (int i = 0; i < (int)jobList.size(); ++i)
+        {
+            if (jobList[i].jobId == jobId)
+            {
+                jobList[i] = jobList.back();
+                jobList.pop_back();
+                return;
+            }
+        }
+    }
 
     // When destroyed building
     void RemoveAllJobsForBuilding(Building* building);

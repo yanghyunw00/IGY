@@ -68,7 +68,7 @@ struct HumanAI
     Math::fvec2 workplacePosition = { -1.0f, -1.0f };
 
     float workSessionTimer   = 0.0f;  // realtime works session
-    float maxWorkSessionTime = 5.0f;  // 5sec for work
+    float maxWorkSessionTime = 7.0f;  // 5sec for work
 
     // Road following
     bool                 preferRoads           = true;  // Should try to use roads when pathfinding
@@ -215,6 +215,6 @@ private:
     // RENDERING
     CS200::RGBA color;
     bool        debugMode = false;
-    bool isVisible = true;
+    // bool isVisible = true;
     Dokev::Texture2D humanTexture;
 };

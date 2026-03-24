@@ -352,7 +352,6 @@ namespace Dokev
                     }
                     auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::WOOD_WORKSHOP);
                     workshop->SetResourceManager(resourceManager);
-                    workshop->AddWorker(1);
                     goManager->AddBuilding(workshop);
                 }
 
@@ -382,7 +381,6 @@ namespace Dokev
                     }
                     auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::ROCK_WORKSHOP);
                     workshop->SetResourceManager(resourceManager);
-                    workshop->AddWorker(1);
                     goManager->AddBuilding(workshop);
                 }
 
@@ -412,7 +410,6 @@ namespace Dokev
                     }
                     auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP);
                     workshop->SetResourceManager(resourceManager);
-                    workshop->AddWorker(1);
                     goManager->AddBuilding(workshop);
                 }
                 ImGui::Spacing();

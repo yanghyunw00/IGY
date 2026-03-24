@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file Human.cpp
  * \author Hyunwoo Yang
  * \author
@@ -34,17 +34,25 @@ void Human::CancelWork()
     if (ai.assignedJobId != -1)
     {
         Job* job = WorkManager::GetInstance().GetJob(ai.assignedJobId);
-        if (job && job->targetBuilding && state == HumanState::Working)
+        if (job && job->targetBuilding)
         {
-            job->targetBuilding->OnWorkerLeft(this);
+            if (state == HumanState::Working)
+            {
+                job->targetBuilding->OnWorkerLeft(this);
+                WorkManager::GetInstance().EraseJob(ai.assignedJobId); // slot consumed
+            }
+            else
+            {
+                WorkManager::GetInstance().UnassignJob(ai.assignedJobId); // return slot to pool
+            }
         }
-        WorkManager::GetInstance().UnassignJob(ai.assignedJobId);
     }
 
-    ai.assignedJobId      = -1;
-    ai.assignedWorkType   = WorkType::None;
-    ai.workplacePosition  = { -1.0f, -1.0f };
-    ai.workSessionTimer   = 0.0f;
+    ai.assignedJobId     = -1;
+    ai.assignedWorkType  = WorkType::None;
+    ai.workplacePosition = { -1.0f, -1.0f };
+    ai.workSessionTimer  = 0.0f;
+    // isVisible = true;
 
     if (state == HumanState::Walking || state == HumanState::Working)
     {
@@ -300,6 +308,10 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
 
             if (!isMoving)
             {
+                // UpdateMovement may have already transitioned to Working state
+                if (state == HumanState::Working)
+                    return;
+
                 bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
 
                 if (onRoad)
@@ -340,7 +352,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
 
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
-    if (!isVisible) return;
+    // if (!isVisible) return;
 
     Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
 
@@ -373,17 +385,16 @@ void Human::Draw(int viewIndex, const GridMap* map) const
 
 void Human::ChangeState(HumanState newState)
 {
-    if (state == HumanState::Working)
-    {
-        isVisible = true; // Drawing when outside of building
-    }
+    // if (state == HumanState::Working)
+    // {
+    //     isVisible = true;
+    // }
 
     state = newState;
 
     if (state == HumanState::Working)
     {
-        isVisible           = false; // 건물 안에 있으므로 렌더링 생략
-        ai.workSessionTimer = 0.0f;  // 근무 타이머 초기화
+        ai.workSessionTimer = 0.0f;  // timer reset
     }
     else if (state == HumanState::Idle)
     {

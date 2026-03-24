@@ -120,17 +120,9 @@ void WorkBuilding::Update(float dt)
         return;
     }
 
-    if (resourceManager != nullptr && productionTimer.Update(dt))
+    if (resourceManager != nullptr && HasWorker() && productionTimer.Update(dt))
     {
-        int amountToProduce;
-        if (HasWorker())
-        {
-            amountToProduce = static_cast<int>(current_capacity * productionRate);
-        }
-        else
-        {
-            amountToProduce = std::max(1, static_cast<int>(resourceProduce * productionRate * 0.1f));
-        }
+        int amountToProduce = static_cast<int>(current_capacity * productionRate);
 
         switch (buildingType)
         {

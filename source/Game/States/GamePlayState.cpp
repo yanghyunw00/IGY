@@ -436,7 +436,6 @@ void GamePlayState::Update(double dt)
 
                                 auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::WOOD_WORKSHOP);
                                 workshop->SetResourceManager(resourceMgr.get());
-                                workshop->AddWorker(1);
                                 gameObjMgr->AddBuilding(workshop);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
                                 placed = true;
@@ -449,7 +448,6 @@ void GamePlayState::Update(double dt)
 
                                 auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::ROCK_WORKSHOP);
                                 workshop->SetResourceManager(resourceMgr.get());
-                                workshop->AddWorker(1);
                                 gameObjMgr->AddBuilding(workshop);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
                                 placed = true;
@@ -462,7 +460,6 @@ void GamePlayState::Update(double dt)
 
                                 auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::STEEL_WORKSHOP);
                                 workshop->SetResourceManager(resourceMgr.get());
-                                workshop->AddWorker(1);
                                 gameObjMgr->AddBuilding(workshop);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
                                 placed = true;
