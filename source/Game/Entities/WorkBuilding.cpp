@@ -45,7 +45,7 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
 {
     LoadTextures();
 
-    max_capacity     = 20;
+    max_capacity     = 2;
     current_capacity = 0;
     cost             = 150;
 
@@ -55,19 +55,19 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
     {
         case BuildingType::WOOD_WORKSHOP:
             texture      = loggingCampTexture;
-            max_capacity = 10;
+            max_capacity = 2;
             cost         = 0;
             break;
 
         case BuildingType::ROCK_WORKSHOP:
             texture      = quarryTexture;
-            max_capacity = 10;
+            max_capacity = 2;
             cost         = 0;
             break;
 
         case BuildingType::STEEL_WORKSHOP:
             texture      = ironMineTexture;
-            max_capacity = 10;
+            max_capacity = 2;
             cost         = 0;
             break;
 

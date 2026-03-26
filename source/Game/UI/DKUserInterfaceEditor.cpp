@@ -134,15 +134,6 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.employmentScore);
 
-    // Water
-    ImGui::Text("  Water:      ");
-    ImGui::SameLine();
-    if (factors.waterScore >= 80.0f)
-        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%.0f%%", factors.waterScore);
-    else if (factors.waterScore >= 50.0f)
-        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%.0f%%", factors.waterScore);
-    else
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.waterScore);
 }
 
 void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager, int availableHomes, int totalResources, int humanCount)

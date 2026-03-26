@@ -15,11 +15,9 @@ namespace Dokev
             return false;
 
         // Gather game state data
-        int humanCount      = static_cast<int>(gameObjectManager->GetHumans().size());
-        int homeCapacity    = 0;
-        int workplaceCount  = 0;
-        int totalHouses     = 0;
-        int housesWithWater = 0;
+        int humanCount     = static_cast<int>(gameObjectManager->GetHumans().size());
+        int homeCapacity   = 0;
+        int workplaceCount = 0;
 
         for (const auto& building : gameObjectManager->GetBuildings())
         {
@@ -27,12 +25,7 @@ namespace Dokev
 
             if (Meta::is_residential_type(type))
             {
-                totalHouses++;
                 homeCapacity += building->GetMaxCapacity();
-
-                // Count houses with water (implement when water system is ready)
-                // For now, assume all houses have water
-                housesWithWater++;
             }
 
             if (Meta::is_workshop_type(type))
@@ -42,7 +35,7 @@ namespace Dokev
         }
 
         // Update Happiness Manager
-        happinessManager.UpdateFactors(humanCount, homeCapacity, workplaceCount, housesWithWater, totalHouses);
+        happinessManager.UpdateFactors(humanCount, homeCapacity, workplaceCount);
         averageHappiness = happinessManager.CalculateTotalHappiness();
 
         //  Update Immigration Manager

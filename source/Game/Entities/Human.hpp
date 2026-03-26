@@ -17,6 +17,7 @@
 
 class GridMap;
 class Road;
+namespace Dokev { class GameObjectManager; }
 
 enum class HumanState
 {
@@ -24,6 +25,7 @@ enum class HumanState
     Walking,            // Moving along a path
     FindingDestination, // Deciding where to go next
     Working,            // work
+    Resting,            // resting at home after fatigue
 };
 
 struct HumanStats
@@ -70,6 +72,14 @@ struct HumanAI
     float workSessionTimer   = 0.0f;  // realtime works session
     float maxWorkSessionTime = 7.0f;  // 5sec for work
 
+    // Fatigue system
+    int   workSessionCount             = 0;
+    int   maxWorkSessionsBeforeFatigue = 3;
+    float restTimer                    = 0.0f;
+    float maxRestTime                  = 7.0f;
+    Math::fvec2 targetHomePosition     = { -1.0f, -1.0f };
+    bool  isHeadingHome                = false;
+
     // Road following
     bool                 preferRoads           = true;  // Should try to use roads when pathfinding
     bool                 isFollowingRoad       = false; // Currently following a road
@@ -98,7 +108,7 @@ public:
     }
 
     // CORE UPDATE & DRAW
-    void Update(float deltaTime, GridMap* map, const Road* road);
+    void Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr = nullptr);
     void Draw(int viewIndex, const GridMap* map) const;
 
 
@@ -178,12 +188,12 @@ private:
 
     // INTERNAL UPDATE FUNCTIONS
     void UpdateMovement(float deltaTime, GridMap* map);
-    void UpdateIdle(float deltaTime, GridMap* map);
+    void UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr);
     void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road);
     void ChangeState(HumanState newState);
 
-    //Wait during the work 
     void UpdateWorking(float deltaTime);
+    void UpdateResting(float deltaTime);
 
     // TERRAIN HELPERS
     std::string GetTerrainName(double height) const;

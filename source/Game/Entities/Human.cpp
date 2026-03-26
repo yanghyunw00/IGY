@@ -11,7 +11,9 @@
 #include "Building.hpp"
 #include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "Game/Managers/WorkManager.hpp"
+#include "../Common/BuildingType.hpp"
 #include "Engine/Path.hpp"
 #include "Road.hpp"
 #include <cassert>
@@ -151,6 +153,13 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
             {
                 CancelWork();
             }
+            else if (ai.isHeadingHome &&
+                     static_cast<int>(currentGridPos.x) == static_cast<int>(ai.targetHomePosition.x) &&
+                     static_cast<int>(currentGridPos.y) == static_cast<int>(ai.targetHomePosition.y))
+            {
+                ai.isHeadingHome = false;
+                ChangeState(HumanState::Resting);
+            }
             else
             {
                 ChangeState(HumanState::Idle);
@@ -184,18 +193,78 @@ void Human::UpdateWorking(float deltaTime)
     ai.workSessionTimer += deltaTime;
     if (ai.workSessionTimer >= ai.maxWorkSessionTime)
     {
+        ai.workSessionCount++;
         CancelWork();
+        if (ai.workSessionCount >= ai.maxWorkSessionsBeforeFatigue)
+        {
+            ai.isHeadingHome = true;
+        }
     }
 }
 
-void Human::UpdateIdle(float deltaTime, GridMap* map)
+void Human::UpdateResting(float deltaTime)
 {
-    (void)map;
+    ai.restTimer += deltaTime;
+    if (ai.restTimer >= ai.maxRestTime)
+    {
+        ai.restTimer        = 0.0f;
+        ai.workSessionCount = 0;
+        ChangeState(HumanState::Idle);
+    }
+}
+
+void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr)
+{
     ai.idleTimer += deltaTime;
 
     if (ai.idleTimer >= ai.maxIdleTime)
     {
         ai.idleTimer = 0.0f;
+
+        if (ai.isHeadingHome)
+        {
+            Math::fvec2 homePos = { -1.0f, -1.0f };
+            if (gameObjMgr)
+            {
+                for (const auto& building : gameObjMgr->GetBuildings())
+                {
+                    if (building->GetBuildingType() == BuildingType::HOME && building->GetIsBuilt())
+                    {
+                        homePos = building->GetGrid();
+                        break;
+                    }
+                }
+            }
+
+            if (homePos.x < 0.0f)
+            {
+                Destroy();
+                return;
+            }
+
+            if (map)
+            {
+                map->ClearPath();
+                map->FindPath(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y),
+                              static_cast<int>(homePos.x), static_cast<int>(homePos.y));
+                auto path_ = map->GetCurrentPath();
+
+                if (!path_.empty() && path_.size() > 1)
+                {
+                    ai.targetHomePosition = homePos;
+                    FollowPath(path_);
+                    ChangeState(HumanState::Walking);
+                }
+                else
+                {
+                    ai.isHeadingHome = false;
+                    ai.workSessionCount = 0;
+                    ChangeState(HumanState::Resting);
+                }
+            }
+            return;
+        }
+
         ChangeState(HumanState::FindingDestination);
     }
 }
@@ -278,14 +347,22 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
         ai.idleTimer = ai.maxIdleTime - 0.5f;
     }
 }
-void Human::Update(float deltaTime, GridMap* map, const Road* road)
+void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr)
 {
     if (state == HumanState::Walking)
     {
         if (!isMoving)
         {
             ai.isFollowingRoad = false;
-            ChangeState(HumanState::Idle);
+            if (ai.isHeadingHome)
+            {
+                ai.isHeadingHome = false;
+                ChangeState(HumanState::Resting);
+            }
+            else
+            {
+                ChangeState(HumanState::Idle);
+            }
             return;
         }
 
@@ -308,8 +385,8 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
 
             if (!isMoving)
             {
-                // UpdateMovement may have already transitioned to Working state
-                if (state == HumanState::Working)
+                // UpdateMovement may have already transitioned to Working/Resting state
+                if (state == HumanState::Working || state == HumanState::Resting)
                     return;
 
                 bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
@@ -338,7 +415,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
     }
     else if (state == HumanState::Idle)
     {
-        UpdateIdle(deltaTime, map);
+        UpdateIdle(deltaTime, map, gameObjMgr);
     }
     else if (state == HumanState::FindingDestination)
     {
@@ -347,6 +424,10 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road)
     else if (state == HumanState::Working)
     {
         UpdateWorking(deltaTime);
+    }
+    else if (state == HumanState::Resting)
+    {
+        UpdateResting(deltaTime);
     }
 }
 

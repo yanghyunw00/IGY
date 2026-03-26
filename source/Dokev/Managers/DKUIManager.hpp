@@ -52,6 +52,7 @@ namespace Dokev
         CS200::RGBA  tint       = Dokev::ColorPalette::WHITE;
         bool         isHovered  = false;
         bool         isSelected = false;
+        float        hoverScale = 1.0f;
     };
 
     class UIManager
@@ -60,7 +61,7 @@ namespace Dokev
         UIManager();
 
         void Initialize();
-        void Update(Math::fvec2 mousePos, bool mouseClicked);
+        void Update(Math::fvec2 mousePos, bool mouseClicked, float dt = 0.016f);
 
         void Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr = nullptr) const;
 
@@ -95,12 +96,13 @@ namespace Dokev
         void        UpdateCategoryMenu(Math::fvec2 mousePos, bool mouseClicked);
         void        UpdateBuildingMenu(Math::fvec2 mousePos, bool mouseClicked);
         void        DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
-        void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr) const;
+        void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time) const;
         void        DrawResources(ResourceManager* resourceMgr, int humanCount) const;
         void        DrawHappiness(CityMetrics* cm) const;
         std::string FormatNumber(int value) const;
         std::string GetHotkeyForButton(const BuildingButton& button) const;
 
+        float        totalTime        = 0.0f;
         MenuState    currentMenuState = MenuState::MAIN;
         CategoryType currentCategory  = CategoryType::NONE;
 

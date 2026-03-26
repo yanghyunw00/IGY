@@ -185,6 +185,8 @@ void GamePlayState::Update(double dt)
     // Update all humans
     auto  mapMgr = GetGSComponent<MapManager>();
     auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
+    auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
+
     //Engine::GetLogger().LogEvent("GamePlayState::Update humans count " + std::to_string(humans.size()));
 
     if (!humans.empty())
@@ -192,7 +194,7 @@ void GamePlayState::Update(double dt)
         for (size_t i = 0; i < humans.size(); ++i)
         {
             //Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
-            humans[i]->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+            humans[i]->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad(), gameObjMgr.get());
            // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
@@ -224,7 +226,6 @@ void GamePlayState::Update(double dt)
     //  }
 
     // Happiness & Immigration System
-    auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
     auto resourceMgr = GetGSComponent<ResourceManager>();
 
     // Update city metrics with new systems
@@ -264,7 +265,7 @@ void GamePlayState::Update(double dt)
     bool ismouseheld           = mouse.MouseDown(Dokev::Mouse::Button::Left);
 
     auto previousUISelection = uiManager.GetSelectedBuilding();
-    uiManager.Update(mouseScreenPos, mouseClicked);
+    uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt));
 
     // Check if button was clicked
     auto currentSelection = uiManager.GetSelectedBuilding();

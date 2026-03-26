@@ -223,8 +223,9 @@ namespace Dokev
         categoryButtons.push_back(roadButton);
     }
 
-    void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked)
+    void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked, float dt)
     {
+        totalTime += dt;
         // Keyboard shortcuts
         const auto& input = Engine::GetInput();
 
@@ -307,7 +308,9 @@ namespace Dokev
                 {
                     for (auto& button : mainButtons)
                     {
-                        button.isHovered = PointInRect(mousePos, button.position, button.size);
+                        button.isHovered             = PointInRect(mousePos, button.position, button.size);
+                        float hoverTarget            = button.isHovered ? 1.3f : 1.0f;
+                        button.hoverScale           += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {
@@ -335,7 +338,9 @@ namespace Dokev
                 {
                     for (auto& button : categoryButtons)
                     {
-                        button.isHovered = PointInRect(mousePos, button.position, button.size);
+                        button.isHovered   = PointInRect(mousePos, button.position, button.size);
+                        float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
+                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {
@@ -366,7 +371,9 @@ namespace Dokev
                 {
                     for (auto& button : categoryButtons)
                     {
-                        button.isHovered = PointInRect(mousePos, button.position, button.size);
+                        button.isHovered   = PointInRect(mousePos, button.position, button.size);
+                        float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
+                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {
@@ -390,7 +397,9 @@ namespace Dokev
 
                     for (auto& button : buildingButtons)
                     {
-                        button.isHovered = PointInRect(mousePos, button.position, button.size);
+                        button.isHovered   = PointInRect(mousePos, button.position, button.size);
+                        float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
+                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {
@@ -417,33 +426,33 @@ namespace Dokev
             case MenuState::MAIN:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
                 }
                 break;
 
             case MenuState::CATEGORY:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
                 }
                 for (const auto& button : categoryButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
                 }
                 break;
 
             case MenuState::BUILDING:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
                 }
                 for (const auto& button : categoryButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
                 }
                 for (const auto& button : buildingButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
                 }
                 break;
         }
@@ -550,8 +559,17 @@ namespace Dokev
         DrawRectangle(static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(size.x), static_cast<int>(size.y), color);
     }
 
-    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr) const
+    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time) const
     {
+        // Compute scaled box from center 
+        float scale   = button.hoverScale;
+        float centerX = button.position.x + button.size.x * 0.5f;
+        float centerY = button.position.y + button.size.y * 0.5f;
+        float scaledW = button.size.x * scale;
+        float scaledH = button.size.y * scale;
+        Math::fvec2 scaledPos  = Math::fvec2(centerX - scaledW * 0.5f, centerY - scaledH * 0.5f);
+        Math::fvec2 scaledSize = Math::fvec2(scaledW, scaledH);
+
         CS200::RGBA boxColor = Dokev::ColorPalette::BOX_INSIDE_DEFAULT;
 
         if (button.isSelected)
@@ -563,12 +581,11 @@ namespace Dokev
             boxColor = Dokev::ColorPalette::BOX_INSIDE_HOVERED;
         }
 
-        DrawBox(button.position, button.size, boxColor);
+        DrawBox(scaledPos, scaledSize, boxColor);
 
         CS200::RGBA borderColor = button.isSelected ? Dokev::ColorPalette::BOX_OUTLINE_SELECTED : Dokev::ColorPalette::BOX_OUTLINE_DEFAULT;
 
-        DrawRectangleLinesEx(static_cast<int>(button.position.x), static_cast<int>(button.position.y), static_cast<int>(button.size.x), static_cast<int>(button.size.y), 3.0f, borderColor);
-
+        DrawRectangleLinesEx(static_cast<int>(scaledPos.x), static_cast<int>(scaledPos.y), static_cast<int>(scaledSize.x), static_cast<int>(scaledSize.y), 3.0f, borderColor);
 
         // Draw Building Texture.
         if (button.texture.IsValid())
@@ -576,12 +593,16 @@ namespace Dokev
             int textureWidth  = button.texture.GetWidth();
             int textureHeight = button.texture.GetHeight();
 
-            float scaledWidth  = textureWidth * static_cast<float>(ICON_SCALE);
-            float scaledHeight = textureHeight * static_cast<float>(ICON_SCALE);
+            float iconScale    = static_cast<float>(ICON_SCALE) * scale;
+            float scaledWidth  = textureWidth * iconScale;
+            float scaledHeight = textureHeight * iconScale;
 
-            Math::fvec2 imagePos = Math::fvec2(button.position.x + (button.size.x - scaledWidth) / 2.0f, button.position.y + (button.size.y - scaledHeight) / 2.0f);
+            // Selected icon bobs up and down with a sin wave
+            float bobOffset = button.isSelected ? std::sin(time * 3.0f) * 4.0f : 0.0f;
 
-            button.texture.DrawEx(static_cast<int>(imagePos.x), static_cast<int>(imagePos.y), 0.0f, static_cast<float>(ICON_SCALE), button.tint);
+            Math::fvec2 imagePos = Math::fvec2(scaledPos.x + (scaledSize.x - scaledWidth) / 2.0f, scaledPos.y + (scaledSize.y - scaledHeight) / 2.0f + bobOffset);
+
+            button.texture.DrawEx(static_cast<int>(imagePos.x), static_cast<int>(imagePos.y), 0.0f, iconScale, button.tint);
         }
 
         // Draw required resources

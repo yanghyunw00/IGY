@@ -612,6 +612,7 @@ namespace Dokev
                                              : human->GetState() == HumanState::Walking            ? "Walking"
                                              : human->GetState() == HumanState::FindingDestination ? "Finding"
                                              : human->GetState() == HumanState::Working            ? "Working"
+                                             : human->GetState() == HumanState::Resting            ? "Resting"
                                                                                                    : "?";
 
                         std::string label = "Human #" + std::to_string(index) + "  [" + stateStr + "]";

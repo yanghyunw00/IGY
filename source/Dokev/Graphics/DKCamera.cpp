@@ -99,6 +99,7 @@ namespace Dokev
                 zoom = targetZoom;
             }
         }
+
     }
 
     void Camera::Reset()
