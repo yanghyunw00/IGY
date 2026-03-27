@@ -310,7 +310,7 @@ namespace Dokev
                     {
                         button.isHovered             = PointInRect(mousePos, button.position, button.size);
                         float hoverTarget            = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale           += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
+                        button.hoverScale           += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {
@@ -340,7 +340,7 @@ namespace Dokev
                     {
                         button.isHovered   = PointInRect(mousePos, button.position, button.size);
                         float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
+                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {
@@ -373,7 +373,7 @@ namespace Dokev
                     {
                         button.isHovered   = PointInRect(mousePos, button.position, button.size);
                         float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
+                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {
@@ -399,7 +399,7 @@ namespace Dokev
                     {
                         button.isHovered   = PointInRect(mousePos, button.position, button.size);
                         float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 8.0f * dt);
+                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
                         if (button.isHovered && mouseClicked)
                         {

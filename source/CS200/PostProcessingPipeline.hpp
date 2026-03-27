@@ -31,6 +31,7 @@ struct PostProcessingEffect
 
     using SetUniformsFunction = std::function<void(const OpenGL::CompiledShader&)>;
     SetUniformsFunction SetUniforms;
+    GLuint              ExtraTexture = 0; // optional secondary texture (e.g. position G-buffer for motion blur)
 
     PostProcessingEffect(
         const std::string& name, Enable enabled, OpenGL::CompiledShader shader, SetUniformsFunction set_uniforms = [](const OpenGL::CompiledShader&) { })

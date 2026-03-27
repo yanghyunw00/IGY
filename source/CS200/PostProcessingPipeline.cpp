@@ -136,6 +136,13 @@ void PostProcessingPipeline::renderEffect(const PostProcessingEffect& effect, GL
     GL::BindTexture(GL_TEXTURE_2D, input_texture);
     GL::Uniform1i(effect.Shader.UniformLocations.at("uColorTexture"), 0);
 
+    if (effect.ExtraTexture != 0 && effect.Shader.UniformLocations.count("uPositionTexture"))
+    {
+        GL::ActiveTexture(GL_TEXTURE1);
+        GL::BindTexture(GL_TEXTURE_2D, effect.ExtraTexture);
+        GL::Uniform1i(effect.Shader.UniformLocations.at("uPositionTexture"), 1);
+    }
+
     GL::BindVertexArray(fullscreenVAO);
     GL::DrawArrays(GL_TRIANGLES, 0, fullscreenVertexCount);
 

@@ -149,7 +149,7 @@ void GamePlayState::Load()
 
 void GamePlayState::Update(double dt)
 {
-   // Engine::GetLogger().LogEvent("GamePlayState::Update start");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update start");
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
     camera.UpdateZoomInterpolation(dt);
 
@@ -157,9 +157,8 @@ void GamePlayState::Update(double dt)
     if (!uiManager.IsMenuActive())
     {
         worldEditor.UpdateInput();
-        //Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
+        // Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
     }
-
 
     if (worldEditor.IsSaveRequested())
     {
@@ -173,32 +172,32 @@ void GamePlayState::Update(double dt)
     }
 
     UpdateGSComponents(dt);
-   // Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
 
     auto cityMetrics = GetGSComponent<CityMetrics>();
     if (cityMetrics)
     {
         cityMetrics->Update(static_cast<float>(dt));
     }
-    //Engine::GetLogger().LogEvent("GamePlayState::Update after cityMetrics Update");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after cityMetrics Update");
 
     // Update all humans
-    auto  mapMgr = GetGSComponent<MapManager>();
-    auto& humans = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
-    auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
+    auto  mapMgr     = GetGSComponent<MapManager>();
+    auto& humans     = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
+    auto  gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
 
-    //Engine::GetLogger().LogEvent("GamePlayState::Update humans count " + std::to_string(humans.size()));
+    // Engine::GetLogger().LogEvent("GamePlayState::Update humans count " + std::to_string(humans.size()));
 
     if (!humans.empty())
     {
         for (size_t i = 0; i < humans.size(); ++i)
         {
-            //Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
+            // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
             humans[i]->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad(), gameObjMgr.get());
-           // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
+            // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
-    //Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
 
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 
@@ -211,7 +210,7 @@ void GamePlayState::Update(double dt)
             building->Update(static_cast<float>(dt));
         }
     }
-    //Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
     FloatingTextManager::Instance().Update(static_cast<float>(dt));
 
     // smokeEmitter.Update(environment.DeltaTime);
@@ -230,13 +229,13 @@ void GamePlayState::Update(double dt)
 
     // Update city metrics with new systems
     bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(dt, gameObjMgr.get(), resourceMgr.get());
-   // Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
 
     if (shouldSpawnImmigrant)
     {
         gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
     }
-    //Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
 
     // End condition (Lose)
     if (cityMetrics->GetHappiness() <= 10.0f)
@@ -276,7 +275,7 @@ void GamePlayState::Update(double dt)
     const auto& input       = Engine::GetInput();
     bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
     tutorialManager.Update(static_cast<float>(dt), mouseClicked, skipPressed);
-    //Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
 
     if (buttonClicked)
     {
@@ -291,6 +290,26 @@ void GamePlayState::Update(double dt)
     {
         blockRoadPlacementUntilRelease = false;
     }
+
+
+    if (isShaking)
+    {
+        return;
+    }
+
+    isShaking     = true;
+    float elapsed = 0.0f;
+
+    while (elapsed < shakeDuration)
+    {
+        double     x      = Dokev::GetRandomFloat(-0.5f, 0.5f) * shakeAmount;
+        double     y      = Dokev::GetRandomFloat(-0.5f, 0.5f) * shakeAmount;
+        Math::vec2 origin = camera.GetPosition();
+        camera.SetPosition({ origin.x + x, origin.y + y });
+
+        elapsed += static_cast<float>(dt);
+    }
+    isShaking = false;
 
     ///////////////////////////////////////////////////////////
     // Update mouse picking for isometric, building placement//
@@ -310,7 +329,7 @@ void GamePlayState::Update(double dt)
             mapMgr->GetMap()->EnsureMouseAtlasInitialized();
             if (mapMgr->GetMap()->GetMouseAtlasFBO() == 0)
             {
-               // Engine::GetLogger().LogError("Mouse atlas FBO not initialized; skipping placement read.");
+                // Engine::GetLogger().LogError("Mouse atlas FBO not initialized; skipping placement read.");
                 return;
             }
 
@@ -523,13 +542,12 @@ void GamePlayState::Update(double dt)
     }
 
     mouseSelection.SetViewIndex(index);
-   // Engine::GetLogger().LogEvent("GamePlayState::Update end");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update end");
 }
 
 void GamePlayState::Draw() const
 {
-    
-   // Engine::GetLogger().LogEvent("GamePlayState::Draw start");
+    // Engine::GetLogger().LogEvent("GamePlayState::Draw start");
     auto windowSize = Engine::GetWindow().GetSize();
     CS200::RenderingAPI::Clear();
 
@@ -545,8 +563,8 @@ void GamePlayState::Draw() const
 
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    //BackGround Color
-    DrawRectangle(-5000,-5000, 10000,10000, Dokev::ColorPalette::SKYBLUE);
+    // BackGround Color
+    DrawRectangle(-5000, -5000, 10000, 10000, Dokev::ColorPalette::SKYBLUE);
 
     auto mapMgr = GetGSComponent<MapManager>();
     mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection, GetGSComponent<Dokev::GameObjectManager>().get());
@@ -560,7 +578,7 @@ void GamePlayState::Draw() const
     FloatingTextManager::Instance().Draw(cameraTransform);
 
     const auto& resources = mapMgr->GetResources();
-    
+
     // resource
     for (const auto& resource : resources)
     {
@@ -587,16 +605,15 @@ void GamePlayState::Draw() const
     tutorialManager.Draw();
 
     renderer2d.EndScene();
-    //Engine::GetLogger().LogEvent("GamePlayState::Draw end");
+    // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
 
-        // Draw smoke animation at position (200, 200)
+    // Draw smoke animation at position (200, 200)
     // Math::TransformationMatrix smokeTransform;
     // smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
     // smokeSprite.Draw(smokeTransform);
 
     // Draw particles
     // smokeEmitter.Draw(cameraTransform * ndcMatrix);
-
 }
 
 void GamePlayState::DrawImGui()
@@ -717,7 +734,7 @@ void GamePlayState::SaveGame(const std::string& filename)
 void GamePlayState::LoadGame(const std::string& filename)
 {
     json j;
-    //Engine::GetLogger().LogEvent("Loading game from " + filename);
+    // Engine::GetLogger().LogEvent("Loading game from " + filename);
 
     // Read file
     try

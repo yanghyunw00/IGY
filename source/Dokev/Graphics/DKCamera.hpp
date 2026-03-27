@@ -50,5 +50,6 @@ namespace Dokev
         int        zoomLevel{ 1 };
         float      targetZoom{ 0.8f };
         float      zoomSpeed{ 5.0f };
+        Math::vec2 shakeOffset   = { 0, 0 };
     };
 }
