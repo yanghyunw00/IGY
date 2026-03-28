@@ -26,7 +26,6 @@
 #include <SDL.h>
 #include <imgui.h>
 
-
 namespace Dokev
 {
     void GameWorldEditor::Initialize(
@@ -43,10 +42,9 @@ namespace Dokev
         cityMetrics         = cityMetricsPtr;
     }
 
-    void GameWorldEditor::UpdateInput()
+    void GameWorldEditor::UpdateInput(double dt)
     {
-        const auto& input       = Engine::GetInput();
-        const auto& environment = Engine::GetWindowEnvironment();
+        const auto& input = Engine::GetInput();
 
         // Regenerate map
         if (input.KeyJustPressed(CS230::Input::Keys::Space))
@@ -74,19 +72,19 @@ namespace Dokev
             // Camera movement
             if (input.KeyDown(CS230::Input::Keys::A))
             {
-                camera->Move({ camera_speed * environment.DeltaTime, 0 });
+                camera->Move({ camera_speed * dt, 0 });
             }
             if (input.KeyDown(CS230::Input::Keys::D))
             {
-                camera->Move({ -camera_speed * environment.DeltaTime, 0 });
+                camera->Move({ -camera_speed * dt, 0 });
             }
             if (input.KeyDown(CS230::Input::Keys::W))
             {
-                camera->Move({ 0, -camera_speed * environment.DeltaTime });
+                camera->Move({ 0, -camera_speed * dt });
             }
             if (input.KeyDown(CS230::Input::Keys::S))
             {
-                camera->Move({ 0, camera_speed * environment.DeltaTime });
+                camera->Move({ 0, camera_speed * dt });
             }
         }
 

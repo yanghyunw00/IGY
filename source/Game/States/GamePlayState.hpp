@@ -55,6 +55,10 @@ public:
     void          LoadGame(const std::string& filename);
 
 private:
+    void   UpdateTimeControls();
+    double GetSimulationDeltaTime(double dt) const;
+    void   SetSimulationSpeedPreset(std::size_t presetIndex);
+
     Dokev::Texture2D testTexture;
     Dokev::Texture2D noiseTexture;
     Dokev::Texture2D noiseTexture2;
@@ -98,4 +102,6 @@ private:
 
     Math::ivec2 lastPlaceRoadPos    = { -1, -1 };
     int         roadBuildSoundCount = 0;
+    bool        simulationPaused    = false;
+    std::size_t simulationSpeedPresetIndex = 1;
 };

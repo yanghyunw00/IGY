@@ -27,7 +27,7 @@ namespace Dokev
             MapManager* mapManagerPtr, Camera* cameraPtr, int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr, GameObjectManager* gameObjectManager,
             ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr = nullptr);
 
-        void UpdateInput();
+        void UpdateInput(double dt);
         void DrawImGui();
 
         bool IsSaveRequested() const

@@ -66,6 +66,9 @@ using json = nlohmann::json;
 
 namespace
 {
+    constexpr std::array<double, 4>      kSimulationSpeedPresets = { 0.5, 1.0, 2.0, 4.0 };
+    constexpr std::array<const char*, 4> kSimulationSpeedLabels  = { "0.5x", "1.0x", "2.0x", "4.0x" };
+
     Math::fvec2 ConvertViewTileToGrid(Math::fvec2 tileCoord, int rotationIndex, const GridMap* map)
     {
         if (!map)
@@ -147,19 +150,48 @@ void GamePlayState::Load()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
+void GamePlayState::UpdateTimeControls()
+{
+    const auto& input = Engine::GetInput();
+
+    if (input.KeyJustPressed(CS230::Input::Keys::P))
+    {
+        simulationPaused = !simulationPaused;
+    }
+
+    if (input.KeyJustPressed(CS230::Input::Keys::Left) && simulationSpeedPresetIndex > 0)
+    {
+        --simulationSpeedPresetIndex;
+    }
+
+    if (input.KeyJustPressed(CS230::Input::Keys::Right) && simulationSpeedPresetIndex + 1 < kSimulationSpeedPresets.size())
+    {
+        ++simulationSpeedPresetIndex;
+    }
+}
+
+double GamePlayState::GetSimulationDeltaTime(double dt) const
+{
+    if (simulationPaused)
+    {
+        return 0.0;
+    }
+
+    return dt * kSimulationSpeedPresets[simulationSpeedPresetIndex];
+}
+
+void GamePlayState::SetSimulationSpeedPreset(std::size_t presetIndex)
+{
+    simulationSpeedPresetIndex = std::min(presetIndex, kSimulationSpeedPresets.size() - 1);
+}
+
 void GamePlayState::Update(double dt)
 {
     Engine::GetLogger().LogEvent("GamePlayState::Update start");
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
-    camera.UpdateZoomInterpolation(dt);
+    UpdateTimeControls();
 
-    // Only process game input if UI menu is not active
-    if (!uiManager.IsMenuActive())
-    {
-        worldEditor.UpdateInput();
-        Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
-    }
-
+    const double simulationDt = GetSimulationDeltaTime(dt);
 
     if (worldEditor.IsSaveRequested())
     {
@@ -172,13 +204,39 @@ void GamePlayState::Update(double dt)
         worldEditor.ClearLoadRequest();
     }
 
-    UpdateGSComponents(dt);
+    mouse.Update();
+    bool ismouseheld = mouse.MouseDown(Dokev::Mouse::Button::Left);
+    if (!ismouseheld)
+    {
+        blockRoadPlacementUntilRelease = false;
+        lastPlacedRoadPos              = { -1, -1 };
+    }
+
+    if (simulationPaused)
+    {
+        mouseSelection.SetHasValidPosition(false);
+        mouseSelection.SetViewIndex(index);
+        Engine::GetLogger().LogEvent("GamePlayState::Update paused");
+        return;
+    }
+
+    camera.UpdateZoomInterpolation(simulationDt);
+
+    // Only process game input if UI menu is not active
+    if (!uiManager.IsMenuActive())
+    {
+        worldEditor.UpdateInput(simulationDt);
+        Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
+    }
+
+
+    UpdateGSComponents(simulationDt);
     Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
 
     auto cityMetrics = GetGSComponent<CityMetrics>();
     if (cityMetrics)
     {
-        cityMetrics->Update(static_cast<float>(dt));
+        cityMetrics->Update(simulationDt);
     }
     Engine::GetLogger().LogEvent("GamePlayState::Update after cityMetrics Update");
 
@@ -192,7 +250,7 @@ void GamePlayState::Update(double dt)
         for (size_t i = 0; i < humans.size(); ++i)
         {
             Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
-            humans[i]->Update(static_cast<float>(dt), mapMgr->GetMap(), mapMgr->GetRoad());
+            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad());
             Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
@@ -206,11 +264,11 @@ void GamePlayState::Update(double dt)
     {
         for (auto& building : buildings)
         {
-            building->Update(static_cast<float>(dt));
+            building->Update(static_cast<float>(simulationDt));
         }
     }
     Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
-    FloatingTextManager::Instance().Update(static_cast<float>(dt));
+    FloatingTextManager::Instance().Update(static_cast<float>(simulationDt));
 
     // smokeEmitter.Update(environment.DeltaTime);
 
@@ -228,7 +286,7 @@ void GamePlayState::Update(double dt)
     auto resourceMgr = GetGSComponent<ResourceManager>();
 
     // Update city metrics with new systems
-    bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(dt, gameObjMgr.get(), resourceMgr.get());
+    bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(simulationDt, gameObjMgr.get(), resourceMgr.get());
     Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
 
     if (shouldSpawnImmigrant)
@@ -256,12 +314,10 @@ void GamePlayState::Update(double dt)
     }
 
     // mouse hovering & building instructure
-    mouse.Update();
     auto        windowSize     = Engine::GetWindow().GetSize();
     Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
     mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
     bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
-    bool ismouseheld           = mouse.MouseDown(Dokev::Mouse::Button::Left);
 
     auto previousUISelection = uiManager.GetSelectedBuilding();
     uiManager.Update(mouseScreenPos, mouseClicked);
@@ -274,7 +330,7 @@ void GamePlayState::Update(double dt)
     // Update tutorial
     const auto& input       = Engine::GetInput();
     bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
-    tutorialManager.Update(static_cast<float>(dt), mouseClicked, skipPressed);
+    tutorialManager.Update(static_cast<float>(simulationDt), mouseClicked, skipPressed);
     Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
 
     if (buttonClicked)
@@ -286,11 +342,6 @@ void GamePlayState::Update(double dt)
     {
         blockRoadPlacementUntilRelease = true;
     }
-    if (!ismouseheld)
-    {
-        blockRoadPlacementUntilRelease = false;
-    }
-
     ///////////////////////////////////////////////////////////
     // Update mouse picking for isometric, building placement//
     ///////////////////////////////////////////////////////////
@@ -518,12 +569,6 @@ void GamePlayState::Update(double dt)
             }
         }
     }
-
-    if (!ismouseheld)
-    {
-        lastPlacedRoadPos = { -1, -1 };
-    }
-
     mouseSelection.SetViewIndex(index);
     Engine::GetLogger().LogEvent("GamePlayState::Update end");
 }
@@ -600,6 +645,30 @@ void GamePlayState::DrawImGui()
 
     if (ImGui::Begin("Game Menu"))
     {
+        ImGui::Text("Simulation: %s", simulationPaused ? "Paused" : "Running");
+        ImGui::Text("Current Speed: %s", kSimulationSpeedLabels[simulationSpeedPresetIndex]);
+        ImGui::Text("Shortcuts: P pause, Left/Right speed");
+
+        if (ImGui::Button(simulationPaused ? "Resume" : "Pause"))
+        {
+            simulationPaused = !simulationPaused;
+        }
+
+        for (std::size_t presetIndex = 0; presetIndex < kSimulationSpeedPresets.size(); ++presetIndex)
+        {
+            if (presetIndex != 0)
+            {
+                ImGui::SameLine();
+            }
+
+            if (ImGui::RadioButton(kSimulationSpeedLabels[presetIndex], simulationSpeedPresetIndex == presetIndex))
+            {
+                SetSimulationSpeedPreset(presetIndex);
+            }
+        }
+
+        ImGui::Separator();
+
         if (ImGui::Button("Back to Main Menu"))
         {
             auto& gsm = Engine::GetGameStateManager();
