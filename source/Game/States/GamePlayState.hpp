@@ -55,6 +55,10 @@ public:
     void          LoadGame(const std::string& filename);
 
 private:
+    void   UpdateTimeControls();
+    double GetSimulationDeltaTime(double dt) const;
+    void   SetSimulationSpeedPreset(std::size_t presetIndex);
+
     Dokev::Texture2D testTexture;
     Dokev::Texture2D noiseTexture;
     Dokev::Texture2D noiseTexture2;
@@ -106,4 +110,6 @@ private:
     bool       isShaking     = false;
     float      shakeAmount   = 0.001f;
     float      shakeDuration = 50.0f;
+    bool        simulationPaused    = false;
+    std::size_t simulationSpeedPresetIndex = 1;
 };
