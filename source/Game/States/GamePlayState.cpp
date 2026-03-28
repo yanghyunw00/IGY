@@ -292,24 +292,24 @@ void GamePlayState::Update(double dt)
     }
 
 
-    if (isShaking)
-    {
-        return;
-    }
+    // if (isShaking)
+    // {
+    //     return;
+    // }
 
-    isShaking     = true;
-    float elapsed = 0.0f;
+    // isShaking     = true;
+    // float elapsed = 0.0f;
 
-    while (elapsed < shakeDuration)
-    {
-        double     x      = Dokev::GetRandomFloat(-0.5f, 0.5f) * shakeAmount;
-        double     y      = Dokev::GetRandomFloat(-0.5f, 0.5f) * shakeAmount;
-        Math::vec2 origin = camera.GetPosition();
-        camera.SetPosition({ origin.x + x, origin.y + y });
+    // while (elapsed < shakeDuration)
+    // {
+    //     double     x      = Dokev::GetRandomFloat(-0.5f, 0.5f) * shakeAmount;
+    //     double     y      = Dokev::GetRandomFloat(-0.5f, 0.5f) * shakeAmount;
+    //     Math::vec2 origin = camera.GetPosition();
+    //     camera.SetPosition({ origin.x + x, origin.y + y });
 
-        elapsed += static_cast<float>(dt);
-    }
-    isShaking = false;
+    //     elapsed += static_cast<float>(dt);
+    // }
+    // isShaking = false;
 
     ///////////////////////////////////////////////////////////
     // Update mouse picking for isometric, building placement//

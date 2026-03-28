@@ -18,6 +18,11 @@
 Dokev::Texture2D WorkBuilding::loggingCampTexture;
 Dokev::Texture2D WorkBuilding::quarryTexture;
 Dokev::Texture2D WorkBuilding::ironMineTexture;
+
+Dokev::Texture2D WorkBuilding::loggingCampInterationTexture;
+Dokev::Texture2D WorkBuilding::quarryInterationTexture;
+Dokev::Texture2D WorkBuilding::ironMineInterationTexture;
+
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool             WorkBuilding::texturesLoaded = false;
 
@@ -36,6 +41,12 @@ void WorkBuilding::LoadTextures()
         loggingCampTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
         quarryTexture      = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
         ironMineTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
+
+        loggingCampInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp_interaction.png").string());
+        quarryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
+        ironMineInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
+
+
         missingTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
         texturesLoaded     = true;
     }
@@ -132,6 +143,42 @@ void WorkBuilding::Update(float dt)
             default: break;
         }
     }
+
+    if (HasWorker())
+    {
+        switch (buildingType)
+        {
+        case BuildingType::WOOD_WORKSHOP:
+            texture = loggingCampInterationTexture;
+            break;
+        case BuildingType::ROCK_WORKSHOP:
+            texture = quarryInterationTexture;
+            break;
+        case BuildingType::STEEL_WORKSHOP:
+            texture = ironMineInterationTexture;
+            break;
+        default:
+            break;
+        }
+    }
+    else
+    {
+        switch (buildingType)
+        {
+        case BuildingType::WOOD_WORKSHOP:
+            texture = loggingCampTexture;
+            break;
+        case BuildingType::ROCK_WORKSHOP:
+            texture = quarryTexture;
+            break;
+        case BuildingType::STEEL_WORKSHOP:
+            texture = ironMineTexture;
+            break;
+        default:
+            break;
+        }
+
+    }
 }
 
 void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
@@ -198,6 +245,8 @@ bool WorkBuilding::IsFull() const
 bool WorkBuilding::HasWorker() const
 {
     return current_capacity > 0;
+
+
 }
 
 void WorkBuilding::SetResourceManager(ResourceManager* rm)
