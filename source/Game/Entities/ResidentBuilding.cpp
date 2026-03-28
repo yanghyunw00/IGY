@@ -9,7 +9,8 @@
 #include "ResidentBuilding.hpp"
 #include "Engine/Path.hpp"
 
-Dokev::Texture2D ResidentBuilding::homeTexture;
+Dokev::Texture2D ResidentBuilding::house2Texture;
+Dokev::Texture2D ResidentBuilding::house2InteractionTexture;
 Dokev::Texture2D ResidentBuilding::missingTexture;
 bool             ResidentBuilding::texturesLoaded = false;
 
@@ -25,9 +26,10 @@ void ResidentBuilding::LoadTextures()
 {
     if (!texturesLoaded)
     {
-        homeTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
-        missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
-        texturesLoaded = true;
+        house2Texture            = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/house2.png").string());
+        house2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/house2_interation.png").string());
+        missingTexture           = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        texturesLoaded           = true;
     }
 }
 
@@ -43,7 +45,7 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType b
     switch (bt)
     {
         case BuildingType::HOME:
-            texture      = homeTexture;
+            texture      = house2Texture;
             max_capacity = 2; // Each home can house 2 people
             cost         = 0;
             break;
@@ -75,11 +77,38 @@ void ResidentBuilding::OnWorkerLeft(Human* human)
 void ResidentBuilding::Update(float dt)
 {
     UpdateConstruction(dt);
+
+    if (!isBuilt)
+    {
+        return;
+    }
+
+    if (current_capacity > 0)
+    {
+        switch (buildingType)
+        {
+        case BuildingType::HOME:
+            texture = house2InteractionTexture;
+            break;
+        default:
+            break;
+        }
+    }
+    else
+    {
+        switch (buildingType)
+        {
+        case BuildingType::HOME:
+            texture = house2Texture;
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 void ResidentBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
 {
-
     if (!map)
     {
         return;

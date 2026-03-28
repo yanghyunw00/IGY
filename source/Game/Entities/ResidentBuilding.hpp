@@ -16,8 +16,9 @@ protected:
     float taxrate;
 
     // Static texture cache to prevent memory leaks
-    static Dokev::Texture2D homeTexture;
+    static Dokev::Texture2D house2Texture;
     static Dokev::Texture2D missingTexture;
+    static Dokev::Texture2D house2InteractionTexture;
     static bool             texturesLoaded;
 
     static void LoadTextures();

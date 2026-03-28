@@ -57,7 +57,7 @@ namespace Dokev
 
                     BuildingButton homeButton;
                     homeButton.type     = BuildingType::HOME;
-                    homeButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+                    homeButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/house2.png").string());
                     homeButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
                     homeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
                     homeButton.name     = "Home";
@@ -159,7 +159,7 @@ namespace Dokev
 
         BuildingButton constructionButton;
         constructionButton.type     = BuildingType::NONE;
-        constructionButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+        constructionButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/house2.png").string());
         constructionButton.position = Math::fvec2(startX, startY);
         constructionButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         constructionButton.name     = "Build";
@@ -197,7 +197,7 @@ namespace Dokev
 
         BuildingButton homeButton;
         homeButton.type     = BuildingType::NONE;
-        homeButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/home.png").string());
+        homeButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/house2.png").string());
         homeButton.position = Math::fvec2(startX, startY);
         homeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         homeButton.name     = "Home";
@@ -206,7 +206,7 @@ namespace Dokev
 
         BuildingButton workButton;
         workButton.type     = BuildingType::NONE;
-        workButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/work.png").string());
+        workButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/workplace2.png").string());
         workButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
         workButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         workButton.name     = "Work";
