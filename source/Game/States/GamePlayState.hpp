@@ -37,6 +37,7 @@
 #include "Engine/Vec2.hpp"
 
 
+#include "../Managers/AchievementManager.hpp"
 #include "../Managers/BuildingCostManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "Game/UI/DKUserInterfaceEditor.hpp"
@@ -102,8 +103,10 @@ private:
 
 
     //Camera Shaking
-
     bool       isShaking     = false;
     float      shakeAmount   = 0.001f;
     float      shakeDuration = 50.0f;
+
+    // Achievement system
+    AchievementManager achievementManager;
 };

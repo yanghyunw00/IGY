@@ -121,6 +121,7 @@ set(SOURCE_CODE
     Game/Resources/Steel.hpp Game/Resources/Steel.cpp
 
     # Game - Managers
+    Game/Managers/AchievementManager.hpp Game/Managers/AchievementManager.cpp
     Game/Managers/ResourceManager.hpp
     Game/Managers/BuildingCostManager.hpp Game/Managers/BuildingCostManager.cpp
     Game/Managers/HappinessManager.hpp

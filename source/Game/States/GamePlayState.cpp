@@ -38,6 +38,7 @@
 
 
 #include "../Entities/Road.hpp"
+#include "../Managers/AchievementManager.hpp"
 #include "../Managers/FloatingTextManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "../Resources/Resource.hpp"
@@ -145,6 +146,8 @@ void GamePlayState::Load()
 
     GL::Enable(GL_BLEND);
     GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    achievementManager.Init();
 }
 
 void GamePlayState::Update(double dt)
@@ -253,6 +256,13 @@ void GamePlayState::Update(double dt)
     {
         // std::cout << "Congratulations!" << std::endl;
         //  Game won !
+    }
+
+    // Achievement system
+    {
+        int buildingCount     = static_cast<int>(gameObjMgr->GetBuildings().size());
+        int maxSingleResource = std::max({ resourceMgr->totalWood, resourceMgr->totalStone, resourceMgr->totalSteel });
+        achievementManager.Update(static_cast<float>(dt), currentPopulation, buildingCount, cityMetrics->GetHappiness(), maxSingleResource);
     }
 
     // mouse hovering & building instructure
@@ -603,6 +613,7 @@ void GamePlayState::Draw() const
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
 
     tutorialManager.Draw();
+    achievementManager.Draw();
 
     renderer2d.EndScene();
     // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
