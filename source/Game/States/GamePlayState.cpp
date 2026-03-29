@@ -185,41 +185,6 @@ void GamePlayState::SetSimulationSpeedPreset(std::size_t presetIndex)
     simulationSpeedPresetIndex = std::min(presetIndex, kSimulationSpeedPresets.size() - 1);
 }
 
-void GamePlayState::UpdateTimeControls()
-{
-    const auto& input = Engine::GetInput();
-
-    if (input.KeyJustPressed(CS230::Input::Keys::P))
-    {
-        simulationPaused = !simulationPaused;
-    }
-
-    if (input.KeyJustPressed(CS230::Input::Keys::Left) && simulationSpeedPresetIndex > 0)
-    {
-        --simulationSpeedPresetIndex;
-    }
-
-    if (input.KeyJustPressed(CS230::Input::Keys::Right) && simulationSpeedPresetIndex + 1 < kSimulationSpeedPresets.size())
-    {
-        ++simulationSpeedPresetIndex;
-    }
-}
-
-double GamePlayState::GetSimulationDeltaTime(double dt) const
-{
-    if (simulationPaused)
-    {
-        return 0.0;
-    }
-
-    return dt * kSimulationSpeedPresets[simulationSpeedPresetIndex];
-}
-
-void GamePlayState::SetSimulationSpeedPreset(std::size_t presetIndex)
-{
-    simulationSpeedPresetIndex = std::min(presetIndex, kSimulationSpeedPresets.size() - 1);
-}
-
 void GamePlayState::Update(double dt)
 {
     // Engine::GetLogger().LogEvent("GamePlayState::Update start");
