@@ -1,4 +1,4 @@
-﻿/**
+/**
  * \file GamePlayState.cpp
  * \author Hyunwoo Yang
  * \author
