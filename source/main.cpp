@@ -103,7 +103,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 // #endif
 
     Engine& engine = Engine::Instance();
-    engine.Start("Team - Antartic Monkeys");
+    engine.Start("Futsal manager 2025");
     engine.GetGameStateManager().PushState<Splash>();
 
 #if !defined(__EMSCRIPTEN__)

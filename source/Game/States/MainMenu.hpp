@@ -44,7 +44,7 @@ private:
     // std::shared_ptr<CS230::Texture> Title;
     // std::shared_ptr<CS230::Texture> PlayIGY;
     // std::shared_ptr<CS230::Texture> Exit;
-    // std::shared_ptr<CS230::Texture> Antartic_Monkeys;
+    // std::shared_ptr<CS230::Texture> Futsal_Manager_2025;
 
     const std::string text_Title            = "I G Y";
     const std::string text_PlayIGY          = "PlayIGY";
@@ -52,7 +52,7 @@ private:
     const std::string text_Setting          = "Setting";
     const std::string text_Credit           = "Credit";
     const std::string text_Exit             = "Exit";
-    const std::string text_Antartic_Monkeys = "Antartic_Monkeys";
+    const std::string text_Futsal_Manager_2025 = "Futsal manager 2025";
     const std::string text_MapInstructions  = "Use Left / Right to change map";
 
     enum Main_Keys
@@ -75,7 +75,7 @@ private:
     CS200::RGBA TextColor_Setting          = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_Credit           = Dokev::ColorPalette::WHITE;
     CS200::RGBA TextColor_Exit             = Dokev::ColorPalette::WHITE;
-    CS200::RGBA TextColor_Antartic_Monkeys = Dokev::ColorPalette::WHITE;
+    CS200::RGBA TextColor_Futsal_Manager_2025 = Dokev::ColorPalette::WHITE;
 
     ////////////////////
     //   Text Scale   //
@@ -94,8 +94,8 @@ private:
     double TextScale_Exit_x      = 1.0;
     double TextScale_Exit_y      = 0.95;
 
-    double TextScale_Antartic_Monkeys_x = 0.4;
-    double TextScale_Antartic_Monkeys_y = 0.4;
+    double TextScale_Futsal_Manager_2025_x = 0.4;
+    double TextScale_Futsal_Manager_2025_y = 0.4;
 
     Math::vec2 TextScale_Title            = { TextScale_Title_x, TextScale_Title_y };
     Math::vec2 TextScale_PlayIGY          = { TextScale_PlayIGY_x, TextScale_PlayIGY_y };
@@ -103,7 +103,7 @@ private:
     Math::vec2 TextScale_Setting          = { TextScale_Setting_x, TextScale_Setting_y };
     Math::vec2 TextScale_Credit           = { TextScale_Credit_x, TextScale_Credit_y };
     Math::vec2 TextScale_Exit             = { TextScale_Exit_x, TextScale_Exit_y };
-    Math::vec2 TextScale_Antartic_Monkeys = { TextScale_Antartic_Monkeys_x, TextScale_Antartic_Monkeys_y };
+    Math::vec2 TextScale_Futsal_Manager_2025 = { TextScale_Futsal_Manager_2025_x, TextScale_Futsal_Manager_2025_y };
 
     ////////////////////
     // Text Alignment //

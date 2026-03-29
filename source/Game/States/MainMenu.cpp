@@ -231,11 +231,11 @@ void MainMenu::Draw() const
     DrawText(text_Exit, Text_Position_ExitKey, *Font_simple, TextColor_Exit, TextScale_Exit);
 
     ////////////////////////////////
-    //      Antartic_Monkeys      //
+    //    Futsal manager 2025     //
     ////////////////////////////////
 
-    DrawText(text_Antartic_Monkeys, Text_Position_Left_Bottom, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
-    DrawText(text_MapInstructions, Math::vec2{ Text_Position_Left_Bottom.x, static_cast<double>(Padding_y_Bottom + 50) }, *Font_simple, TextColor_Antartic_Monkeys, TextScale_Antartic_Monkeys);
+    DrawText(text_Futsal_Manager_2025, Text_Position_Left_Bottom, *Font_simple, TextColor_Futsal_Manager_2025, TextScale_Futsal_Manager_2025);
+    DrawText(text_MapInstructions, Math::vec2{ Text_Position_Left_Bottom.x, static_cast<double>(Padding_y_Bottom + 50) }, *Font_simple, TextColor_Futsal_Manager_2025, TextScale_Futsal_Manager_2025);
 
     renderer2d.EndScene();
 }
