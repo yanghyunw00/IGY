@@ -82,7 +82,7 @@ struct HumanAI
 
     // Road following
     bool                 preferRoads           = true;  // Should try to use roads when pathfinding
-    bool                 isFollowingRoad       = false; // Currently following a road
+    bool                 isFollowingRoad       = true;  // Currently following a road
     bool                 roadDirection         = true;  // true = forward, false = backward
     int                  roadReturnAttempts    = 0;     // Number of attempts to return to road
     static constexpr int maxRoadReturnAttempts = 3;     // Max attempts before giving up
@@ -123,9 +123,7 @@ public:
 
     void DecideNextAction(GridMap* map);
 
-    Math::fvec2 FindRandomDestination(GridMap* map, const Road* road);
-
-    static Human CreateImmigrant();
+    static Human CreateImmigrant(const Road* road = nullptr);
 
     Math::fvec2 FindClosestWalkableTile(GridMap* map) const;
 

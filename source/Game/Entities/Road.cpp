@@ -24,6 +24,9 @@ void Road::addRoad(int x, int y, GridMap& map)
     {
         tileManager->AllocateTile(x, y, Dokev::TileType::ROAD);
     }
+
+    // Make road tiles very cheap so A* strongly prefers them
+    map.SetPathCost(x, y, 0.1f);
 }
 
 void Road::removeRoad(int x, int y, GridMap& map)
@@ -35,13 +38,32 @@ void Road::removeRoad(int x, int y, GridMap& map)
         tileManager->DeallocateTile(x, y);
     }
 
-    // Remove only the specific road at position (x, y)
+    // Restore original terrain cost from the grid cell
+    GridCell** viewArray = map.GetViewArray(0);
+    if (viewArray && x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+    {
+        GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+        if (cell)
+            map.SetPathCost(x, y, cell->getMovementCost());
+    }
+
     auto it = std::find_if(roadPositions.begin(), roadPositions.end(), [x, y](const Math::fvec2& pos) { return static_cast<int>(pos.x) == x && static_cast<int>(pos.y) == y; });
 
     if (it != roadPositions.end())
     {
         roadPositions.erase(it);
     }
+}
+
+bool Road::IsAdjacentToRoad(int x, int y) const
+{
+    const int dirs[4][2] = { { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+    for (auto& d : dirs)
+    {
+        if (hasRoad(x + d[0], y + d[1]))
+            return true;
+    }
+    return false;
 }
 
 bool Road::hasRoad(int x, int y) const

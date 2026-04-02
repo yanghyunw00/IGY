@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file GamePlayState.cpp
  * \author Hyunwoo Yang
  * \author
@@ -123,8 +123,17 @@ void GamePlayState::Load()
 
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
-    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(5.0f, 5.0f)));
-    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(7.0f, 7.0f)));
+    {
+        const Road* road      = GetGSComponent<MapManager>()->GetRoad();
+        Math::fvec2 spawnPos  = { GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f };
+        if (road && !road->GetRoadPositions().empty())
+        {
+            const auto& positions = road->GetRoadPositions();
+            spawnPos              = positions[positions.size() / 2]; // middle of the road
+        }
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
+    }
 
 
     camera.SetZoom(0.3f);
@@ -229,12 +238,12 @@ void GamePlayState::Update(double dt)
     if (!uiManager.IsMenuActive())
     {
         worldEditor.UpdateInput(simulationDt);
-        Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
+        //Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
     }
 
 
     UpdateGSComponents(simulationDt);
-    Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
+    //Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
 
     auto cityMetrics = GetGSComponent<CityMetrics>();
     if (cityMetrics)
@@ -243,8 +252,15 @@ void GamePlayState::Update(double dt)
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after cityMetrics Update");
 
-    // Update all humans
+    // Update water tile animation
     auto  mapMgr     = GetGSComponent<MapManager>();
+
+    if (mapMgr && mapMgr->GetMap())
+    {
+        mapMgr->GetMap()->UpdateWaterAnimation(simulationDt);
+    }
+
+    // Update all humans
     auto& humans     = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
     auto  gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
 
@@ -254,9 +270,9 @@ void GamePlayState::Update(double dt)
     {
         for (size_t i = 0; i < humans.size(); ++i)
         {
-            Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
+           // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
             humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad());
-            Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
+            //Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
@@ -272,7 +288,7 @@ void GamePlayState::Update(double dt)
             building->Update(static_cast<float>(simulationDt));
         }
     }
-    Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
+    //Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
     FloatingTextManager::Instance().Update(static_cast<float>(simulationDt));
 
     // smokeEmitter.Update(environment.DeltaTime);
@@ -291,11 +307,11 @@ void GamePlayState::Update(double dt)
 
     // Update city metrics with new systems
     bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(simulationDt, gameObjMgr.get(), resourceMgr.get());
-    Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
+    //Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
 
     if (shouldSpawnImmigrant)
     {
-        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
+        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant(mapMgr->GetRoad())));
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
 
@@ -342,7 +358,7 @@ void GamePlayState::Update(double dt)
     const auto& input       = Engine::GetInput();
     bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
     tutorialManager.Update(static_cast<float>(simulationDt), mouseClicked, skipPressed);
-    Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
+    //Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
 
     if (buttonClicked)
     {
@@ -428,10 +444,19 @@ void GamePlayState::Update(double dt)
                     {
                         if (!clickedCell || clickedCell->getWater() || !tileMgr->CanPlaceTile(gridX, gridY))
                         {
-                            // Invalid placement  -> give bool type to mouse selction and set to false
-                            //-> draw red texture on mouse selction draw function
                             mouseSelection.SetHasValidPosition(false);
                             return;
+                        }
+
+                        // Buildings (not roads) must be placed adjacent to an existing road
+                        if (selectedBuild != BuildingType::ROAD)
+                        {
+                            auto* road = mapMgr->GetRoad();
+                            if (!road || !road->IsAdjacentToRoad(gridX, gridY))
+                            {
+                                mouseSelection.SetHasValidPosition(false);
+                                return;
+                            }
                         }
                     }
                     else

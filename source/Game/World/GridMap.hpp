@@ -8,6 +8,7 @@
 
 #pragma once
 #include "../World/pathFinding.hpp"
+#include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Graphics/DKImage.hpp"
 #include "Dokev/Graphics/DKRenderState.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
@@ -71,6 +72,7 @@ public:
     void ReGenerateMap();
     void ResetIsoGridMapArray();
     void InitializeIsoView();
+    void UpdateWaterAnimation(double dt);
     void IsometricDrawMap(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr, Dokev::GameObjectManager* gameObjMgr = nullptr) const;
 
     void IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
@@ -108,6 +110,7 @@ public:
     void DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex);
     void SetWalkable(int x, int y, bool walkable);
     bool IsWalkable(int x, int y);
+    void SetPathCost(int x, int y, float cost);
 
     // //For Human ai
     std::vector<Math::fvec2> GetCurrentPath() const
@@ -153,7 +156,8 @@ private:
     mutable GridCell* view3[GRID_SIZE_X * GRID_SIZE_Y];
     mutable GridCell* view4[GRID_SIZE_X * GRID_SIZE_Y];
 
-    Dokev::Texture2D IsoGridTexture[4];
+    Dokev::Texture2D      IsoGridTexture[4];
+    Dokev::AnimatedSprite waterAnimation;
 
     std::vector<GridCell> GridMapArray;
     Dokev::Image          PerlinNoiseImage;

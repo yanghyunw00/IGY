@@ -38,11 +38,17 @@ public:
     void removeAllRoad();
     void removeAllRoad(GridMap& map);
     bool hasRoad(int x, int y) const;
+    bool IsAdjacentToRoad(int x, int y) const;
     void drawRoads(const GridMap& map, int currentview);
     void buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY);
 
     size_t getRoadCount() const
     {
         return roadPositions.size();
+    }
+
+    const std::vector<Math::fvec2>& GetRoadPositions() const
+    {
+        return roadPositions;
     }
 };

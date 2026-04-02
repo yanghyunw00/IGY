@@ -10,7 +10,6 @@
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
 #include "Dokev/Core/DKUtility.hpp"
-#include "Game/Entities/Building.hpp"
 #include "Dokev/State/DKGameState.hpp"
 #include "Dokev/World/DKGrid.hpp"
 #include "Engine/Engine.hpp"
@@ -19,7 +18,9 @@
 #include "Engine/Texture.hpp"
 #include "Engine/TextureManager.hpp"
 #include "Engine/Window.hpp"
+#include "Game/Entities/Building.hpp"
 #include "Game/Input/DKMouseSelection.hpp"
+
 
 
 #include "OpenGL/GL.hpp"
@@ -79,20 +80,22 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     MountainTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
     SnowTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPeak.png").string());
 
-    Max_Height      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
-    RoadTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
-    IsoMouseAtlas   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
+    Max_Height    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
+    RoadTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
+    IsoMouseAtlas = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
-    //Test For new Asset
-    // PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater.png").string());
-    // PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGrid4.png").string());
-    // PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
+    // Test For new Asset
+    //  PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater.png").string());
+    //  PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGrid4.png").string());
+    //  PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
 
 
-    IsoGridTexture[0] = WaterTexture; // water
-    IsoGridTexture[1] = PlainsTexture; // plane
+    IsoGridTexture[0] = WaterTexture;    // water (fallback)
+    IsoGridTexture[1] = PlainsTexture;   // plane
     IsoGridTexture[2] = MountainTexture; // mountain
     IsoGridTexture[3] = SnowTexture;
+
+    waterAnimation = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/water.spt"));
 
     ResetPerlinTexture();
     ResetIsoGridMapArray();
@@ -129,6 +132,11 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
     GL::BindTexture(GL_TEXTURE_2D, 0);
 };
+
+void GridMap::UpdateWaterAnimation(double dt)
+{
+    waterAnimation.Update(dt);
+}
 
 void GridMap::ReGenerateMap()
 {
@@ -369,13 +377,21 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                 else
                 {
                     // Only apply wave height animation on non-water-heavy variants to avoid visual overlap with buildings/roads.
-                    if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
-                    {
-                        renderHeight += GetWaterWaveOffset(originalX, originalY);
-                    }
+                    // if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
+                    // {
+                    //     renderHeight += GetWaterWaveOffset(originalX, originalY);
+                    // }
 
                     topY = static_cast<int>(renderHeight) - screenY;
-                    Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+
+                    if (current_texture == 0 && waterAnimation.GetSpriteSheet().IsValid())
+                    {
+                        waterAnimation.DrawAtPosition(screenX, topY);
+                    }
+                    else
+                    {
+                        Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    }
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
 
                     if (gameObjMgr)
@@ -387,7 +403,7 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                             int bX = static_cast<int>(building->GetGrid().x);
                             int bY = static_cast<int>(building->GetGrid().y);
 
-                            //이 타일이 빌딩이 설치되었느냐?
+                            // 이 타일이 빌딩이 설치되었느냐?
                             if (bX == originalX && bY == originalY)
                             {
                                 building->Draw(index, this, screenX, topY + 64);
@@ -690,6 +706,14 @@ bool GridMap::IsWalkable(int x, int y)
         return pathFinder->IsPositionWalkable(x, y);
     }
     return false;
+}
+
+void GridMap::SetPathCost(int x, int y, float cost)
+{
+    if (pathFinder)
+    {
+        pathFinder->SetTileCost(x, y, cost);
+    }
 }
 
 Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex) const

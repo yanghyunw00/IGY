@@ -89,6 +89,17 @@ void PathFinding::SetCostMap(const std::vector<float>& costs)
     }
 }
 
+void PathFinding::SetTileCost(int x, int y, float cost)
+{
+    if (x < 0 || x >= gridSizeX || y < 0 || y >= gridSizeY)
+        return;
+
+    if (costMap.empty())
+        costMap.resize(gridSizeY, std::vector<float>(gridSizeX, 1.0f));
+
+    costMap[y][x] = cost;
+}
+
 bool PathFinding::IsPositionWalkable(int x, int y)
 {
     if (x < 0 || x >= gridSizeX || y < 0 || y >= gridSizeY)

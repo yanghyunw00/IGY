@@ -26,6 +26,41 @@ void MapManager::Initialize()
     map.SetMapVariant(s_nextVariant);
     map.ReGenerateMap();
     map.InitializePathFinding();
+
+    // Build initial road across the middle of the map
+    GridCell** viewArray = map.GetViewArray(0);
+    if (viewArray)
+    {
+        const int midY = GRID_SIZE_Y / 2;
+
+        int startX = -1;
+        for (int x = 0; x < GRID_SIZE_X; ++x)
+        {
+            GridCell* cell = viewArray[midY * GRID_SIZE_X + x];
+            if (cell && cell->isWalkable())
+            {
+                startX = x;
+                break;
+            }
+        }
+
+        int endX = -1;
+        for (int x = GRID_SIZE_X - 1; x >= 0; --x)
+        {
+            GridCell* cell = viewArray[midY * GRID_SIZE_X + x];
+            if (cell && cell->isWalkable())
+            {
+                endX = x;
+                break;
+            }
+        }
+
+        if (startX != -1 && endX != -1 && startX != endX)
+        {
+            road->buildRoadPath(map, startX, midY, endX, midY);
+        }
+    }
+
     // spawnResources();
 }
 
