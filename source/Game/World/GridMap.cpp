@@ -74,27 +74,27 @@ const char* GetMapVariantLabel(MapVariant variant)
 
 GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
 {
-    PlainsTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPlains.png").string());
+    PlainsTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGrid4.png").string());
     WaterTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater.png").string());
     MountainTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
     SnowTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPeak.png").string());
+
     Max_Height      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
     RoadTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
     IsoMouseAtlas   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
     //Test For new Asset
-    PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater2.png").string());
-    PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPlains2.png").string());
-    PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains2.png").string());
+    // PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater.png").string());
+    // PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGrid4.png").string());
+    // PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
 
 
-    IsoGridTexture[0] = PlainGridTest1; // water
-    IsoGridTexture[1] = PlainGridTest2; // plane
-    IsoGridTexture[2] = PlainGridTest3; // mountain
+    IsoGridTexture[0] = WaterTexture; // water
+    IsoGridTexture[1] = PlainsTexture; // plane
+    IsoGridTexture[2] = MountainTexture; // mountain
     IsoGridTexture[3] = SnowTexture;
 
     ResetPerlinTexture();
-
     ResetIsoGridMapArray();
 
     // Initialize TileManager
