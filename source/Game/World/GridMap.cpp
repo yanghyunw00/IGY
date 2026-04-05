@@ -21,8 +21,6 @@
 #include "Game/Entities/Building.hpp"
 #include "Game/Input/DKMouseSelection.hpp"
 
-
-
 #include "OpenGL/GL.hpp"
 #include <GL/glew.h>
 #include <algorithm>
@@ -81,14 +79,18 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     SnowTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPeak.png").string());
 
     Max_Height    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
-    RoadTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
     IsoMouseAtlas = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
-    // Test For new Asset
-    //  PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater.png").string());
-    //  PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGrid4.png").string());
-    //  PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
+    static const int roadTileNums[] = {1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+    for (int n : roadTileNums)
+    {
+        std::string path    = "Assets/images/road/Road1_tile_" + std::to_string(n) + ".png";
+        roadTileTextures[n] = Dokev::LoadTexture(assets::locate_asset(path).string());
+    }
 
+    for (int y = 0; y < GRID_SIZE_Y; ++y)
+        for (int x = 0; x < GRID_SIZE_X; ++x)
+            roadConnectionMask[y][x] = -1;
 
     IsoGridTexture[0] = WaterTexture;    // water (fallback)
     IsoGridTexture[1] = PlainsTexture;   // plane
@@ -107,7 +109,6 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     //////////////////////////////////////////////////////////////////////////
 
     GL::GenFramebuffers(1, &mouseAtlasFBO);
-
     GL::BindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
     // this texture will save the colors
@@ -310,6 +311,37 @@ void GridMap::InitializeIsoView()
     }
 }
 
+static int rotateMask4(int mask, int view)
+{
+    int v = view & 3;
+    if (v == 0) return mask;
+    return ((mask << v) | (mask >> (4 - v))) & 0xF;
+}
+
+static int maskToTileIndex(int mask)
+{
+    switch (mask)
+    {
+        case 0:  return 8;
+        case 1:  return 7;   // N only
+        case 2:  return 8;   // E only
+        case 4:  return 7;   // S only
+        case 8:  return 8;   // W only
+        case 5:  return 2;   // N+S straight
+        case 10: return 3;   // E+W straight
+        case 9:  return 9;   // N+W corner
+        case 12: return 6;   // S+W corner
+        case 6:  return 1;   // E+S corner
+        case 3:  return 4;   // N+E corner
+        case 7:  return 10;  // T: N+E+S (no W)
+        case 11: return 13;  // T: N+E+W (no S)
+        case 13: return 14;  // T: N+S+W (no E)
+        case 14: return 11;  // T: E+S+W (no N)
+        case 15: return 12;  // 4-way
+        default: return 2;
+    }
+}
+
 void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, const Dokev::MouseSelection* mouseSelection, Dokev::GameObjectManager* gameObjMgr) const
 {
     currentView = index % 4;
@@ -370,8 +402,13 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                         renderHeight += GetWaterWaveOffset(originalX, originalY);
                     }
                     topY = static_cast<int>(renderHeight) - screenY;
-                    Dokev::DrawTexture(RoadTexture, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
-                    // std::cout << "doodoo" <<std::endl;
+
+
+                    int rawMask     = roadConnectionMask[originalY][originalX];
+                    int rotatedMask = rotateMask4(rawMask < 0 ? 0 : rawMask, currentView);
+                    int tileIdx     = maskToTileIndex(rotatedMask);
+                    Dokev::DrawTexture(roadTileTextures[tileIdx], screenX, topY + TILE_HEIGHT, Dokev::ColorPalette::WHITE, selected_renderer);
+
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                 }
                 else

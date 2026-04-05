@@ -169,11 +169,6 @@ private:
     Dokev::Texture2D SnowTexture;
     Dokev::Texture2D Max_Height;
 
-    Dokev::Texture2D PlainGridTest1;
-    Dokev::Texture2D PlainGridTest2;
-    Dokev::Texture2D PlainGridTest3;
-
-
     Dokev::Texture2D IsoMouseAtlas;
 
     int mapOriginX = 0;
@@ -193,9 +188,24 @@ private:
 
     // Tile management for buildings and roads
     std::unique_ptr<Dokev::TileManager> tileManager;
-    Dokev::Texture2D                    RoadTexture;
+
+    Dokev::Texture2D roadTileTextures[15];
+    int roadConnectionMask[GRID_SIZE_Y][GRID_SIZE_X];
 
 public:
+
+    // Called by Road when a road tiles connections change
+    void SetRoadConnectionMask(int x, int y, int mask)
+    {
+        if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+            roadConnectionMask[y][x] = mask;
+    }
+
+    void ClearRoadConnectionMask(int x, int y)
+    {
+        if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+            roadConnectionMask[y][x] = -1;
+    }
 
 
     mutable GLuint mouseAtlasFBO = 0;
