@@ -23,5 +23,7 @@ enum class BuildingType
     // INFRASTRUCTURE
     ROAD,
     // Delete
-    DELETE
+    DELETE,
+    // Terrain
+    FLATTEN
 };

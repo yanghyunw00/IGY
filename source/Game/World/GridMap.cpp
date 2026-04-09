@@ -769,3 +769,25 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
         default: return point;
     }
 }
+
+bool GridMap::FlattenTile(int x, int y)
+{
+    if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
+        return false;
+
+    GridCell& cell = m_gridCells[y][x];
+
+    // water cannot change
+    if (cell.getWater())
+        return false;
+
+    double targetHeight = mapProfile.thresholds.waterMax;
+
+    cell.ApplyTerrain(targetHeight, mapProfile.thresholds);
+
+    // Update pathfinding cost
+    SetPathCost(x, y, 1.0f);
+    SetWalkable(x, y, true);
+
+    return true;
+}

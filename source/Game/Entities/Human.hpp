@@ -12,6 +12,7 @@
 #include "Dokev/GameObject/DKGameObject.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
 #include "Engine/Vec2.hpp"
+#include <string>
 #include <vector>
 
 
@@ -171,6 +172,11 @@ public:
         return stats.happiness;
     }
 
+    const std::string& GetName() const
+    {
+        return name;
+    }
+
     // DEBUG
     void ToggleDebug()
     {
@@ -198,6 +204,8 @@ private:
 
 
 private:
+    std::string name;
+
     // POSITION & MOVEMENT
     Math::fvec2 actualPosition; //  real-time position
     Math::fvec2 startPosition;  // Start of movement

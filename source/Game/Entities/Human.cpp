@@ -9,6 +9,7 @@
 
 #include "Human.hpp"
 #include "Building.hpp"
+#include "../Managers/NPCNameManager.hpp"
 #include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
@@ -29,6 +30,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
     humanTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
+    name           = NPCNameManager::Instance().GenerateName();
 }
 
 void Human::CancelWork()

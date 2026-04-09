@@ -111,6 +111,10 @@ public:
     void SetWalkable(int x, int y, bool walkable);
     bool IsWalkable(int x, int y);
     void SetPathCost(int x, int y, float cost);
+    
+
+    //Flatten
+    bool FlattenTile(int x, int y);
 
     // //For Human ai
     std::vector<Math::fvec2> GetCurrentPath() const

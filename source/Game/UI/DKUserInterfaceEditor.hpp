@@ -10,6 +10,7 @@
 
 // Forward declarations
 class HappinessManager;
+class Human;
 
 namespace Dokev
 {
@@ -28,24 +29,18 @@ public:
     UserInterfaceEditor() = default;
     void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr);
 
+    void SetSelectedHuman(Human* human) { selectedHuman = human; }
+
 private:
-    /**
-     * \brief Draw happiness section (without Begin/End)
-     */
     void DrawHappinessSection(HappinessManager* happinessManager);
-
-    /**
-     * \brief Draw immigration section (without Begin/End)
-     */
     void DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager, int availableHomes, int totalResources, int humanCount);
-
-    /**
-     * \brief Draw population section (without Begin/End)
-     */
     void DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity, int totalHouses, int workplaceCount, int humanCount);
+    void DrawWinConditionSection(Dokev::CityMetrics* cityMetrics, int humanCount);
 
     /**
-     * \brief Draw win condition section (without Begin/End)
+     * \brief Draw selected NPC info panel at bottom-right corner
      */
-    void DrawWinConditionSection(Dokev::CityMetrics* cityMetrics, int humanCount);
+    void DrawNPCInfoPanel();
+
+    Human* selectedHuman = nullptr;
 };
