@@ -153,11 +153,11 @@ void GridMap::EnsureMouseAtlasInitialized() const
         // Resize texture if window size changed
         GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
         int currentW = 0, currentH = 0;
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &currentW);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &currentH);
+        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &currentW);
+        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &currentH);
         if (currentW == targetWidth && currentH == targetHeight)
         {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            GL::BindTexture(GL_TEXTURE_2D, 0);
             return;
         }
     }

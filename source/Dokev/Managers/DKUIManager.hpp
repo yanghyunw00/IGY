@@ -111,9 +111,6 @@ namespace Dokev
         std::vector<BuildingButton> buildingButtons;
         BuildingType                selectedBuilding = BuildingType::NONE;
 
-        Texture2D woodIcon;
-        Texture2D rockIcon;
-        Texture2D steelIcon;
         Texture2D happyIcon;
         Texture2D humanIcon;
         Texture2D deleteIcon;

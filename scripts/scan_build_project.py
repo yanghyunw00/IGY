@@ -222,7 +222,8 @@ def scan_directory(directory, skip_todos=False, skip_opengl=False):
     with ThreadPoolExecutor() as executor:
         futures = []
         for root, _, files in os.walk(directory):
-            if "build" in root:
+            root_parts = Path(root).parts
+            if any(part.lower() in {"build", "external"} for part in root_parts):
                 continue
             for file in files:
                 if file.endswith((".cpp", ".hpp", ".h", ".vert", ".frag", ".cmake", ".txt", ".html")):

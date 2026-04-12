@@ -83,6 +83,7 @@ namespace GL
     void           GetShaderSource(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* source SOURCE_LOCATION);
     void           GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params SOURCE_LOCATION);
     void           GetTexParameteriv(GLenum target, GLenum pname, GLint* params SOURCE_LOCATION);
+    void           GetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* params SOURCE_LOCATION);
     void           GetUniformfv(GLuint program, GLint location, GLfloat* params SOURCE_LOCATION);
     void           GetUniformiv(GLuint program, GLint location, GLint* params SOURCE_LOCATION);
     void           GetUniformuiv(GLuint program, GLint location, GLuint* params SOURCE_LOCATION);
@@ -166,6 +167,7 @@ namespace GL
     GLuint    GetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName SOURCE_LOCATION);
     void      BeginQuery(GLenum target, GLuint id SOURCE_LOCATION);
     void      BeginTransformFeedback(GLenum primitiveMode SOURCE_LOCATION);
+    void      BlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter SOURCE_LOCATION);
     void      BindFramebuffer(GLenum target, GLuint framebuffer SOURCE_LOCATION);
     void      BindRenderbuffer(GLenum target, GLuint renderbuffer SOURCE_LOCATION);
     void      BindVertexArray(GLuint array SOURCE_LOCATION);
