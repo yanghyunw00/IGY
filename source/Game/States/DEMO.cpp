@@ -234,15 +234,15 @@ void DEMO::updateInput()
         map.IsometricDrawMouseAtlas(index, selected_renderer); // to update the atlas
 
         GLubyte pixel[4] = { 0 };
-        glBindFramebuffer(GL_FRAMEBUFFER, map.mouseAtlasFBO);
+        GL::BindFramebuffer(GL_FRAMEBUFFER, map.mouseAtlasFBO);
 
         int         windowHeight = 800;
         Math::ivec2 mouseScreen  = mouse.GetPosition();
         mouseScreen.y            = windowHeight - mouseScreen.y;
 
-        glReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+        GL::ReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
 
         float tileX = pixel[0] * static_cast<float>(GRID_SIZE_X - 1) / 255.f;
         float tileY = pixel[1] * static_cast<float>(GRID_SIZE_Y - 1) / 255.f;

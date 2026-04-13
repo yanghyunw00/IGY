@@ -48,7 +48,7 @@ namespace Dokev
         steps.push_back(step1);
 
         TutorialStep step2;
-        step2.text           = "Here you can check your resources and population";
+        step2.text           = "Here you can check your money and population";
         step2.completionType = CompletionType::TIME_PASSED;
         step2.duration       = 2.0f;
         step2.highlightType  = HighlightType::CIRCLE;
@@ -68,7 +68,7 @@ namespace Dokev
         steps.push_back(step3);
 
         TutorialStep step4;
-        step4.text           = "Now let's build a Wood Workshop to gather resources!";
+        step4.text           = "Now let's build a Wood Workshop to earn money!";
         step4.completionType = CompletionType::BUTTON_CLICKED;
         step4.highlightType  = HighlightType::RECTANGLE;
         step4.highlightPos   = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 110.0f, 370.0f);
@@ -95,7 +95,7 @@ namespace Dokev
         steps.push_back(step6);
 
         TutorialStep step7;
-        step7.text           = "Each building produces specific resources!";
+        step7.text           = "Staffed work buildings generate money over time!";
         step7.completionType = CompletionType::CLICK_ANYWHERE;
         step7.highlightType  = HighlightType::NONE;
         step7.showArrow      = false;

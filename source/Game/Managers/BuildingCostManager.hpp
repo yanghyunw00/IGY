@@ -14,13 +14,11 @@
 
 struct BuildingCost
 {
-    int wood  = 0;
-    int stone = 0;
-    int steel = 0;
+    int money = 0;
 
     BuildingCost() = default;
 
-    BuildingCost(int w, int st, int stl) : wood(w), stone(st), steel(stl)
+    explicit BuildingCost(int m) : money(m)
     {
     }
 };
@@ -34,7 +32,7 @@ public:
 
     BuildingCost GetCost(BuildingType type) const;
 
-    bool CanAfford(BuildingType type, int playerWood, int playerStone, int playerSteel) const;
+    bool CanAfford(BuildingType type, int playerMoney) const;
 
 private:
     std::unordered_map<BuildingType, BuildingCost> costs;

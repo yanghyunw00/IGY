@@ -35,8 +35,7 @@ public:
 
     int GetMSAASamples() const
     {
-        //TODO
-        return msaaSamples;
+        return useMSAA ? msaaSamples : 0;
     }
 
     void Shutdown();
@@ -44,12 +43,12 @@ public:
 private:
     int            currentWidth{ 0 };
     int            currentHeight{ 0 };
-    // TODO
+    OpenGL::Handle resolveDepthRenderbuffer{ 0 };
     bool           useMSAA{ false };
     int            msaaSamples{ 4 };
     OpenGL::Handle resolveFramebuffer{ 0 };
     OpenGL::Handle resolveTexture{ 0 };
-    // TODO
+    OpenGL::Handle msaaDepthRenderbuffer{ 0 };
     OpenGL::Handle msaaFramebuffer{ 0 };
     OpenGL::Handle msaaColorRenderbuffer{ 0 };
 

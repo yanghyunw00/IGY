@@ -484,13 +484,7 @@ void GamePlayState::Update(double dt)
                     auto consumeResources = [&](BuildingType type) -> bool
                     {
                         BuildingCost cost = buildingCostManager.GetCost(type);
-                        if (resourceMgr->totalWood < cost.wood || resourceMgr->totalStone < cost.stone || resourceMgr->totalSteel < cost.steel)
-                            return false;
-
-                        resourceMgr->totalWood -= cost.wood;
-                        resourceMgr->totalStone -= cost.stone;
-                        resourceMgr->totalSteel -= cost.steel;
-                        return true;
+                        return resourceMgr->TrySpend(cost.money);
                     };
 
                     bool placed = false;
@@ -844,9 +838,7 @@ void GamePlayState::SaveGame(const std::string& filename)
     if (resourceMgr)
     {
         j["PlayerResources"] = {
-            {  "Wood",  resourceMgr->totalWood },
-            { "Stone", resourceMgr->totalStone },
-            { "Steel", resourceMgr->totalSteel }
+            { "Money", resourceMgr->totalMoney }
         };
     }
 
@@ -953,7 +945,15 @@ void GamePlayState::LoadGame(const std::string& filename)
     auto resourceMgr = GetGSComponent<ResourceManager>();
     if (resourceMgr && j.contains("PlayerResources"))
     {
-        resourceMgr->SetResources(j["PlayerResources"].value("Wood", 0), j["PlayerResources"].value("Stone", 0), j["PlayerResources"].value("Steel", 0));
+        const auto& playerResources = j["PlayerResources"];
+        if (playerResources.contains("Money"))
+        {
+            resourceMgr->SetMoney(playerResources.value("Money", 0));
+        }
+        else
+        {
+            resourceMgr->SetResources(playerResources.value("Wood", 0), playerResources.value("Stone", 0), playerResources.value("Steel", 0));
+        }
     }
 
     //  Load Map Resources

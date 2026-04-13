@@ -619,6 +619,11 @@ namespace GL
         glCheck(glGetTexParameteriv(target, pname, params));
     }
 
+    void GetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* params SOURCE_LOCATION)
+    {
+        glCheck(glGetTexLevelParameteriv(target, level, pname, params));
+    }
+
     void GetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params SOURCE_LOCATION)
     {
         glCheck(glGetVertexAttribfv(index, pname, params));
@@ -878,6 +883,11 @@ namespace GL
     void BeginTransformFeedback(GLenum primitiveMode SOURCE_LOCATION)
     {
         glCheck(glBeginTransformFeedback(primitiveMode));
+    }
+
+    void BlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter SOURCE_LOCATION)
+    {
+        glCheck(glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter));
     }
 
     void ClearBufferfi(GLenum buffer, GLint drawBuffer, GLfloat depth, GLint stencil SOURCE_LOCATION)

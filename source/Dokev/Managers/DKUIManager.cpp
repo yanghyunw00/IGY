@@ -31,9 +31,6 @@ namespace Dokev
     void UIManager::Initialize()
     {
         CreateMainButtons();
-        woodIcon  = LoadTexture(assets::locate_asset("Assets/resources/wood_icon.png").string());
-        rockIcon  = LoadTexture(assets::locate_asset("Assets/resources/rock_icon.png").string());
-        steelIcon = LoadTexture(assets::locate_asset("Assets/resources/steel_icon.png").string());
         happyIcon = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
         humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/human.png").string());
         outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/Font_Outlined.png").string());
@@ -477,11 +474,10 @@ namespace Dokev
             return;
 
         auto  windowSize = Engine::GetWindow().GetSize();
-        float startX     = static_cast<float>(windowSize.x) - 100.0f - UI_SPACING + 32.0f;
+        float startX     = static_cast<float>(windowSize.x) - 170.0f;
         float resourceY  = static_cast<float>(windowSize.y) - 100.0f;
 
-        float size         = 32.0f;
-        float height       = size + 3.0f;
+        float height       = 35.0f;
         float paddingY     = -10;
         int   iconPaddingY = 15;
         float iconScale    = 0.8f;
@@ -489,44 +485,14 @@ namespace Dokev
         float currentX = startX;
         float currentY = resourceY;
 
-        if (woodIcon.IsValid())
-        {
-            woodIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
-        }
         if (outlined)
         {
-            std::string woodText = FormatNumber(resourceMgr->totalWood);
-            if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
+            std::string moneyText = "Money: " + FormatNumber(resourceMgr->totalMoney);
+            if (auto textTexture = outlined->PrintToTexture(moneyText, Dokev::ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
-            }
-        }
-        currentY -= height;
-
-        if (rockIcon.IsValid())
-        {
-            rockIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
-        }
-        if (outlined)
-        {
-            std::string stoneText = FormatNumber(resourceMgr->totalStone);
-            if (auto textTexture = outlined->PrintToTexture(stoneText, Dokev::ColorPalette::WHITE))
-            {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
-            }
-        }
-        currentY -= height;
-
-        if (steelIcon.IsValid())
-        {
-            steelIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
-        }
-        if (outlined)
-        {
-            std::string steelText = FormatNumber(resourceMgr->totalSteel);
-            if (auto textTexture = outlined->PrintToTexture(steelText, Dokev::ColorPalette::WHITE))
-            {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+                textTexture->Draw(
+                    Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }),
+                    Dokev::ColorPalette::WHITE);
             }
         }
         currentY -= height + 5.0f;
@@ -621,15 +587,8 @@ namespace Dokev
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
                                  button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::HOME))
         {
-            float tooltipWidth  = 120.0f;
-            float tooltipHeight = 50.0f;
-            if (button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP || button.type == BuildingType::STEEL_WORKSHOP)
-            {
-                tooltipWidth  = 175.0f;
-                tooltipHeight = 65.0f;
-            }
-            if (button.type == BuildingType::HOME)
-                tooltipHeight = 80.0f;
+            float tooltipWidth  = 180.0f;
+            float tooltipHeight = 60.0f;
 
             // Add space for hotkey display
             std::string hotkey = GetHotkeyForButton(button);
@@ -649,44 +608,21 @@ namespace Dokev
                 // Get cost from JSON
                 BuildingCost cost = costMgr->GetCost(button.type);
 
-                // building name
-                float nameYPos      = 25.0f;
-                int   resourceCount = (cost.wood > 0 ? 1 : 0) + (cost.stone > 0 ? 1 : 0) + (cost.steel > 0 ? 1 : 0);
-                if (resourceCount == 2)
-                    nameYPos = 40.0f;
-                if (resourceCount == 3)
-                    nameYPos = 55.0f;
-
                 if (auto nameTexture = outlined->PrintToTexture(button.name, Dokev::ColorPalette::WHITE))
                 {
-                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + nameYPos }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }), Dokev::ColorPalette::WHITE);
+                    nameTexture->Draw(
+                        Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 12.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
+                        Dokev::ColorPalette::WHITE);
                 }
 
-                float yOffset = 5.0f;
-                if (cost.wood > 0)
+                if (cost.money > 0)
                 {
-                    std::string woodText = "Wood: " + std::to_string(resourceMgr->totalWood) + " / " + std::to_string(cost.wood);
-                    if (auto textTexture = outlined->PrintToTexture(woodText, Dokev::ColorPalette::WHITE))
+                    std::string moneyText = "Money: " + std::to_string(resourceMgr->totalMoney) + " / " + std::to_string(cost.money);
+                    if (auto textTexture = outlined->PrintToTexture(moneyText, Dokev::ColorPalette::WHITE))
                     {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
-                    }
-                    yOffset += 15.0f;
-                }
-                if (cost.stone > 0)
-                {
-                    std::string rockText = "Rock: " + std::to_string(resourceMgr->totalStone) + " / " + std::to_string(cost.stone);
-                    if (auto textTexture = outlined->PrintToTexture(rockText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
-                    }
-                    yOffset += 15.0f;
-                }
-                if (cost.steel > 0)
-                {
-                    std::string steelText = "Steel: " + std::to_string(resourceMgr->totalSteel) + " / " + std::to_string(cost.steel);
-                    if (auto textTexture = outlined->PrintToTexture(steelText, Dokev::ColorPalette::WHITE))
-                    {
-                        textTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + yOffset }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }), Dokev::ColorPalette::WHITE);
+                        textTexture->Draw(
+                            Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 30.0f }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }),
+                            Dokev::ColorPalette::WHITE);
                     }
                 }
 

@@ -1,29 +1,19 @@
 {
   "BuildingCosts": {
     "ROAD": {
-      "Wood": 2,
-      "Stone": 0,
-      "Steel": 0
+      "Money": 2
     },
     "HOME": {
-      "Wood": 10,
-      "Stone": 5,
-      "Steel": 0
+      "Money": 15
     },
     "WOOD_WORKSHOP": {
-      "Wood": 5,
-      "Stone": 0,
-      "Steel": 0
+      "Money": 5
     },
     "ROCK_WORKSHOP": {
-      "Wood": 10,
-      "Stone": 5,
-      "Steel": 0
+      "Money": 15
     },
     "STEEL_WORKSHOP": {
-      "Wood": 15,
-      "Stone": 10,
-      "Steel": 5
+      "Money": 30
     }
   }
 }

@@ -15,35 +15,47 @@
 class ResourceManager : public IComponent
 {
 public:
-    int totalWood  = 5;
-    int totalStone = 5;
-    int totalSteel = 5;
+    int totalMoney = 15;
 
     void AddResource(ResourceType type, int amount)
     {
+        (void)type;
         assert(amount >= 0 && "Resource amount cannot be negative");
+        totalMoney += amount;
+        assert(totalMoney >= 0 && "Money cannot be negative");
+    }
 
-        switch (type)
+    bool TrySpend(int amount)
+    {
+        assert(amount >= 0 && "Spend amount cannot be negative");
+
+        if (totalMoney < amount)
         {
-            case ResourceType::Wood: totalWood += amount; break;
-            case ResourceType::Stone: totalStone += amount; break;
-            case ResourceType::Steel: totalSteel += amount; break;
+            return false;
         }
 
-        assert(totalWood >= 0 && "Wood cannot be negative");
-        assert(totalStone >= 0 && "Stone cannot be negative");
-        assert(totalSteel >= 0 && "Steel cannot be negative");
+        totalMoney -= amount;
+        return true;
+    }
+
+    void SetMoney(int money)
+    {
+        assert(money >= 0 && "Money cannot be negative");
+        totalMoney = money;
+    }
+
+    void SetResources(int money)
+    {
+        SetMoney(money);
     }
 
     void SetResources(int wood, int stone, int steel)
     {
-        totalWood  = wood;
-        totalStone = stone;
-        totalSteel = steel;
+        SetMoney(wood + stone + steel);
     }
 
     int GetTotalResources() const
     {
-        return totalWood + totalStone + totalSteel;
+        return totalMoney;
     }
 };

@@ -47,9 +47,8 @@ bool BuildingCostManager::LoadFromFile(const std::string& filepath)
             }
 
             BuildingCost cost;
-            cost.wood  = value.value("Wood", 0);
-            cost.stone = value.value("Stone", 0);
-            cost.steel = value.value("Steel", 0);
+            const int legacyMoney = value.value("Wood", 0) + value.value("Stone", 0) + value.value("Steel", 0);
+            cost.money            = value.value("Money", legacyMoney);
 
             costs[type] = cost;
         }
@@ -74,10 +73,10 @@ BuildingCost BuildingCostManager::GetCost(BuildingType type) const
     return BuildingCost();
 }
 
-bool BuildingCostManager::CanAfford(BuildingType type, int playerWood, int playerStone, int playerSteel) const
+bool BuildingCostManager::CanAfford(BuildingType type, int playerMoney) const
 {
     BuildingCost cost = GetCost(type);
-    return playerWood >= cost.wood && playerStone >= cost.stone && playerSteel >= cost.steel;
+    return playerMoney >= cost.money;
 }
 
 BuildingType BuildingCostManager::StringToBuildingType(const std::string& str) const

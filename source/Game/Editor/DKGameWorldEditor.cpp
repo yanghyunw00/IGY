@@ -183,44 +183,28 @@ namespace Dokev
 
         if (resourceManager)
         {
-            if (ImGui::TreeNode("PLAYER RESOURCES"))
+            if (ImGui::TreeNode("PLAYER MONEY"))
             {
                 ImGui::Separator();
 
-                int wood = resourceManager->totalWood;
-                if (ImGui::SliderInt("Wood", &wood, 0, 1000))
+                int money = resourceManager->totalMoney;
+                if (ImGui::SliderInt("Money", &money, 0, 1000))
                 {
-                    resourceManager->totalWood = wood;
-                }
-
-                int stone = resourceManager->totalStone;
-                if (ImGui::SliderInt("Stone", &stone, 0, 1000))
-                {
-                    resourceManager->totalStone = stone;
-                }
-
-                int steel = resourceManager->totalSteel;
-                if (ImGui::SliderInt("Steel", &steel, 0, 1000))
-                {
-                    resourceManager->totalSteel = steel;
+                    resourceManager->totalMoney = money;
                 }
 
                 ImGui::Spacing();
 
-                if (ImGui::Button("Set All to 100"))
+                if (ImGui::Button("Set Money to 100"))
                 {
-                    resourceManager->totalWood  = 100;
-                    resourceManager->totalStone = 100;
-                    resourceManager->totalSteel = 100;
+                    resourceManager->totalMoney = 100;
                 }
 
                 ImGui::SameLine();
 
-                if (ImGui::Button("Set All to 0"))
+                if (ImGui::Button("Set Money to 0"))
                 {
-                    resourceManager->totalWood  = 0;
-                    resourceManager->totalStone = 0;
-                    resourceManager->totalSteel = 0;
+                    resourceManager->totalMoney = 0;
                 }
 
                 ImGui::Spacing();
