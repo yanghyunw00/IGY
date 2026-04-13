@@ -9,6 +9,7 @@
 #include "DKUserInterfaceEditor.hpp"
 #include "../Common/BuildingType.hpp"
 #include "../Entities/Building.hpp"
+#include "../Entities/Human.hpp"
 #include "../Managers/DKCityMetrics.hpp"
 #include "../Managers/DKImmigrationManager.hpp"
 #include "../Managers/HappinessManager.hpp"
@@ -88,6 +89,8 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     }
 
     ImGui::End();
+
+    DrawNPCInfoPanel();
 }
 
 void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManager)
@@ -231,4 +234,66 @@ void UserInterfaceEditor::DrawWinConditionSection(Dokev::CityMetrics* cityMetric
     //  Progress Bar
     float progressRatio = static_cast<float>(humanCount) / static_cast<float>(winPopulation);
     ImGui::ProgressBar(progressRatio, ImVec2(-1, 0));
+}
+
+void UserInterfaceEditor::DrawNPCInfoPanel()
+{
+    if (!selectedHuman)
+        return;
+
+    const float    panelW  = 260.0f;
+    const float    panelH  = 160.0f;
+    const float    padding = 12.0f;
+
+    ImGuiViewport* vp      = ImGui::GetMainViewport();
+    ImVec2         anchor  = ImVec2(vp->WorkPos.x + vp->WorkSize.x - padding,
+                                    vp->WorkPos.y + vp->WorkSize.y - padding);
+
+    ImGui::SetNextWindowPos(anchor, ImGuiCond_Always, ImVec2(1.0f, 1.0f));
+    ImGui::SetNextWindowSize(ImVec2(panelW, panelH), ImGuiCond_Always);
+    ImGui::SetNextWindowBgAlpha(0.85f);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoResize |
+                             ImGuiWindowFlags_NoMove   |
+                             ImGuiWindowFlags_NoCollapse;
+
+    if (!ImGui::Begin("Citizen Info", nullptr, flags))
+    {
+        ImGui::End();
+        return;
+    }
+
+    // Name
+    ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.3f, 1.0f), "%s", selectedHuman->GetName().c_str());
+
+    ImGui::Separator();
+
+    // State
+    const char* stateStr = "Unknown";
+    switch (selectedHuman->GetState())
+    {
+        case HumanState::Idle:               stateStr = "Idle";              break;
+        case HumanState::Walking:            stateStr = "Walking";           break;
+        case HumanState::FindingDestination: stateStr = "Looking around";    break;
+        case HumanState::Working:            stateStr = "Working";           break;
+        case HumanState::Resting:            stateStr = "Resting";           break;
+    }
+    ImGui::Text("State:     %s", stateStr);
+
+    // Happiness
+    float happiness = selectedHuman->GetStats().happiness;
+    ImGui::Text("Happiness: ");
+    ImGui::SameLine();
+    ImVec4 happyColor;
+    if (happiness >= 70.0f)      happyColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+    else if (happiness >= 40.0f) happyColor = { 1.0f, 1.0f, 0.0f, 1.0f };
+    else                         happyColor = { 1.0f, 0.2f, 0.2f, 1.0f };
+    ImGui::TextColored(happyColor, "%.0f%%", happiness);
+    ImGui::ProgressBar(happiness / 100.0f, ImVec2(-1, 6));
+
+    // Position
+    Math::fvec2 pos = selectedHuman->GetGridPosition();
+    ImGui::Text("Pos:       (%.0f, %.0f)", pos.x, pos.y);
+
+    ImGui::End();
 }

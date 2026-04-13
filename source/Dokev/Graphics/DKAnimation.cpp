@@ -32,28 +32,29 @@ namespace Dokev
         {
             if (line.empty() || line[0] == '#')
                 continue;
-        }
-        if (line.find("PlayFrame") != std::string::npos)
-        {
-            std::istringstream iss(line);
-            std::string        command;
-            int                frameIndex;
-            double             duration;
-            iss >> command >> frameIndex >> duration;
-            frames.push_back({ frameIndex, duration });
-        }
-        else if (line.find("Loop") != std::string::npos)
-        {
-            std::istringstream iss(line);
-            std::string        command;
-            int                loopIndex;
-            iss >> command >> loopIndex;
-            loopStartFrame = loopIndex;
-            loopEnabled    = true;
-        }
-        else if (line.find("End") != std::string::npos)
-        {
-            loopEnabled = false;
+
+            if (line.find("PlayFrame") != std::string::npos)
+            {
+                std::istringstream iss(line);
+                std::string        command;
+                int                frameIndex;
+                double             duration;
+                iss >> command >> frameIndex >> duration;
+                frames.push_back({ frameIndex, duration });
+            }
+            else if (line.find("Loop") != std::string::npos)
+            {
+                std::istringstream iss(line);
+                std::string        command;
+                int                loopIndex;
+                iss >> command >> loopIndex;
+                loopStartFrame = loopIndex;
+                loopEnabled    = true;
+            }
+            else if (line.find("End") != std::string::npos)
+            {
+                loopEnabled = false;
+            }
         }
     }
 
@@ -66,6 +67,7 @@ namespace Dokev
 
         if (frames.empty() || currentFrameIndex < 0 || currentFrameIndex >= static_cast<int>(frames.size()))
         {
+            //std::cout << "empty" << std::endl;
             return;
         }
 
@@ -75,6 +77,7 @@ namespace Dokev
         {
             for (auto& event : events)
             {
+            //std::cout << "event" << std::endl;
                 if (event.frameIndex == currentFrameIndex)
                 {
                     event.callback();
@@ -88,6 +91,7 @@ namespace Dokev
         {
             timer = 0.0;
             currentFrameIndex++;
+            //std::cout << "timer" << std::endl;
 
             int endFrame = (loopEndFrame == -1) ? static_cast<int>(frames.size()) : loopEndFrame;
 

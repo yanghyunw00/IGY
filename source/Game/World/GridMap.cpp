@@ -10,7 +10,6 @@
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
 #include "Dokev/Core/DKUtility.hpp"
-#include "Game/Entities/Building.hpp"
 #include "Dokev/State/DKGameState.hpp"
 #include "Dokev/World/DKGrid.hpp"
 #include "Engine/Engine.hpp"
@@ -19,8 +18,8 @@
 #include "Engine/Texture.hpp"
 #include "Engine/TextureManager.hpp"
 #include "Engine/Window.hpp"
+#include "Game/Entities/Building.hpp"
 #include "Game/Input/DKMouseSelection.hpp"
-
 
 #include "OpenGL/GL.hpp"
 #include <GL/glew.h>
@@ -79,20 +78,26 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     MountainTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
     SnowTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPeak.png").string());
 
-    Max_Height      = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
-    RoadTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
-    IsoMouseAtlas   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
+    Max_Height    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
+    IsoMouseAtlas = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
-    //Test For new Asset
-    // PlainGridTest1 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoWater.png").string());
-    // PlainGridTest2 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/PlaneGrid4.png").string());
-    // PlainGridTest3 = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
+    static const int roadTileNums[] = {1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+    for (int n : roadTileNums)
+    {
+        std::string path    = "Assets/images/road/Road1_tile_" + std::to_string(n) + ".png";
+        roadTileTextures[n] = Dokev::LoadTexture(assets::locate_asset(path).string());
+    }
 
+    for (int y = 0; y < GRID_SIZE_Y; ++y)
+        for (int x = 0; x < GRID_SIZE_X; ++x)
+            roadConnectionMask[y][x] = -1;
 
-    IsoGridTexture[0] = WaterTexture; // water
-    IsoGridTexture[1] = PlainsTexture; // plane
+    IsoGridTexture[0] = WaterTexture;    // water (fallback)
+    IsoGridTexture[1] = PlainsTexture;   // plane
     IsoGridTexture[2] = MountainTexture; // mountain
     IsoGridTexture[3] = SnowTexture;
+
+    waterAnimation = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/water.spt"));
 
     ResetPerlinTexture();
     ResetIsoGridMapArray();
@@ -104,7 +109,6 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     //////////////////////////////////////////////////////////////////////////
 
     GL::GenFramebuffers(1, &mouseAtlasFBO);
-
     GL::BindFramebuffer(GL_FRAMEBUFFER, mouseAtlasFBO);
 
     // this texture will save the colors
@@ -129,6 +133,11 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     GL::BindFramebuffer(GL_FRAMEBUFFER, 0);
     GL::BindTexture(GL_TEXTURE_2D, 0);
 };
+
+void GridMap::UpdateWaterAnimation(double dt)
+{
+    waterAnimation.Update(dt);
+}
 
 void GridMap::ReGenerateMap()
 {
@@ -302,6 +311,37 @@ void GridMap::InitializeIsoView()
     }
 }
 
+static int rotateMask4(int mask, int view)
+{
+    int v = view & 3;
+    if (v == 0) return mask;
+    return ((mask << v) | (mask >> (4 - v))) & 0xF;
+}
+
+static int maskToTileIndex(int mask)
+{
+    switch (mask)
+    {
+        case 0:  return 8;
+        case 1:  return 7;   // N only
+        case 2:  return 8;   // E only
+        case 4:  return 7;   // S only
+        case 8:  return 8;   // W only
+        case 5:  return 2;   // N+S straight
+        case 10: return 3;   // E+W straight
+        case 9:  return 9;   // N+W corner
+        case 12: return 6;   // S+W corner
+        case 6:  return 1;   // E+S corner
+        case 3:  return 4;   // N+E corner
+        case 7:  return 10;  // T: N+E+S (no W)
+        case 11: return 13;  // T: N+E+W (no S)
+        case 13: return 14;  // T: N+S+W (no E)
+        case 14: return 11;  // T: E+S+W (no N)
+        case 15: return 12;  // 4-way
+        default: return 2;
+    }
+}
+
 void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, const Dokev::MouseSelection* mouseSelection, Dokev::GameObjectManager* gameObjMgr) const
 {
     currentView = index % 4;
@@ -362,20 +402,33 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                         renderHeight += GetWaterWaveOffset(originalX, originalY);
                     }
                     topY = static_cast<int>(renderHeight) - screenY;
-                    Dokev::DrawTexture(RoadTexture, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
-                    // std::cout << "doodoo" <<std::endl;
+
+
+                    int rawMask     = roadConnectionMask[originalY][originalX];
+                    int rotatedMask = rotateMask4(rawMask < 0 ? 0 : rawMask, currentView);
+                    int tileIdx     = maskToTileIndex(rotatedMask);
+                    Dokev::DrawTexture(roadTileTextures[tileIdx], screenX, topY + TILE_HEIGHT, Dokev::ColorPalette::WHITE, selected_renderer);
+
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                 }
                 else
                 {
                     // Only apply wave height animation on non-water-heavy variants to avoid visual overlap with buildings/roads.
-                    if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
-                    {
-                        renderHeight += GetWaterWaveOffset(originalX, originalY);
-                    }
+                    // if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
+                    // {
+                    //     renderHeight += GetWaterWaveOffset(originalX, originalY);
+                    // }
 
                     topY = static_cast<int>(renderHeight) - screenY;
-                    Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+
+                    if (current_texture == 0 && waterAnimation.GetSpriteSheet().IsValid())
+                    {
+                        waterAnimation.DrawAtPosition(screenX, topY);
+                    }
+                    else
+                    {
+                        Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    }
                     Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
 
                     if (gameObjMgr)
@@ -387,7 +440,7 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                             int bX = static_cast<int>(building->GetGrid().x);
                             int bY = static_cast<int>(building->GetGrid().y);
 
-                            //이 타일이 빌딩이 설치되었느냐?
+                            // 이 타일이 빌딩이 설치되었느냐?
                             if (bX == originalX && bY == originalY)
                             {
                                 building->Draw(index, this, screenX, topY + 64);
@@ -692,6 +745,14 @@ bool GridMap::IsWalkable(int x, int y)
     return false;
 }
 
+void GridMap::SetPathCost(int x, int y, float cost)
+{
+    if (pathFinder)
+    {
+        pathFinder->SetTileCost(x, y, cost);
+    }
+}
+
 Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex) const
 {
     float x = point.x;
@@ -707,4 +768,26 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
         case 3: rotatePoint90(x, y, GRID_SIZE_X_HALF, GRID_SIZE_Y_HALF, 270, newX, newY); return { newX, newY };
         default: return point;
     }
+}
+
+bool GridMap::FlattenTile(int x, int y)
+{
+    if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
+        return false;
+
+    GridCell& cell = m_gridCells[y][x];
+
+    // water cannot change
+    if (cell.getWater())
+        return false;
+
+    double targetHeight = mapProfile.thresholds.waterMax;
+
+    cell.ApplyTerrain(targetHeight, mapProfile.thresholds);
+
+    // Update pathfinding cost
+    SetPathCost(x, y, 1.0f);
+    SetWalkable(x, y, true);
+
+    return true;
 }

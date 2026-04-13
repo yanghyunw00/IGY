@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file GamePlayState.cpp
  * \author Hyunwoo Yang
  * \author
@@ -123,8 +123,17 @@ void GamePlayState::Load()
 
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
-    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(5.0f, 5.0f)));
-    GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(Math::fvec2(7.0f, 7.0f)));
+    {
+        const Road* road     = GetGSComponent<MapManager>()->GetRoad();
+        Math::fvec2 spawnPos = { GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f };
+        if (road && !road->GetRoadPositions().empty())
+        {
+            const auto& positions = road->GetRoadPositions();
+            spawnPos              = positions[positions.size() / 2]; // middle of the road
+        }
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
+    }
 
 
     camera.SetZoom(0.3f);
@@ -229,12 +238,12 @@ void GamePlayState::Update(double dt)
     if (!uiManager.IsMenuActive())
     {
         worldEditor.UpdateInput(simulationDt);
-        Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
+        // Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
     }
 
 
     UpdateGSComponents(simulationDt);
-    Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
 
     auto cityMetrics = GetGSComponent<CityMetrics>();
     if (cityMetrics)
@@ -243,8 +252,15 @@ void GamePlayState::Update(double dt)
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after cityMetrics Update");
 
+    // Update water tile animation
+    auto mapMgr = GetGSComponent<MapManager>();
+
+    if (mapMgr && mapMgr->GetMap())
+    {
+        mapMgr->GetMap()->UpdateWaterAnimation(simulationDt);
+    }
+
     // Update all humans
-    auto  mapMgr     = GetGSComponent<MapManager>();
     auto& humans     = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
     auto  gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
 
@@ -254,9 +270,9 @@ void GamePlayState::Update(double dt)
     {
         for (size_t i = 0; i < humans.size(); ++i)
         {
-            Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
+            // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
             humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad());
-            Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
+            // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
@@ -272,7 +288,7 @@ void GamePlayState::Update(double dt)
             building->Update(static_cast<float>(simulationDt));
         }
     }
-    Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after buildings");
     FloatingTextManager::Instance().Update(static_cast<float>(simulationDt));
 
     // smokeEmitter.Update(environment.DeltaTime);
@@ -291,11 +307,11 @@ void GamePlayState::Update(double dt)
 
     // Update city metrics with new systems
     bool shouldSpawnImmigrant = cityMetrics->UpdateSystems(simulationDt, gameObjMgr.get(), resourceMgr.get());
-    Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateSystems");
 
     if (shouldSpawnImmigrant)
     {
-        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant()));
+        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant(mapMgr->GetRoad())));
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
 
@@ -342,7 +358,7 @@ void GamePlayState::Update(double dt)
     const auto& input       = Engine::GetInput();
     bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
     tutorialManager.Update(static_cast<float>(simulationDt), mouseClicked, skipPressed);
-    Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
+    // Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
 
     if (buttonClicked)
     {
@@ -358,7 +374,7 @@ void GamePlayState::Update(double dt)
     ///////////////////////////////////////////////////////////
 
     auto selectBuildingType = uiManager.GetSelectedBuilding();
-    bool shouldplace        = mouseClicked || (ismouseheld && selectBuildingType == BuildingType::ROAD && !blockRoadPlacementUntilRelease);
+    bool shouldplace        = mouseClicked || (ismouseheld && (selectBuildingType == BuildingType::ROAD || selectBuildingType == BuildingType::FLATTEN) && !blockRoadPlacementUntilRelease);
 
     if (shouldplace)
     {
@@ -379,7 +395,6 @@ void GamePlayState::Update(double dt)
 
             GL::BindFramebuffer(GL_FRAMEBUFFER, mapMgr->GetMap()->mouseAtlasFBO);
 
-
             mouseScreen.y = windowSize.y - mouseScreen.y;
 
             GL::ReadPixels(static_cast<int>(mouseScreen.x), static_cast<int>(mouseScreen.y), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
@@ -396,6 +411,7 @@ void GamePlayState::Update(double dt)
             mouseSelection.SetHasValidPosition(true);
 
             auto selectedBuild = uiManager.GetSelectedBuilding();
+
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
             {
                 auto attemptPlacement = [&]()
@@ -424,14 +440,30 @@ void GamePlayState::Update(double dt)
 
                     GridCell* clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
 
-                    if (selectedBuild != BuildingType::DELETE)
+                    if (selectedBuild == BuildingType::FLATTEN)
+                    {
+                        if (!clickedCell || clickedCell->getWater())
+                        {
+                            mouseSelection.SetHasValidPosition(false);
+                            return;
+                        }
+                    }
+                    else if (selectedBuild != BuildingType::DELETE)
                     {
                         if (!clickedCell || clickedCell->getWater() || !tileMgr->CanPlaceTile(gridX, gridY))
                         {
-                            // Invalid placement  -> give bool type to mouse selction and set to false
-                            //-> draw red texture on mouse selction draw function
                             mouseSelection.SetHasValidPosition(false);
                             return;
+                        }
+
+                        if (selectedBuild != BuildingType::ROAD)
+                        {
+                            auto* road = mapMgr->GetRoad();
+                            if (!road || !road->IsAdjacentToRoad(gridX, gridY))
+                            {
+                                mouseSelection.SetHasValidPosition(false);
+                                return;
+                            }
                         }
                     }
                     else
@@ -535,7 +567,6 @@ void GamePlayState::Update(double dt)
                                 auto* road = mapMgr->GetRoad();
                                 if (road)
                                 {
-                                    // RemoveRoad already has Deallocate Tile
                                     road->removeRoad(gridX, gridY, *map);
                                 }
                                 else
@@ -545,6 +576,47 @@ void GamePlayState::Update(double dt)
 
                                 placed = true;
                                 break;
+                            }
+                        case BuildingType::FLATTEN:
+                            {
+                                mouseSelection.SetHasValidPosition(true);
+                                if (map->FlattenTile(gridX, gridY))
+                                {
+                                    placed = true;
+                                    break;
+                                }
+
+                                // static Math::ivec2 startPos;
+                                // if (mouse.MouseJustPressed(Mouse::Button::Left))
+                                // {
+                                //     startPos = mouse.GetPosition();
+                                //     std::cout << startPos.x << std::endl;
+                                // }
+
+                                // if (mouse.MouseJustReleased(Mouse::Button::Left))
+                                // {
+                                //     std::cout << "Released " << std::endl; // didnt work
+
+                                //     Math::ivec2 endPos = mouse.GetPosition();
+
+                                //     int minx = std::min(startPos.x, endPos.x);
+                                //     int maxx = std::max(startPos.x, endPos.x);
+                                //     int miny = std::min(startPos.y, endPos.y);
+                                //     int maxy = std::max(startPos.y, endPos.y);
+
+                                //     for (int y = miny; y <= maxy; y++)
+                                //     {
+                                //         for (int x = minx; x <= maxx; x++)
+                                //         {
+                                //             mouseSelection.SetHasValidPosition(true);
+
+                                //             if (map->FlattenTile(x, y))
+                                //             {
+                                //                 placed = true;
+                                //             }
+                                //         }
+                                //     }
+                                // }
                             }
 
                         default: break;
@@ -560,9 +632,8 @@ void GamePlayState::Update(double dt)
                                 CS230::AudioManager::Instance().PlaySFX("Assets/sounds/road.mp3");
                             }
                         }
-                        else if (selectedBuild != BuildingType::DELETE)
+                        else if (selectedBuild != BuildingType::DELETE && selectedBuild != BuildingType::FLATTEN)
                         {
-                            CS230::AudioManager::Instance().PlaySFX("Assets/sounds/building.mp3");
                         }
 
                         if (input.KeyJustPressed(CS230::Input::Keys::Escape))
@@ -574,6 +645,35 @@ void GamePlayState::Update(double dt)
                 };
 
                 attemptPlacement();
+            }
+
+            if (mouseClicked && selectBuildingType == BuildingType::NONE)
+            {
+                Math::fvec2 grid = ConvertViewTileToGrid({ tileX, tileY }, index, mapMgr->GetMap());
+
+                Human* closest     = nullptr;
+                float  closestDist = 1.5f;
+                for (const auto& h : gameObjMgr->GetHumans())
+                {
+                    Math::fvec2 hPos = h->GetGridPosition();
+                    float       dx   = hPos.x - grid.x;
+                    float       dy   = hPos.y - grid.y;
+                    float       dist = std::sqrt(dx * dx + dy * dy);
+
+                    if (dist < closestDist)
+                    {
+                        closestDist = dist;
+                        closest     = h.get();
+                    }
+                }
+
+                // Toggle off
+                if (closest == selectedNPC)
+                    selectedNPC = nullptr;
+                else
+                    selectedNPC = closest;
+
+                playerUI.SetSelectedHuman(selectedNPC);
             }
         }
     }
@@ -701,6 +801,25 @@ void GamePlayState::DrawImGui()
 
     if (cityMetrics && gameObjMgr)
     {
+        if (selectedNPC)
+        {
+            bool found = false;
+            for (const auto& h : gameObjMgr->GetHumans())
+            {
+                if (h.get() == selectedNPC)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                selectedNPC = nullptr;
+                playerUI.SetSelectedHuman(nullptr);
+            }
+        }
+
         playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get());
     }
 }

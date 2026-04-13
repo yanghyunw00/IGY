@@ -8,6 +8,7 @@
 
 #pragma once
 #include "../World/pathFinding.hpp"
+#include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Graphics/DKImage.hpp"
 #include "Dokev/Graphics/DKRenderState.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
@@ -71,6 +72,7 @@ public:
     void ReGenerateMap();
     void ResetIsoGridMapArray();
     void InitializeIsoView();
+    void UpdateWaterAnimation(double dt);
     void IsometricDrawMap(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr, Dokev::GameObjectManager* gameObjMgr = nullptr) const;
 
     void IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
@@ -108,6 +110,11 @@ public:
     void DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex);
     void SetWalkable(int x, int y, bool walkable);
     bool IsWalkable(int x, int y);
+    void SetPathCost(int x, int y, float cost);
+    
+
+    //Flatten
+    bool FlattenTile(int x, int y);
 
     // //For Human ai
     std::vector<Math::fvec2> GetCurrentPath() const
@@ -153,7 +160,8 @@ private:
     mutable GridCell* view3[GRID_SIZE_X * GRID_SIZE_Y];
     mutable GridCell* view4[GRID_SIZE_X * GRID_SIZE_Y];
 
-    Dokev::Texture2D IsoGridTexture[4];
+    Dokev::Texture2D      IsoGridTexture[4];
+    Dokev::AnimatedSprite waterAnimation;
 
     std::vector<GridCell> GridMapArray;
     Dokev::Image          PerlinNoiseImage;
@@ -164,11 +172,6 @@ private:
     Dokev::Texture2D MountainTexture;
     Dokev::Texture2D SnowTexture;
     Dokev::Texture2D Max_Height;
-
-    Dokev::Texture2D PlainGridTest1;
-    Dokev::Texture2D PlainGridTest2;
-    Dokev::Texture2D PlainGridTest3;
-
 
     Dokev::Texture2D IsoMouseAtlas;
 
@@ -189,9 +192,24 @@ private:
 
     // Tile management for buildings and roads
     std::unique_ptr<Dokev::TileManager> tileManager;
-    Dokev::Texture2D                    RoadTexture;
+
+    Dokev::Texture2D roadTileTextures[15];
+    int roadConnectionMask[GRID_SIZE_Y][GRID_SIZE_X];
 
 public:
+
+    // Called by Road when a road tiles connections change
+    void SetRoadConnectionMask(int x, int y, int mask)
+    {
+        if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+            roadConnectionMask[y][x] = mask;
+    }
+
+    void ClearRoadConnectionMask(int x, int y)
+    {
+        if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+            roadConnectionMask[y][x] = -1;
+    }
 
 
     mutable GLuint mouseAtlasFBO = 0;

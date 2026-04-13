@@ -55,6 +55,7 @@ public:
     void SetHeightMap(const std::vector<double>& heights);
     void SetWalkable(int x, int y, bool walkable);
     void SetCostMap(const std::vector<float>& costs);
+    void SetTileCost(int x, int y, float cost);
     bool IsPositionWalkable(int x, int y);
 
 

@@ -40,6 +40,10 @@ namespace Dokev
         void Update(double dt);
         void Draw(Math::TransformationMatrix transform) const;
 
+        // Same positioning semantics as DrawTexture(posX, posY):
+        // places the frame with its top-left at (posX, posY)
+        void DrawAtPosition(int posX, int posY) const;
+
         const std::string& GetCurrentAnimationName() const;
         bool               IsAnimationComplete() const;
 

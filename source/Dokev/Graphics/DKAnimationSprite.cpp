@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file DKAnimationSprite.cpp
  * \brief
  * \author Hyunwoo Yang
@@ -116,7 +116,7 @@ namespace Dokev
         Math::ivec2 frameSize = spriteSheet.GetFrameSize();
         Math::vec2  hotSpot   = spriteSheet.GetHotSpot();
 
-        Math::vec2 position = transform * Math::vec2(0.0, 0.0);
+        Math::vec2 position = transform * Math::vec2(1.0, 1.0);
 
         Dokev::DrawTextureRec(texture, framePos.x, framePos.y, frameSize.x, frameSize.y, position);
     }
@@ -139,6 +139,21 @@ namespace Dokev
     const Animation& AnimatedSprite::GetAnimation(const std::string& name) const
     {
         return animations.at(name);
+    }
+
+    void AnimatedSprite::DrawAtPosition(int posX, int posY) const
+    {
+        if (currentAnimation == nullptr || !spriteSheet.IsValid())
+            return;
+
+        int         frameIndex = currentAnimation->GetCurrentSpriteFrame();
+        Math::ivec2 fp         = spriteSheet.GetFramePosition(frameIndex);
+        Math::ivec2 fs         = spriteSheet.GetFrameSize();
+        Texture2D   tex        = spriteSheet.GetTexture();
+
+        int destX = posX - fs.x / 2;
+        int destY = posY - fs.y * 3 / 2;
+        tex.DrawPro(fp.x, fp.y, fs.x, fs.y, destX, destY);
     }
 
     Math::vec4 AnimatedSprite::GetCurrentFrameUV() const

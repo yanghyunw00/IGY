@@ -9,6 +9,7 @@
 
 #include "Human.hpp"
 #include "Building.hpp"
+#include "../Managers/NPCNameManager.hpp"
 #include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
@@ -29,6 +30,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
     humanTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
+    name           = NPCNameManager::Instance().GenerateName();
 }
 
 void Human::CancelWork()
@@ -305,8 +307,8 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
         }
     }
 
-    //NO WORK , YES ROAD
-    if (ai.isFollowingRoad && road)
+    // NO WORK — road-only movement
+    if (road)
     {
         bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
 
@@ -320,40 +322,42 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
                 std::vector<Math::fvec2> simplePath;
                 simplePath.push_back(currentGridPos);
                 simplePath.push_back(nextRoadTile);
-
                 FollowPath(simplePath);
                 ChangeState(HumanState::Walking);
                 return;
             }
         }
+        else
+        {
+            // Not on road: pathfind to the nearest road tile
+            Math::fvec2 roadPos;
+            if (FindNearbyRoad(road, roadPos))
+            {
+                map->ClearPath();
+                map->FindPath(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y),
+                              static_cast<int>(roadPos.x), static_cast<int>(roadPos.y));
+                auto path_ = map->GetCurrentPath();
+                if (!path_.empty() && path_.size() > 1)
+                {
+                    FollowPath(path_);
+                    ChangeState(HumanState::Walking);
+                    return;
+                }
+            }
+        }
     }
 
-    //No ROAD -> Random walk
-    Math::fvec2 destination = FindRandomDestination(map, road);
-
-    map->ClearPath();
-    map->FindPath(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y), static_cast<int>(destination.x), static_cast<int>(destination.y));
-
-    auto path_ = map->GetCurrentPath();
-
-    if (!path_.empty() && path_.size() > 1)
-    {
-        FollowPath(path_);
-        ChangeState(HumanState::Walking);
-    }
-    else
-    {
-        ChangeState(HumanState::Idle);
-        ai.idleTimer = ai.maxIdleTime - 0.5f;
-    }
+    // No road reachable — stay idle and retry shortly
+    ChangeState(HumanState::Idle);
+    ai.idleTimer = ai.maxIdleTime - 0.5f;
 }
+
 void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr)
 {
     if (state == HumanState::Walking)
     {
         if (!isMoving)
         {
-            ai.isFollowingRoad = false;
             if (ai.isHeadingHome)
             {
                 ai.isHeadingHome = false;
@@ -366,50 +370,16 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
             return;
         }
 
-        if (ai.isFollowingRoad && road)
-        {
-            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
-
-            if (!onRoad)
-            {
-                isMoving = false;
-                path.clear();
-                ChangeState(HumanState::FindingDestination);
-                return;
-            }
-        }
-
         if (isMoving)
         {
             UpdateMovement(deltaTime, map);
 
             if (!isMoving)
             {
-                // UpdateMovement may have already transitioned to Working/Resting state
                 if (state == HumanState::Working || state == HumanState::Resting)
                     return;
 
-                bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
-
-                if (onRoad)
-                {
-                    ai.isFollowingRoad    = true;
-                    ai.roadReturnAttempts = 0;
-                    ChangeState(HumanState::FindingDestination);
-                }
-                else
-                {
-                    if (ai.isFollowingRoad)
-                    {
-                        ChangeState(HumanState::FindingDestination);
-                    }
-                    else
-                    {
-                        ai.isFollowingRoad    = false;
-                        ai.roadReturnAttempts = 0;
-                        ChangeState(HumanState::Idle);
-                    }
-                }
+                ChangeState(HumanState::FindingDestination);
             }
         }
     }
@@ -433,8 +403,6 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
 
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
-    // if (!isVisible) return;
-
     Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
 
     float gridX_float = transformedPos.x;
@@ -466,11 +434,6 @@ void Human::Draw(int viewIndex, const GridMap* map) const
 
 void Human::ChangeState(HumanState newState)
 {
-    // if (state == HumanState::Working)
-    // {
-    //     isVisible = true;
-    // }
-
     state = newState;
 
     if (state == HumanState::Working)
@@ -506,138 +469,6 @@ void Human::DecideNextAction(GridMap* map)
     }
 }
 
-Math::fvec2 Human::FindRandomDestination(GridMap* map, const Road* road)
-{
-    if (!map)
-    {
-        return currentGridPos;
-    }
-
-    if (road)
-    {
-        if (ai.isFollowingRoad)
-        {
-            bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
-
-            if (onRoad)
-            {
-                bool        foundRoad    = false;
-                Math::fvec2 nextRoadTile = FindNextRoadTile(road, foundRoad);
-
-                if (foundRoad)
-                {
-                    ai.lastDirection.x    = nextRoadTile.x - currentGridPos.x;
-                    ai.lastDirection.y    = nextRoadTile.y - currentGridPos.y;
-                    ai.roadReturnAttempts = 0;
-                    return nextRoadTile;
-                }
-            }
-
-            Math::fvec2 roadPos;
-            if (FindNearbyRoad(road, roadPos))
-            {
-                std::cout << "Returning to road - attempt " << ai.roadReturnAttempts + 1 << std::endl;
-                ai.recentDestinations.push_back(roadPos);
-                if (ai.recentDestinations.size() > ai.maxRecentDestinations)
-                {
-                    ai.recentDestinations.erase(ai.recentDestinations.begin());
-                }
-                return roadPos;
-            }
-            else
-            {
-                ai.roadReturnAttempts++;
-                if (ai.roadReturnAttempts >= ai.maxRoadReturnAttempts)
-                {
-                    ai.isFollowingRoad    = false;
-                    ai.roadReturnAttempts = 0;
-                }
-            }
-        }
-
-        if (!ai.isFollowingRoad)
-        {
-            Math::fvec2 roadPos;
-            if (FindNearbyRoad(road, roadPos))
-            {
-                ai.recentDestinations.push_back(roadPos);
-                if (ai.recentDestinations.size() > ai.maxRecentDestinations)
-                {
-                    ai.recentDestinations.erase(ai.recentDestinations.begin());
-                }
-                return roadPos;
-            }
-        }
-    }
-
-    float maxDistance = ai.explorationRadius;
-    float minDistance = maxDistance * 0.5f;
-
-    int       attempts    = 0;
-    const int maxAttempts = 10;
-
-    while (attempts < maxAttempts)
-    {
-        float angle    = (rand() % 360) * (3.14159f / 180.0f);
-        float distance = minDistance + (rand() % (int)(maxDistance - minDistance + 1));
-
-        Math::fvec2 destination;
-        destination.x = currentGridPos.x + std::cos(angle) * distance;
-        destination.y = currentGridPos.y + std::sin(angle) * distance;
-
-        destination.x = std::max(0.0f, std::min((float)(GRID_SIZE_X - 1), destination.x));
-        destination.y = std::max(0.0f, std::min((float)(GRID_SIZE_Y - 1), destination.y));
-
-        int gridX = (int)destination.x;
-        int gridY = (int)destination.y;
-
-        if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
-        {
-            GridCell** viewArray = map->GetViewArray(0);
-            GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
-            double     height    = cell->getHeight();
-
-            if (height < 75.0) // if water, try again
-            {
-                attempts++;
-                continue;
-            }
-        }
-
-        bool tooClose = false;
-        for (const auto& recentDest : ai.recentDestinations)
-        {
-            float dx     = destination.x - recentDest.x;
-            float dy     = destination.y - recentDest.y;
-            float distSq = dx * dx + dy * dy;
-
-            if (distSq < 100.0f)
-            {
-                tooClose = true;
-                break;
-            }
-        }
-
-        if (tooClose)
-        {
-            attempts++;
-            continue;
-        }
-
-        ai.lastDirection.x = destination.x - currentGridPos.x;
-        ai.lastDirection.y = destination.y - currentGridPos.y;
-
-        ai.recentDestinations.push_back(destination);
-        if (ai.recentDestinations.size() > ai.maxRecentDestinations)
-        {
-            ai.recentDestinations.erase(ai.recentDestinations.begin());
-        }
-
-        return destination;
-    }
-
-    return currentGridPos;
-}
 
 Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
 {
@@ -793,15 +624,17 @@ bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
     return false;
 }
 
-Human Human::CreateImmigrant()
+Human Human::CreateImmigrant(const Road* road)
 {
-    int margin = GRID_SIZE_X / 4;
+    if (road && !road->GetRoadPositions().empty())
+    {
+        const auto& positions = road->GetRoadPositions();
+        int         idx       = rand() % static_cast<int>(positions.size());
+        return Human(positions[idx]);
+    }
 
-    float spawnX = (float)(margin + rand() % (GRID_SIZE_X - 2 * margin));
-    float spawnY = (float)(margin + rand() % (GRID_SIZE_Y - 2 * margin));
-
-    Human immigrant(Math::fvec2(spawnX, spawnY));
-    return immigrant;
+    // Fallback: spawn at map centre
+    return Human(Math::fvec2(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f));
 }
 
 Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const

@@ -125,7 +125,7 @@ namespace Dokev
 
                     BuildingButton roadButton;
                     roadButton.type     = BuildingType::ROAD;
-                    roadButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
+                    roadButton.texture  = LoadTexture(assets::locate_asset("Assets/images/road/roadUI_6432.png").string());
                     roadButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
                     roadButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
                     roadButton.name     = "Road";
@@ -153,7 +153,7 @@ namespace Dokev
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
+        float totalWidth = BUTTON_WIDTH * 4 + BUTTON_SPACING * 3;
         float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
         float startY     = UI_SPACING;
 
@@ -166,10 +166,19 @@ namespace Dokev
         constructionButton.tint     = Dokev::ColorPalette::WHITE;
         mainButtons.push_back(constructionButton);
 
+        BuildingButton flattenButton;
+        flattenButton.type     = BuildingType::FLATTEN;
+        flattenButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/IsoPlains.png").string());
+        flattenButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
+        flattenButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        flattenButton.name     = "Flatten";
+        flattenButton.tint     = Dokev::ColorPalette::WHITE;
+        mainButtons.push_back(flattenButton);
+
         BuildingButton deleteButton;
         deleteButton.type     = BuildingType::DELETE;
         deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
-        deleteButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING), startY);
+        deleteButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
         deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         deleteButton.name     = "Destroy";
         deleteButton.tint     = Dokev::ColorPalette::WHITE;
@@ -178,7 +187,7 @@ namespace Dokev
         BuildingButton cancelButton;
         cancelButton.type     = BuildingType::NONE;
         cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
-        cancelButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
+        cancelButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3, startY);
         cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         cancelButton.name     = "Cancel";
         cancelButton.tint     = Dokev::ColorPalette::RED;
@@ -215,7 +224,7 @@ namespace Dokev
 
         BuildingButton roadButton;
         roadButton.type     = BuildingType::NONE;
-        roadButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/road.png").string());
+        roadButton.texture  = LoadTexture(assets::locate_asset("Assets/images/road/roadUI_6432.png").string());
         roadButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
         roadButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         roadButton.name     = "Road";
@@ -317,6 +326,10 @@ namespace Dokev
                             if (button.type == BuildingType::DELETE)
                             {
                                 selectedBuilding = BuildingType::DELETE;
+                            }
+                            else if (button.type == BuildingType::FLATTEN)
+                            {
+                                selectedBuilding = BuildingType::FLATTEN;
                             }
                             else if (button.name == "Build")
                             {
@@ -597,7 +610,6 @@ namespace Dokev
             float scaledWidth  = textureWidth * iconScale;
             float scaledHeight = textureHeight * iconScale;
 
-            // Selected icon bobs up and down with a sin wave
             float bobOffset = button.isSelected ? std::sin(time * 3.0f) * 4.0f : 0.0f;
 
             Math::fvec2 imagePos = Math::fvec2(scaledPos.x + (scaledSize.x - scaledWidth) / 2.0f, scaledPos.y + (scaledSize.y - scaledHeight) / 2.0f + bobOffset);

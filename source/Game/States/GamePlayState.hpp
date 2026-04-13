@@ -43,6 +43,8 @@
 #include "Game/UI/DKUserInterfaceEditor.hpp"
 
 
+class Human;
+
 class GamePlayState : public Dokev::GameState
 {
 public:
@@ -115,4 +117,7 @@ private:
     AchievementManager achievementManager;
     bool        simulationPaused    = false;
     std::size_t simulationSpeedPresetIndex = 1;
+
+    // Selected NPC (clicked by player)
+    Human* selectedNPC = nullptr;
 };
