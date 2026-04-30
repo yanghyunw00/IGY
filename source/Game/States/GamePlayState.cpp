@@ -205,6 +205,8 @@ void GamePlayState::Update(double dt)
 
     const double simulationDt = GetSimulationDeltaTime(dt);
 
+    eventManager.EventCycle(dt);
+
     if (worldEditor.IsSaveRequested())
     {
         SaveGame("savegame.json");

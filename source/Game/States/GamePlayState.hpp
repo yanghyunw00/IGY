@@ -30,6 +30,7 @@
 #include "Game/Editor/DKGameWorldEditor.hpp"
 #include "Game/Input/DKMouseSelection.hpp"
 #include "Game/UI/DKTutorialManager.hpp"
+#include "Game/Managers/EventManager.hpp"
 
 
 #include "Engine/GameState.hpp"
@@ -120,4 +121,7 @@ private:
 
     // Selected NPC (clicked by player)
     Human* selectedNPC = nullptr;
+
+    //Event Manager
+    EventManager eventManager;
 };
