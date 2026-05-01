@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir C:\\\\cs200_dongyun\\\\IGY /b)",
+      "PowerShell(Get-ChildItem \"C:\\\\cs200_dongyun\\\\IGY\\\\source\" -Recurse | Where-Object { $_.Extension -in '.cpp', '.h', '.hpp' } | Select-Object FullName | Format-Table -AutoSize)",
+      "PowerShell(Copy-Item *)"
+    ]
+  }
+}

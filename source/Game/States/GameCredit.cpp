@@ -18,7 +18,7 @@ void GameCredit::Load()
     CS200::RenderingAPI::SetClearColor(0x0d0e20FF);
     try
     {
-        Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/Font_Outlined.png");
+        Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/DungGeunMo.ttf", 40);
     }
     catch (const std::exception& e)
     {

@@ -43,6 +43,7 @@
 #include "../Managers/DayCycleManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "Game/UI/DKUserInterfaceEditor.hpp"
+#include "Game/UI/GameConsole.hpp"
 
 
 class Human;
@@ -129,4 +130,7 @@ private:
 
     //Event Manager
     EventManager eventManager;
+
+    // In-game console (no ImGui)
+    GameConsole console;
 };

@@ -146,17 +146,26 @@ namespace CS230
         CS200::RenderingAPI::SetClearColor(default_background);
     }
 
+    void Window::EnableTextInput()  { SDL_StartTextInput(); }
+    void Window::DisableTextInput() { SDL_StopTextInput(); }
+
     void Window::Update()
     {
         SDL_GL_SwapWindow(sdl_window);
 
         // Reset mouse state at the beginning of the frame (before processing new events)
         mouse.Update();
+        frameTextInput.clear();
 
         SDL_Event event{ 0 };
         while (SDL_PollEvent(&event) != 0)
         {
             eventCallback(event);
+
+            if (event.type == SDL_TEXTINPUT)
+            {
+                frameTextInput += event.text.text;
+            }
 
             if (event.type == SDL_MOUSEWHEEL)
             {

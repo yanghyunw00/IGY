@@ -143,6 +143,7 @@ set(SOURCE_CODE
     Game/UI/DKUserInterfaceEditor.hpp Game/UI/DKUserInterfaceEditor.cpp
     Game/UI/DKTutorialManager.hpp Game/UI/DKTutorialManager.cpp
     Game/UI/DKTutorialStep.hpp Game/UI/DKTutorialStep.cpp
+    Game/UI/GameConsole.hpp Game/UI/GameConsole.cpp
 
     # Game - Input
     Game/Input/DKMouseSelection.hpp Game/Input/DKMouseSelection.cpp

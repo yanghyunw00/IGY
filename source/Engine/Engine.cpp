@@ -24,6 +24,7 @@
 #include "Timer.hpp"
 #include "Window.hpp"
 
+#include <SDL_ttf.h>
 #include <chrono>
 
 // Pimpl implementation class
@@ -120,6 +121,7 @@ void Engine::Start(std::string_view window_title)
     window.SetEventCallback(ImGuiHelper::FeedEvent);
     impl->ImmediateRenderer2D.Init();
     impl->InstancedRenderer2D.Init(); //MC
+    TTF_Init();
     CS230::AudioManager::Instance().Init();
 
     impl->timer.ResetTimeStamp();
@@ -132,6 +134,7 @@ void Engine::Stop()
 
     impl->gameStateManager.Clear();
     CS230::AudioManager::Instance().Shutdown();
+    TTF_Quit();
     ImGuiHelper::Shutdown();
     impl->logger.LogEvent("Engine Stopped");
 }

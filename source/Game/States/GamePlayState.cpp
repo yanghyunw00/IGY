@@ -107,7 +107,7 @@ void GamePlayState::Load()
     noiseTexture  = Dokev::LoadTextureFromImage(perlin);
     noiseTexture2 = Dokev::LoadTextureFromImage(perlin2);
 
-    CS230::FontManager::Instance().Load("MainFont", assets::locate_asset("Assets/fonts/Font_Simple.png"));
+    CS230::FontManager::Instance().Load("MainFont", assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
     CS230::AudioManager::Instance().PlayMusic("Assets/sounds/BGM.mp3", true);
     roadBuildSoundCount = 0;
 
@@ -160,10 +160,63 @@ void GamePlayState::Load()
     GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     achievementManager.Init();
+
+    // Console — must be after font load
+    console.Init("MainFont");
+    console.RegisterCommand("speed", "speed [0-3]  set simulation speed (0=0.5x 1=1x 2=2x 3=4x)",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+                return std::string("Current speed: ") + kSimulationSpeedLabels[simulationSpeedPresetIndex];
+            try { SetSimulationSpeedPreset(static_cast<std::size_t>(std::stoi(args[0]))); }
+            catch (...) { return "Usage: speed [0-3]"; }
+            return std::string("Speed set to ") + kSimulationSpeedLabels[simulationSpeedPresetIndex];
+        });
+    console.RegisterCommand("pause", "Toggle simulation pause",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            simulationPaused = !simulationPaused;
+            return simulationPaused ? "Paused" : "Resumed";
+        });
+    console.RegisterCommand("day", "Show current in-game day and time",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            return "Day " + std::to_string(dayCycle.GetCurrentDay()) +
+                   "  " + (dayCycle.GetHour() < 10 ? "0" : "") + std::to_string(dayCycle.GetHour()) +
+                   ":" + (dayCycle.GetMinute() < 10 ? "0" : "") + std::to_string(dayCycle.GetMinute()) +
+                   "  (" + dayCycle.GetPhaseName() + ")";
+        });
+    console.RegisterCommand("pop", "Show current population",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            auto mgr = GetGSComponent<Dokev::GameObjectManager>();
+            return mgr ? "Population: " + std::to_string(mgr->GetHumans().size()) : "N/A";
+        });
+    console.RegisterCommand("happiness", "Show city happiness",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            auto cm = GetGSComponent<CityMetrics>();
+            return cm ? "Happiness: " + std::to_string(static_cast<int>(cm->GetHappiness())) + "%" : "N/A";
+        });
+    console.RegisterCommand("money", "money [n]  show or set money",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            auto rm = GetGSComponent<ResourceManager>();
+            if (!rm) return "N/A";
+            if (!args.empty())
+            {
+                try { rm->SetMoney(std::stoi(args[0])); }
+                catch (...) { return "Usage: money [amount]"; }
+            }
+            return "Money: " + std::to_string(rm->totalMoney);
+        });
 }
 
 void GamePlayState::UpdateTimeControls()
 {
+    if (console.IsOpen())
+        return; // don't steal keys while console is open
+
     const auto& input = Engine::GetInput();
 
     if (input.KeyJustPressed(CS230::Input::Keys::P))
@@ -201,6 +254,8 @@ void GamePlayState::Update(double dt)
 {
     // Engine::GetLogger().LogEvent("GamePlayState::Update start");
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
+
+    console.Update(); // must be before UpdateTimeControls so IsOpen() is current
     UpdateTimeControls();
 
     const double simulationDt = GetSimulationDeltaTime(dt);
@@ -338,7 +393,7 @@ void GamePlayState::Update(double dt)
     // Achievement system
     {
         int buildingCount     = static_cast<int>(gameObjMgr->GetBuildings().size());
-        int maxSingleResource = std::max({ resourceMgr->totalWood, resourceMgr->totalStone, resourceMgr->totalSteel });
+        int maxSingleResource = resourceMgr->totalMoney;
         achievementManager.Update(static_cast<float>(dt), currentPopulation, buildingCount, cityMetrics->GetHappiness(), maxSingleResource);
     }
 
@@ -736,6 +791,7 @@ void GamePlayState::Draw() const
 
     tutorialManager.Draw();
     achievementManager.Draw();
+    console.Draw(); // drawn last so it sits on top of everything
 
     renderer2d.EndScene();
     // Engine::GetLogger().LogEvent("GamePlayState::Draw end");

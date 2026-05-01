@@ -30,7 +30,7 @@ void MainMenu::Load()
 
     try
     {
-        Font_simple = std::make_unique<CS230::Font>("Assets/fonts/Font_Simple.png");
+        Font_simple = std::make_unique<CS230::Font>("Assets/fonts/DungGeunMo.ttf", 40);
     }
     catch (const std::exception& e)
     {
@@ -39,7 +39,7 @@ void MainMenu::Load()
 
     try
     {
-        Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/Font_Outlined.png");
+        Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/DungGeunMo.ttf", 40);
     }
     catch (const std::exception& e)
     {
