@@ -40,6 +40,7 @@
 
 #include "../Managers/AchievementManager.hpp"
 #include "../Managers/BuildingCostManager.hpp"
+#include "../Managers/DayCycleManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "Game/UI/DKUserInterfaceEditor.hpp"
 
@@ -116,6 +117,10 @@ private:
 
     // Achievement system
     AchievementManager achievementManager;
+
+    // Day/night cycle
+    DayCycleManager dayCycle;
+
     bool        simulationPaused    = false;
     std::size_t simulationSpeedPresetIndex = 1;
 

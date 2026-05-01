@@ -338,7 +338,7 @@ void GamePlayState::Update(double dt)
     // Achievement system
     {
         int buildingCount     = static_cast<int>(gameObjMgr->GetBuildings().size());
-        int maxSingleResource = resourceMgr->totalMoney;
+        int maxSingleResource = std::max({ resourceMgr->totalWood, resourceMgr->totalStone, resourceMgr->totalSteel });
         achievementManager.Update(static_cast<float>(dt), currentPopulation, buildingCount, cityMetrics->GetHappiness(), maxSingleResource);
     }
 
