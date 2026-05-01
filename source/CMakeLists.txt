@@ -123,6 +123,7 @@ set(SOURCE_CODE
     # Game - Managers
     Game/Managers/AchievementManager.hpp Game/Managers/AchievementManager.cpp
     Game/Managers/DayCycleManager.hpp Game/Managers/DayCycleManager.cpp
+    Game/Managers/WeatherCycleManager.hpp Game/Managers/WeatherCycleManager.cpp
     Game/Managers/EventManager.hpp Game/Managers/EventManager.cpp
     Game/Managers/ResourceManager.hpp
     Game/Managers/BuildingCostManager.hpp Game/Managers/BuildingCostManager.cpp

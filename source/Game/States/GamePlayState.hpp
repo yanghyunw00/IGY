@@ -41,6 +41,7 @@
 #include "../Managers/AchievementManager.hpp"
 #include "../Managers/BuildingCostManager.hpp"
 #include "../Managers/DayCycleManager.hpp"
+#include "../Managers/WeatherCycleManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "Game/UI/DKUserInterfaceEditor.hpp"
 #include "Game/UI/GameConsole.hpp"
@@ -121,6 +122,13 @@ private:
 
     // Day/night cycle
     DayCycleManager dayCycle;
+
+    // Weather cycle
+    WeatherCycleManager    weatherCycle;
+    OpenGL::CompiledShader rainShader;
+    GLuint                 rainVAO = 0;
+    GLuint                 rainVBO = 0;
+    float                  rainTime = 0.f;
 
     bool        simulationPaused    = false;
     std::size_t simulationSpeedPresetIndex = 1;

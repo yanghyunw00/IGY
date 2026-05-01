@@ -161,6 +161,28 @@ void GamePlayState::Load()
 
     achievementManager.Init();
 
+    // Rain overlay shader
+    {
+        rainShader = OpenGL::CreateShader(
+            assets::locate_asset("Assets/shaders/simple.vert"),
+            assets::locate_asset("Assets/shaders/rain.frag"));
+
+        struct Vert { float x, y, u, v; };
+        const Vert verts[] = {{ -1.f, -1.f, 0.f, 0.f }, { 3.f, -1.f, 2.f, 0.f }, { -1.f, 3.f, 0.f, 2.f }};
+        GL::GenBuffers(1, &rainVBO);
+        GL::BindBuffer(GL_ARRAY_BUFFER, rainVBO);
+        GL::BufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+        GL::GenVertexArrays(1, &rainVAO);
+        GL::BindVertexArray(rainVAO);
+        GL::BindBuffer(GL_ARRAY_BUFFER, rainVBO);
+        GL::EnableVertexAttribArray(0);
+        GL::VertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vert), nullptr);
+        GL::EnableVertexAttribArray(1);
+        GL::VertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vert), reinterpret_cast<void*>(2 * sizeof(float)));
+        GL::BindVertexArray(0);
+        GL::BindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
     // Console — must be after font load
     console.Init("MainFont");
     console.RegisterCommand("speed", "speed [0-3]  set simulation speed (0=0.5x 1=1x 2=2x 3=4x)",
@@ -198,6 +220,22 @@ void GamePlayState::Load()
             auto cm = GetGSComponent<CityMetrics>();
             return cm ? "Happiness: " + std::to_string(static_cast<int>(cm->GetHappiness())) + "%" : "N/A";
         });
+    console.RegisterCommand("weather", "weather [clear|cloudy|rain|thunder]  set weather",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+            {
+                const char* names[] = { "clear", "cloudy", "rain", "thunder" };
+                return std::string("Current weather: ") + names[static_cast<int>(weatherCycle.GetCurrent())];
+            }
+            const std::string& arg = args[0];
+            if      (arg == "clear"  ) { weatherCycle.SetWeather(WeatherType::Clear);   return "Weather set to clear";   }
+            else if (arg == "cloudy" ) { weatherCycle.SetWeather(WeatherType::Cloudy);  return "Weather set to cloudy";  }
+            else if (arg == "rain"   ) { weatherCycle.SetWeather(WeatherType::Rain);    return "Weather set to rain";    }
+            else if (arg == "thunder") { weatherCycle.SetWeather(WeatherType::Thunder); return "Weather set to thunder"; }
+            return "Usage: weather [clear|cloudy|rain|thunder]";
+        });
+
     console.RegisterCommand("money", "money [n]  show or set money",
         [this](const std::vector<std::string>& args) -> std::string
         {
@@ -260,6 +298,9 @@ void GamePlayState::Update(double dt)
 
     const double simulationDt = GetSimulationDeltaTime(dt);
 
+    weatherCycle.Update(static_cast<float>(simulationDt));
+    rainTime += static_cast<float>(simulationDt);
+
     eventManager.EventCycle(dt);
 
     if (worldEditor.IsSaveRequested())
@@ -291,8 +332,8 @@ void GamePlayState::Update(double dt)
 
     camera.UpdateZoomInterpolation(simulationDt);
 
-    // Only process game input if UI menu is not active
-    if (!uiManager.IsMenuActive())
+    // Only process game input if UI menu is not active and console is closed
+    if (!uiManager.IsMenuActive() && !console.IsOpen())
     {
         worldEditor.UpdateInput(simulationDt);
         // Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
@@ -413,7 +454,7 @@ void GamePlayState::Update(double dt)
 
     // Update tutorial
     const auto& input       = Engine::GetInput();
-    bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
+    bool        skipPressed = !console.IsOpen() && input.KeyJustPressed(CS230::Input::Keys::F);
     tutorialManager.Update(static_cast<float>(simulationDt), mouseClicked, skipPressed);
     // Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
 
@@ -783,8 +824,42 @@ void GamePlayState::Draw() const
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();
 
+    // Rain overlay (drawn between scene and UI)
+    {
+        float intensity = weatherCycle.GetRainIntensity();
+        if (intensity > 0.f && rainShader.Shader != 0)
+        {
+            const auto& locs = rainShader.UniformLocations;
+            auto it_time  = locs.find("uTime");
+            auto it_inten = locs.find("uRainIntensity");
+            auto it_res   = locs.find("uResolution");
+            if (it_time != locs.end() && it_inten != locs.end() && it_res != locs.end())
+            {
+                GL::UseProgram(rainShader.Shader);
+                GL::Uniform1f(it_time->second,  rainTime);
+                GL::Uniform1f(it_inten->second, intensity);
+                GL::Uniform2f(it_res->second,
+                    static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
+                GL::BindVertexArray(rainVAO);
+                GL::DrawArrays(GL_TRIANGLES, 0, 3);
+                GL::BindVertexArray(0);
+                GL::UseProgram(0);
+            }
+        }
+    }
+
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
     renderer2d.BeginScene(ndcMatrixUI);
+
+    // Day/night overlay
+    CS200::RGBA dayOverlay = dayCycle.GetOverlayColor();
+    if (dayOverlay != CS200::CLEAR)
+        Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, dayOverlay);
+
+    // Weather overlay (tint + thunder flash)
+    CS200::RGBA weatherOverlay = weatherCycle.GetOverlayColor();
+    if (weatherOverlay != CS200::CLEAR)
+        Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, weatherOverlay);
 
     int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
@@ -878,6 +953,10 @@ void GamePlayState::DrawImGui()
 
 void GamePlayState::Unload()
 {
+    OpenGL::DestroyShader(rainShader);
+    if (rainVAO != 0) { GL::DeleteVertexArrays(1, &rainVAO); rainVAO = 0; }
+    if (rainVBO != 0) { GL::DeleteBuffers(1, &rainVBO); rainVBO = 0; }
+
     Engine::GetLogger().LogEvent("GamePlayState: Unloaded");
 }
 
