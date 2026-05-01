@@ -10,9 +10,13 @@
 #include "../World/GridMap.hpp"
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
+#include "CS200/OffscreenFramebuffer.hpp"
+#include "CS200/PostProcessingPipeline.hpp"
 #include "CS200/RGBA.hpp"
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Graphics/DKCamera.hpp"
+#include "Dokev/Graphics/DKShapes.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
 #include "Dokev/State/DKGameState.hpp"
 #include "Engine/Engine.hpp"
@@ -22,6 +26,9 @@
 #include "Engine/Texture.hpp"
 #include "Engine/Vec2.hpp"
 #include "Engine/Window.hpp"
+#include "Game/Managers/DayCycleManager.hpp"
+#include "OpenGL/Shader.hpp"
+#include <GL/glew.h>
 #include <string>
 
 class MainMenu : public Dokev::GameState
@@ -149,4 +156,14 @@ private:
 
     Main_Keys  current         = Main_Keys::GamePlayKey;
     MapVariant selectedVariant = MapVariant::Balanced;
+
+    // Animated background map
+    GridMap                    bgMap;
+    DayCycleManager            bgDayCycle;
+    mutable OffscreenFramebuffer bgFBO;
+    mutable PostProcessingPipeline blurPipeline;
+    Dokev::Camera              bgCamera;
+    OpenGL::CompiledShader     bgBlitShader;
+    GLuint                     bgBlitVAO = 0;
+    GLuint                     bgBlitVBO = 0;
 };
