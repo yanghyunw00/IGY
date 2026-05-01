@@ -26,6 +26,16 @@ static CS200::RGBA TargetOverlay(WeatherType w)
     }
 }
 
+static float TargetCloudOpacity(WeatherType w)
+{
+    switch (w)
+    {
+        case WeatherType::Clear:   return 0.20f;
+        case WeatherType::Cloudy:  return 0.35f;
+        default:                   return 0.0f;
+    }
+}
+
 static float TargetRainIntensity(WeatherType w)
 {
     switch (w)
@@ -110,6 +120,12 @@ CS200::RGBA WeatherCycleManager::GetOverlayColor() const
 
     const float t = std::min(transitionTimer / transitionDuration, 1.f);
     return Dokev::ColorLerp(TargetOverlay(previous), TargetOverlay(current), t);
+}
+
+float WeatherCycleManager::GetCloudShadowOpacity() const
+{
+    const float t = std::min(transitionTimer / transitionDuration, 1.f);
+    return TargetCloudOpacity(previous) + (TargetCloudOpacity(current) - TargetCloudOpacity(previous)) * t;
 }
 
 float WeatherCycleManager::GetRainIntensity() const

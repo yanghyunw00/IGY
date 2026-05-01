@@ -21,10 +21,11 @@ public:
     void Update(float dt);
     void SetWeather(WeatherType w);
 
-    WeatherType GetCurrent()        const { return current; }
-    CS200::RGBA GetOverlayColor()   const;
-    float       GetRainIntensity()  const;  // 0.0 ~ 1.0
-    bool        TryConsumeThunderFlash();   // true on the frame a lightning strike begins
+    WeatherType GetCurrent()             const { return current; }
+    CS200::RGBA GetOverlayColor()        const;
+    float       GetRainIntensity()       const;  // 0.0 ~ 1.0
+    float       GetCloudShadowOpacity()  const;  // 0.0 ~ 1.0
+    bool        TryConsumeThunderFlash();        // true on the frame a lightning strike begins
 
     // Transition probability table [from][to]: Clear, Cloudy, Rain, Thunder
     static constexpr float kTransitionTable[4][4] = {

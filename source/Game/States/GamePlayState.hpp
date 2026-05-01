@@ -130,6 +130,11 @@ private:
     GLuint                 rainVBO = 0;
     float                  rainTime = 0.f;
 
+    // Cloud system
+    struct CloudPatch { float x, y, w, h, alpha; };
+    std::vector<CloudPatch> clouds;
+    float cloudVisOverride = -1.f;  // -1 = weather-driven
+
     bool        simulationPaused    = false;
     std::size_t simulationSpeedPresetIndex = 1;
 

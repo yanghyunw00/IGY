@@ -183,6 +183,25 @@ void GamePlayState::Load()
         GL::BindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
+    // Cloud patches — scattered randomly across the world
+    {
+        const int   COUNT     = 12;
+        const float SPAN      = 15000.f;
+        const float ORIGIN    = -4000.f;
+        clouds.clear();
+        clouds.reserve(COUNT);
+        for (int i = 0; i < COUNT; ++i)
+        {
+            CloudPatch c;
+            c.x     = ORIGIN + (static_cast<float>(std::rand()) / RAND_MAX) * SPAN;
+            c.y     = ORIGIN + (static_cast<float>(std::rand()) / RAND_MAX) * SPAN;
+            c.w     = 700.f  + (static_cast<float>(std::rand()) / RAND_MAX) * 900.f;
+            c.h     = 180.f  + (static_cast<float>(std::rand()) / RAND_MAX) * 220.f;
+            c.alpha = 0.50f  + (static_cast<float>(std::rand()) / RAND_MAX) * 0.20f;
+            clouds.push_back(c);
+        }
+    }
+
     // Console — must be after font load
     console.Init("MainFont");
     console.RegisterCommand("speed", "speed [0-3]  set simulation speed (0=0.5x 1=1x 2=2x 3=4x)",
@@ -234,6 +253,26 @@ void GamePlayState::Load()
             else if (arg == "rain"   ) { weatherCycle.SetWeather(WeatherType::Rain);    return "Weather set to rain";    }
             else if (arg == "thunder") { weatherCycle.SetWeather(WeatherType::Thunder); return "Weather set to thunder"; }
             return "Usage: weather [clear|cloudy|rain|thunder]";
+        });
+
+    console.RegisterCommand("clouds", "clouds [0.0-1.0|auto]  set cloud visibility",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+            {
+                float cur = (cloudVisOverride >= 0.f) ? cloudVisOverride : weatherCycle.GetCloudShadowOpacity();
+                return "Cloud visibility: " + std::to_string(cur).substr(0, 4) +
+                       ((cloudVisOverride >= 0.f) ? " (manual)" : " (auto)");
+            }
+            if (args[0] == "auto") { cloudVisOverride = -1.f; return "Clouds: auto"; }
+            try
+            {
+                float v = std::stof(args[0]);
+                if (v < 0.f || v > 1.f) return "Usage: clouds [0.0-1.0|auto]";
+                cloudVisOverride = v;
+                return "Cloud visibility set to " + std::to_string(v).substr(0, 4);
+            }
+            catch (...) { return "Usage: clouds [0.0-1.0|auto]"; }
         });
 
     console.RegisterCommand("money", "money [n]  show or set money",
@@ -300,6 +339,22 @@ void GamePlayState::Update(double dt)
 
     weatherCycle.Update(static_cast<float>(simulationDt));
     rainTime += static_cast<float>(simulationDt);
+
+    // Move cloud patches in world space
+    {
+        const float windX     = 90.f;
+        const float windY     = 15.f;
+        const float wrapRight = 12000.f;
+        const float wrapLeft  = -5000.f;
+        const float dt_f      = static_cast<float>(simulationDt);
+        for (auto& c : clouds)
+        {
+            c.x += windX * dt_f;
+            c.y += windY * dt_f;
+            if (c.x - c.w * 0.5f > wrapRight)
+                c.x = wrapLeft - c.w * 0.5f;
+        }
+    }
 
     eventManager.EventCycle(dt);
 
@@ -821,10 +876,28 @@ void GamePlayState::Draw() const
         human->Draw(index, mapMgr->GetMap());
     }
 
+    // Cloud patches drawn in world space (same camera transform as the map)
+    {
+        float vis = (cloudVisOverride >= 0.f) ? cloudVisOverride : weatherCycle.GetCloudShadowOpacity();
+        if (vis > 0.f)
+        {
+            for (const auto& c : clouds)
+            {
+                auto color = Dokev::ColorAlpha(Dokev::ColorPalette::WHITE, c.alpha * vis);
+                Dokev::DrawRectangle(
+                    static_cast<int>(c.x - c.w * 0.5f),
+                    static_cast<int>(c.y - c.h * 0.5f),
+                    static_cast<int>(c.w),
+                    static_cast<int>(c.h),
+                    color);
+            }
+        }
+    }
+
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();
 
-    // Rain overlay (drawn between scene and UI)
+    // Rain overlay
     {
         float intensity = weatherCycle.GetRainIntensity();
         if (intensity > 0.f && rainShader.Shader != 0)
