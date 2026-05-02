@@ -13,12 +13,13 @@ public:
 
     void Update(float simulationDt);
 
-    int         GetCurrentDay()  const { return currentDay; }
-    float       GetDayProgress() const { return dayTimer / kDayDuration; }
-    int         GetHour()        const { return static_cast<int>(GetDayProgress() * 24.f); }
-    int         GetMinute()      const { return static_cast<int>(GetDayProgress() * 24.f * 60.f) % 60; }
-    const char* GetPhaseName()   const;
-    CS200::RGBA GetOverlayColor() const;
+    int         GetCurrentDay()    const { return currentDay; }
+    float       GetDayProgress()   const { return dayTimer / kDayDuration; }
+    int         GetHour()          const { return static_cast<int>(GetDayProgress() * 24.f); }
+    int         GetMinute()        const { return static_cast<int>(GetDayProgress() * 24.f * 60.f) % 60; }
+    bool        IsWorkingHours()   const { const int h = GetHour(); return h >= 9 && h < 17; }
+    const char* GetPhaseName()     const;
+    CS200::RGBA GetOverlayColor()  const;
 
 private:
     // Start at 7:00 AM so the player sees morning on day 1

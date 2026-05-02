@@ -20,7 +20,6 @@ void main()
     vec2 texel = 1.0 / uResolution;
     vec2 dir = uHorizontal ? vec2(texel.x, 0.0) : vec2(0.0, texel.y);
 
-    // 9-tap separable Gaussian, samples spread 3 texels apart for a wide soft blur
     const float w0 = 0.227027;
     const float w1 = 0.194595;
     const float w2 = 0.121622;

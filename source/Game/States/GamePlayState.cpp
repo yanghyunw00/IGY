@@ -421,10 +421,12 @@ void GamePlayState::Update(double dt)
 
     if (!humans.empty())
     {
+        auto* resMgr = GetGSComponent<ResourceManager>().get();
         for (size_t i = 0; i < humans.size(); ++i)
         {
+            humans[i]->SetResourceManager(resMgr);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
-            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad());
+            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), nullptr, dayCycle.GetHour());
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
