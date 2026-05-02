@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file GamePlayState.cpp
  * \author Hyunwoo Yang
  * \author
@@ -394,7 +394,7 @@ void GamePlayState::Update(double dt)
         {
             resMgr->TrySpend(totalMaintenance);
             FloatingTextManager::Instance().Add(
-                "-" + std::to_string(totalMaintenance) + " 유지비",
+                "-" + std::to_string(totalMaintenance) + " maintenance",
                 { static_cast<float>(GRID_SIZE_X_HALF) * TILE_WIDTH, static_cast<float>(GRID_SIZE_Y_HALF) * TILE_HEIGHT },
                 0xFF4444FF);
         }
@@ -420,7 +420,7 @@ void GamePlayState::Update(double dt)
             if (c.x - c.w * 0.5f > wrapRight)
             {
                 c.x     = wrapLeft - c.w * 0.5f;
-                c.y     = rnd(wrapBot, wrapTop);   // 새 Y로 재진입
+                c.y     = rnd(wrapBot, wrapTop);  
                 c.w     = rnd(700.f, 1600.f);
                 c.h     = rnd(180.f, 400.f);
                 c.alpha = rnd(0.50f, 0.70f);

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * \file GameConsole.hpp
  * \brief In-game console. No ImGui — uses the game's own font/shape renderer.
  *        Toggle with backtick (`). Close with Escape.

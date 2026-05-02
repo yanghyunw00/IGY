@@ -545,7 +545,7 @@ namespace Dokev
     void UIManager::DrawHappiness(CityMetrics* cm) const
     {
         auto  windowSize   = Engine::GetWindow().GetSize();
-        float startX       = static_cast<float>(windowSize.x) - 100.0f - UI_SPACING + 32.0f;
+        float startX       = static_cast<float>(windowSize.x) - 170.0f;
         float startY       = static_cast<float>(windowSize.y) - 60.0f;
         int   iconPaddingY = 15;
 

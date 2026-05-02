@@ -12,7 +12,7 @@
 #include <SDL.h>
 #include <sstream>
 
-// ── helpers ─────────────────────────────────────────────────────────────────
+// helpers 
 
 namespace
 {
@@ -34,7 +34,7 @@ namespace
     }
 }
 
-// ── Init ────────────────────────────────────────────────────────────────────
+//  Init 
 
 void GameConsole::Init(const std::string& name)
 {

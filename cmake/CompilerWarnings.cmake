@@ -11,6 +11,7 @@ function(set_project_warnings project_name)
   option(WARNINGS_AS_ERRORS "Treat compiler warnings as errors" TRUE)
 
   set(MSVC_WARNINGS
+      /utf-8 # treat source and execution character set as UTF-8
       /W4 # Baseline reasonable warnings
       /w14242 # 'identifier': conversion from 'type1' to 'type1', possible loss
               # of data
