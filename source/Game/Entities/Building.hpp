@@ -27,6 +27,7 @@ protected:
     unsigned int     max_capacity;
     unsigned int     current_capacity;
     int              cost;
+    int              maintenanceCost = 0;
     float            progress;
     float            buildTime;
     float            maxBuildTime;
@@ -46,6 +47,7 @@ public:
     int          GetHp() const;
     void         setHP(int value);
     int          GetCost() const;
+    int          GetMaintenanceCost() const;
     Math::fvec2  GetGrid() const;
     bool         GetIsBuilt() const;
     unsigned int GetMaxCapacity() const;

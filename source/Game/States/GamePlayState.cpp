@@ -1,4 +1,4 @@
-﻿/**
+/**
  * \file GamePlayState.cpp
  * \author Hyunwoo Yang
  * \author
@@ -107,7 +107,7 @@ void GamePlayState::Load()
     noiseTexture  = Dokev::LoadTextureFromImage(perlin);
     noiseTexture2 = Dokev::LoadTextureFromImage(perlin2);
 
-    CS230::FontManager::Instance().Load("MainFont", assets::locate_asset("Assets/fonts/Font_Simple.png"));
+    CS230::FontManager::Instance().Load("MainFont", assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
     CS230::AudioManager::Instance().PlayMusic("Assets/sounds/BGM.mp3", true);
     roadBuildSoundCount = 0;
 
@@ -138,6 +138,30 @@ void GamePlayState::Load()
 
     camera.SetZoom(0.3f);
 
+    // Center camera on the middle of the map
+    {
+        auto*  map     = GetGSComponent<MapManager>()->GetMap();
+        auto   winSize = Engine::GetWindow().GetSize();
+
+        const int midX = GRID_SIZE_X_HALF;
+        const int midY = GRID_SIZE_Y_HALF;
+
+        GridCell** view       = map->GetViewArray(0);
+        double     cellHeight = view[midY * GRID_SIZE_X + midX]->getHeight();
+
+        int screenX = map->GetIsoOriginX() + (midX - midY) * TILE_WIDTH_HALF;
+        int screenY = map->GetIsoOriginY() + (midX + midY) * TILE_HEIGHT_HALF;
+        int topY    = static_cast<int>(cellHeight) - screenY;
+
+        float cx = static_cast<float>(screenX + TILE_WIDTH_HALF);
+        float cy = static_cast<float>(topY    + TILE_HEIGHT_HALF);
+
+        camera.SetPosition({
+            1.0f - cx * 2.0f / static_cast<float>(winSize.x),
+            1.0f - cy * 2.0f / static_cast<float>(winSize.y)
+        });
+    }
+
     // smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
     eventManager.Initialize(
@@ -165,10 +189,145 @@ void GamePlayState::Load()
     GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     achievementManager.Init();
+
+    // Rain overlay shader
+    {
+        rainShader = OpenGL::CreateShader(
+            assets::locate_asset("Assets/shaders/simple.vert"),
+            assets::locate_asset("Assets/shaders/rain.frag"));
+
+        struct Vert { float x, y, u, v; };
+        const Vert verts[] = {{ -1.f, -1.f, 0.f, 0.f }, { 3.f, -1.f, 2.f, 0.f }, { -1.f, 3.f, 0.f, 2.f }};
+        GL::GenBuffers(1, &rainVBO);
+        GL::BindBuffer(GL_ARRAY_BUFFER, rainVBO);
+        GL::BufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+        GL::GenVertexArrays(1, &rainVAO);
+        GL::BindVertexArray(rainVAO);
+        GL::BindBuffer(GL_ARRAY_BUFFER, rainVBO);
+        GL::EnableVertexAttribArray(0);
+        GL::VertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vert), nullptr);
+        GL::EnableVertexAttribArray(1);
+        GL::VertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vert), reinterpret_cast<void*>(2 * sizeof(float)));
+        GL::BindVertexArray(0);
+        GL::BindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    // Cloud patches — scattered randomly across the visible map area
+    {
+        const int   COUNT  = 12;
+        const float X_MIN  = -5000.f;
+        const float X_MAX  = 12000.f;
+        const float Y_MIN  = -2000.f;
+        const float Y_MAX  =   400.f;
+        clouds.clear();
+        clouds.reserve(COUNT);
+        auto rnd = [](float lo, float hi) {
+            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+        };
+        for (int i = 0; i < COUNT; ++i)
+        {
+            CloudPatch c;
+            c.x     = rnd(X_MIN, X_MAX);
+            c.y     = rnd(Y_MIN, Y_MAX);
+            c.w     = rnd(700.f, 1600.f);
+            c.h     = rnd(180.f, 400.f);
+            c.alpha = rnd(0.50f, 0.70f);
+            clouds.push_back(c);
+        }
+    }
+
+    // Console — must be after font load
+    console.Init("MainFont");
+    console.RegisterCommand("speed", "speed [0-3]  set simulation speed (0=0.5x 1=1x 2=2x 3=4x)",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+                return std::string("Current speed: ") + kSimulationSpeedLabels[simulationSpeedPresetIndex];
+            try { SetSimulationSpeedPreset(static_cast<std::size_t>(std::stoi(args[0]))); }
+            catch (...) { return "Usage: speed [0-3]"; }
+            return std::string("Speed set to ") + kSimulationSpeedLabels[simulationSpeedPresetIndex];
+        });
+    console.RegisterCommand("pause", "Toggle simulation pause",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            simulationPaused = !simulationPaused;
+            return simulationPaused ? "Paused" : "Resumed";
+        });
+    console.RegisterCommand("day", "Show current in-game day and time",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            return "Day " + std::to_string(dayCycle.GetCurrentDay()) +
+                   "  " + (dayCycle.GetHour() < 10 ? "0" : "") + std::to_string(dayCycle.GetHour()) +
+                   ":" + (dayCycle.GetMinute() < 10 ? "0" : "") + std::to_string(dayCycle.GetMinute()) +
+                   "  (" + dayCycle.GetPhaseName() + ")";
+        });
+    console.RegisterCommand("pop", "Show current population",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            auto mgr = GetGSComponent<Dokev::GameObjectManager>();
+            return mgr ? "Population: " + std::to_string(mgr->GetHumans().size()) : "N/A";
+        });
+    console.RegisterCommand("happiness", "Show city happiness",
+        [this](const std::vector<std::string>&) -> std::string
+        {
+            auto cm = GetGSComponent<CityMetrics>();
+            return cm ? "Happiness: " + std::to_string(static_cast<int>(cm->GetHappiness())) + "%" : "N/A";
+        });
+    console.RegisterCommand("weather", "weather [clear|cloudy|rain|thunder]  set weather",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+            {
+                const char* names[] = { "clear", "cloudy", "rain", "thunder" };
+                return std::string("Current weather: ") + names[static_cast<int>(weatherCycle.GetCurrent())];
+            }
+            const std::string& arg = args[0];
+            if      (arg == "clear"  ) { weatherCycle.SetWeather(WeatherType::Clear);   return "Weather set to clear";   }
+            else if (arg == "cloudy" ) { weatherCycle.SetWeather(WeatherType::Cloudy);  return "Weather set to cloudy";  }
+            else if (arg == "rain"   ) { weatherCycle.SetWeather(WeatherType::Rain);    return "Weather set to rain";    }
+            else if (arg == "thunder") { weatherCycle.SetWeather(WeatherType::Thunder); return "Weather set to thunder"; }
+            return "Usage: weather [clear|cloudy|rain|thunder]";
+        });
+
+    console.RegisterCommand("clouds", "clouds [0.0-1.0|auto]  set cloud visibility",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+            {
+                float cur = (cloudVisOverride >= 0.f) ? cloudVisOverride : weatherCycle.GetCloudShadowOpacity();
+                return "Cloud visibility: " + std::to_string(cur).substr(0, 4) +
+                       ((cloudVisOverride >= 0.f) ? " (manual)" : " (auto)");
+            }
+            if (args[0] == "auto") { cloudVisOverride = -1.f; return "Clouds: auto"; }
+            try
+            {
+                float v = std::stof(args[0]);
+                if (v < 0.f || v > 1.f) return "Usage: clouds [0.0-1.0|auto]";
+                cloudVisOverride = v;
+                return "Cloud visibility set to " + std::to_string(v).substr(0, 4);
+            }
+            catch (...) { return "Usage: clouds [0.0-1.0|auto]"; }
+        });
+
+    console.RegisterCommand("money", "money [n]  show or set money",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            auto rm = GetGSComponent<ResourceManager>();
+            if (!rm) return "N/A";
+            if (!args.empty())
+            {
+                try { rm->SetMoney(std::stoi(args[0])); }
+                catch (...) { return "Usage: money [amount]"; }
+            }
+            return "Money: " + std::to_string(rm->totalMoney);
+        });
 }
 
 void GamePlayState::UpdateTimeControls()
 {
+    if (console.IsOpen())
+        return; // don't steal keys while console is open
+
     const auto& input = Engine::GetInput();
 
     if (input.KeyJustPressed(CS230::Input::Keys::P))
@@ -206,9 +365,70 @@ void GamePlayState::Update(double dt)
 {
     // Engine::GetLogger().LogEvent("GamePlayState::Update start");
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
+
+    console.Update(); // must be before UpdateTimeControls so IsOpen() is current
     UpdateTimeControls();
 
     const double simulationDt = GetSimulationDeltaTime(dt);
+
+    weatherCycle.Update(static_cast<float>(simulationDt));
+    dayCycle.Update(static_cast<float>(simulationDt));
+    rainTime += static_cast<float>(simulationDt);
+
+    // Collect maintenance costs on each new day
+    if (dayCycle.GetCurrentDay() != previousDay)
+    {
+        previousDay = dayCycle.GetCurrentDay();
+
+        auto* resMgr    = GetGSComponent<ResourceManager>().get();
+        auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+
+        int totalMaintenance = 0;
+        for (const auto& b : buildings)
+        {
+            if (b->GetIsBuilt())
+                totalMaintenance += b->GetMaintenanceCost();
+        }
+
+        if (totalMaintenance > 0)
+        {
+            resMgr->TrySpend(totalMaintenance);
+            FloatingTextManager::Instance().Add(
+                "-" + std::to_string(totalMaintenance) + " 유지비",
+                { static_cast<float>(GRID_SIZE_X_HALF) * TILE_WIDTH, static_cast<float>(GRID_SIZE_Y_HALF) * TILE_HEIGHT },
+                0xFF4444FF);
+        }
+    }
+
+    // Move cloud patches in world space
+    {
+        const float windX     =  90.f;
+        const float windY     =   8.f;
+        const float wrapRight = 12000.f;
+        const float wrapLeft  = -5000.f;
+        const float wrapTop   =   600.f;
+        const float wrapBot   = -2200.f;
+        const float dt_f      = static_cast<float>(simulationDt);
+        auto rnd = [](float lo, float hi) {
+            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+        };
+        for (auto& c : clouds)
+        {
+            c.x += windX * dt_f;
+            c.y += windY * dt_f;
+
+            if (c.x - c.w * 0.5f > wrapRight)
+            {
+                c.x     = wrapLeft - c.w * 0.5f;
+                c.y     = rnd(wrapBot, wrapTop);   // 새 Y로 재진입
+                c.w     = rnd(700.f, 1600.f);
+                c.h     = rnd(180.f, 400.f);
+                c.alpha = rnd(0.50f, 0.70f);
+            }
+            if (c.y - c.h * 0.5f > wrapTop)
+                c.y = wrapBot - c.h * 0.5f;
+        }
+    }
 
     eventManager.EventCycle(dt);
 
@@ -241,8 +461,8 @@ void GamePlayState::Update(double dt)
 
     camera.UpdateZoomInterpolation(simulationDt);
 
-    // Only process game input if UI menu is not active
-    if (!uiManager.IsMenuActive())
+    // Only process game input if UI menu is not active and console is closed
+    if (!uiManager.IsMenuActive() && !console.IsOpen())
     {
         worldEditor.UpdateInput(simulationDt);
         // Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
@@ -275,10 +495,12 @@ void GamePlayState::Update(double dt)
 
     if (!humans.empty())
     {
+        auto* resMgr = GetGSComponent<ResourceManager>().get();
         for (size_t i = 0; i < humans.size(); ++i)
         {
+            humans[i]->SetResourceManager(resMgr);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
-            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad());
+            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), nullptr, dayCycle.GetHour());
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
@@ -363,7 +585,7 @@ void GamePlayState::Update(double dt)
 
     // Update tutorial
     const auto& input       = Engine::GetInput();
-    bool        skipPressed = input.KeyJustPressed(CS230::Input::Keys::F);
+    bool        skipPressed = !console.IsOpen() && input.KeyJustPressed(CS230::Input::Keys::F);
     tutorialManager.Update(static_cast<float>(simulationDt), mouseClicked, skipPressed);
     // Engine::GetLogger().LogEvent("GamePlayState::Update after tutorial");
 
@@ -732,17 +954,70 @@ void GamePlayState::Draw() const
 
     eventManager.Draw();
 
+    // Cloud patches drawn in world space (same camera transform as the map)
+    {
+        float vis = (cloudVisOverride >= 0.f) ? cloudVisOverride : weatherCycle.GetCloudShadowOpacity();
+        if (vis > 0.f)
+        {
+            for (const auto& c : clouds)
+            {
+                auto color = Dokev::ColorAlpha(Dokev::ColorPalette::WHITE, c.alpha * vis);
+                Dokev::DrawRectangle(
+                    static_cast<int>(c.x - c.w * 0.5f),
+                    static_cast<int>(c.y - c.h * 0.5f),
+                    static_cast<int>(c.w),
+                    static_cast<int>(c.h),
+                    color);
+            }
+        }
+    }
+
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();
 
+    // Rain overlay
+    {
+        float intensity = weatherCycle.GetRainIntensity();
+        if (intensity > 0.f && rainShader.Shader != 0)
+        {
+            const auto& locs = rainShader.UniformLocations;
+            auto it_time  = locs.find("uTime");
+            auto it_inten = locs.find("uRainIntensity");
+            auto it_res   = locs.find("uResolution");
+            if (it_time != locs.end() && it_inten != locs.end() && it_res != locs.end())
+            {
+                GL::UseProgram(rainShader.Shader);
+                GL::Uniform1f(it_time->second,  rainTime);
+                GL::Uniform1f(it_inten->second, intensity);
+                GL::Uniform2f(it_res->second,
+                    static_cast<float>(windowSize.x), static_cast<float>(windowSize.y));
+                GL::BindVertexArray(rainVAO);
+                GL::DrawArrays(GL_TRIANGLES, 0, 3);
+                GL::BindVertexArray(0);
+                GL::UseProgram(0);
+            }
+        }
+    }
+
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
     renderer2d.BeginScene(ndcMatrixUI);
+
+    // Day/night overlay
+    CS200::RGBA dayOverlay = dayCycle.GetOverlayColor();
+    if (dayOverlay != CS200::CLEAR)
+        Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, dayOverlay);
+
+    // Weather overlay (tint + thunder flash)
+    CS200::RGBA weatherOverlay = weatherCycle.GetOverlayColor();
+    if (weatherOverlay != CS200::CLEAR)
+        Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, weatherOverlay);
 
     int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
 
     tutorialManager.Draw();
     achievementManager.Draw();
+    console.Draw(); // drawn last so it sits on top of everything
 
     renderer2d.EndScene();
     // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
@@ -829,6 +1104,10 @@ void GamePlayState::DrawImGui()
 
 void GamePlayState::Unload()
 {
+    OpenGL::DestroyShader(rainShader);
+    if (rainVAO != 0) { GL::DeleteVertexArrays(1, &rainVAO); rainVAO = 0; }
+    if (rainVBO != 0) { GL::DeleteBuffers(1, &rainVBO); rainVBO = 0; }
+
     Engine::GetLogger().LogEvent("GamePlayState: Unloaded");
 }
 

@@ -25,7 +25,7 @@ namespace CS230
             return instance;
         }
 
-        void Load(const std::string& name, const std::filesystem::path& path);
+        void Load(const std::string& name, const std::filesystem::path& path, int pointSize = 24);
 
         std::shared_ptr<Font> Get(const std::string& name) const;
 

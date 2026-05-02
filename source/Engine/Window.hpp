@@ -55,6 +55,11 @@ namespace CS230
 
         Math::ivec2 GetWindowSize() const;
 
+        // Text input (SDL_TEXTINPUT events captured each frame)
+        void               EnableTextInput();
+        void               DisableTextInput();
+        const std::string& GetTextInput() const noexcept { return frameTextInput; }
+
     private:
 
         void setupSDLWindow(std::string_view title);
@@ -75,6 +80,7 @@ namespace CS230
                 WindowEventCallback       eventCallback;
 
         std::function<void(SDL_Event)> func_event_callback;
+        std::string                    frameTextInput;
         static float                   background_r;
         static float                   background_g;
         static float                   background_b;

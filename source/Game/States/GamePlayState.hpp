@@ -40,8 +40,11 @@
 
 #include "../Managers/AchievementManager.hpp"
 #include "../Managers/BuildingCostManager.hpp"
+#include "../Managers/DayCycleManager.hpp"
+#include "../Managers/WeatherCycleManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "Game/UI/DKUserInterfaceEditor.hpp"
+#include "Game/UI/GameConsole.hpp"
 
 
 class Human;
@@ -116,6 +119,23 @@ private:
 
     // Achievement system
     AchievementManager achievementManager;
+
+    // Day/night cycle
+    DayCycleManager dayCycle;
+    int             previousDay = 1;
+
+    // Weather cycle
+    WeatherCycleManager    weatherCycle;
+    OpenGL::CompiledShader rainShader;
+    GLuint                 rainVAO = 0;
+    GLuint                 rainVBO = 0;
+    float                  rainTime = 0.f;
+
+    // Cloud system
+    struct CloudPatch { float x, y, w, h, alpha; };
+    std::vector<CloudPatch> clouds;
+    float cloudVisOverride = -1.f;  // -1 = weather-driven
+
     bool        simulationPaused    = false;
     std::size_t simulationSpeedPresetIndex = 1;
 
@@ -124,4 +144,7 @@ private:
 
     //Event Manager
     EventManager eventManager;
+
+    // In-game console (no ImGui)
+    GameConsole console;
 };

@@ -4,11 +4,11 @@ namespace CS230
 {
 
 
-    void FontManager::Load(const std::string& name, const std::filesystem::path& path)
+    void FontManager::Load(const std::string& name, const std::filesystem::path& path, int pointSize)
     {
         if (fonts.find(name) == fonts.end())
         {
-            fonts[name] = std::make_shared<Font>(path);
+            fonts[name] = std::make_shared<Font>(path, pointSize);
         }
     }
 

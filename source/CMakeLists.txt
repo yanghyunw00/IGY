@@ -122,6 +122,8 @@ set(SOURCE_CODE
 
     # Game - Managers
     Game/Managers/AchievementManager.hpp Game/Managers/AchievementManager.cpp
+    Game/Managers/DayCycleManager.hpp Game/Managers/DayCycleManager.cpp
+    Game/Managers/WeatherCycleManager.hpp Game/Managers/WeatherCycleManager.cpp
     Game/Managers/EventManager.hpp Game/Managers/EventManager.cpp
     Game/Managers/ResourceManager.hpp
     Game/Managers/BuildingCostManager.hpp Game/Managers/BuildingCostManager.cpp
@@ -148,6 +150,7 @@ set(SOURCE_CODE
     Game/UI/DKUserInterfaceEditor.hpp Game/UI/DKUserInterfaceEditor.cpp
     Game/UI/DKTutorialManager.hpp Game/UI/DKTutorialManager.cpp
     Game/UI/DKTutorialStep.hpp Game/UI/DKTutorialStep.cpp
+    Game/UI/GameConsole.hpp Game/UI/GameConsole.cpp
 
     # Game - Input
     Game/Input/DKMouseSelection.hpp Game/Input/DKMouseSelection.cpp

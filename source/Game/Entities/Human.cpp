@@ -10,12 +10,14 @@
 #include "Human.hpp"
 #include "Building.hpp"
 #include "../Managers/NPCNameManager.hpp"
+#include "../Managers/ResourceManager.hpp"
 #include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "Game/Managers/WorkManager.hpp"
 #include "../Common/BuildingType.hpp"
 #include "Engine/Path.hpp"
+#include "Game/Managers/DayCycleManager.hpp"
 #include "Road.hpp"
 #include <cassert>
 #include <cmath>
@@ -190,8 +192,28 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
     }
 }
 
-void Human::UpdateWorking(float deltaTime)
+void Human::UpdateWorking(float deltaTime, int currentHour)
 {
+    // Earn wages: deltaTime is simulation-scaled seconds, convert to game hours
+    const float gameHoursPerSecond = 24.0f / DayCycleManager::kDayDuration;
+    float earned = stats.hourlyWage * deltaTime * gameHoursPerSecond;
+    stats.money   += earned;
+    shiftEarnings += earned;
+
+    // Knock off at 17:00 — collect tax then go home
+    if (currentHour >= 17)
+    {
+        float tax = shiftEarnings * stats.taxRate;
+        if (resourceMgr && tax > 0.0f)
+            resourceMgr->AddResource(ResourceType::Wood, static_cast<int>(tax));
+        stats.money  -= tax;
+        shiftEarnings = 0.0f;
+
+        CancelWork();
+        ai.isHeadingHome = true;
+        return;
+    }
+
     ai.workSessionTimer += deltaTime;
     if (ai.workSessionTimer >= ai.maxWorkSessionTime)
     {
@@ -271,12 +293,20 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
     }
 }
 
-void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road)
+void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour)
 {
     (void)deltaTime;
 
     if (!map)
         return;
+
+    // Outside working hours — go home instead of looking for jobs
+    if (currentHour < 9 || currentHour >= 17)
+    {
+        ai.isHeadingHome = true;
+        ChangeState(HumanState::Idle);
+        return;
+    }
 
     int newJobId = -1;
     Math::fvec2 newJobPos = { -1.0f, -1.0f };
@@ -352,7 +382,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     ai.idleTimer = ai.maxIdleTime - 0.5f;
 }
 
-void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr)
+void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr, int currentHour)
 {
     if (state == HumanState::Walking)
     {
@@ -389,11 +419,11 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
     }
     else if (state == HumanState::FindingDestination)
     {
-        UpdateFindingDestination(deltaTime, map, road);
+        UpdateFindingDestination(deltaTime, map, road, currentHour);
     }
     else if (state == HumanState::Working)
     {
-        UpdateWorking(deltaTime);
+        UpdateWorking(deltaTime, currentHour);
     }
     else if (state == HumanState::Resting)
     {

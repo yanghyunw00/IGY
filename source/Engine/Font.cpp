@@ -1,152 +1,71 @@
-/**  * \file
-  * \author Hyunwoo Yang
-  * \date 2025 Fall
-  * \par CS200 Computer Graphics I
-  * \copyright DigiPen Institute of Technology
-  */
+/**
+ * \file
+ * \author Hyunwoo Yang
+ * \date 2025 Fall
+ * \par CS200 Computer Graphics I
+ * \copyright DigiPen Institute of Technology
+ */
 
 #include "Font.hpp"
-#include "CS200/IRenderer2D.hpp"
-#include "CS200/Image.hpp"
-#include "CS200/NDC.hpp"
-#include "CS200/RenderingAPI.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Logger.hpp"
-#include "Engine/TextureManager.hpp"
-#include "Engine/Window.hpp"
-#include "OpenGL/Framebuffer.hpp"
-#include "OpenGL/GL.hpp"
-#include <format>
-#include <iostream>
+#include "OpenGL/Texture.hpp"
+
+#include <SDL_ttf.h>
+#include <vector>
 
 namespace CS230
 {
     int Font::current_frame = 0;
 
-    Font::Font(const std::filesystem::path& file_name)
+    // Convenience cast — ttf_font stored as void* to hide SDL_ttf.h from the header
+    static TTF_Font* AsFont(void* p) { return static_cast<TTF_Font*>(p); }
+
+    Font::Font(const std::filesystem::path& file_name, int point_size)
     {
-        CS200::Image image(file_name, false);
-        if (!image.data())
-        {
-            Engine::GetLogger().LogError("Failed to load font: " + file_name.string());
-            return;
-        }
-
-        const CS200::RGBA white = 0xFFFFFFFF;
-        const CS200::RGBA color = *reinterpret_cast<const CS200::RGBA*>(image.data());
-        if (color != white)
-        {
-            Engine::GetLogger().LogError("first pixel is not white");
-            return;
-        }
-
-        FindCharRects(image);
-        CS200::Image flip(file_name, true);
-        font_texture = std::shared_ptr<Texture>(new Texture(OpenGL::CreateTextureFromImage(flip), flip.GetSize()));
+        ttf_font = TTF_OpenFont(file_name.string().c_str(), point_size);
+        if (!ttf_font)
+            Engine::GetLogger().LogError(std::string("Failed to load font: ") + file_name.string() + " - " + TTF_GetError());
     }
 
     Font::~Font()
     {
         text_cache.clear();
-        font_texture.reset();
-    }
-
-    void Font::FindCharRects(const CS200::Image& image)
-    {
-        const CS200::RGBA* first_row = image.data();
-        const Math::ivec2  size      = image.GetSize();
-        const int          height    = size.y;
-
-        CS200::RGBA check_color = first_row[0]; // 0,0
-        CS200::RGBA next_color = 0xFFFFFFFF;
-
-        int x = 1;
-        for (int index = 0; index < CHAR_COUNT; index++)
+        if (ttf_font)
         {
-            int width = 0;
-
-            do
-            {
-                width++;
-                next_color = first_row[x + width];
-            } while (check_color == next_color);
-
-            check_color = next_color;
-
-            char_rects[index].point1 = { x + width - 1, 1 };
-            char_rects[index].point2 = { x, char_rects[index].point1.y + height - 1 };
-            x += width;
+            TTF_CloseFont(AsFont(ttf_font));
+            ttf_font = nullptr;
         }
     }
 
     Math::ivec2 Font::measureText(const std::string& text)
     {
-        int total_width = 0;
-        int max_height  = 0;
-        for (char c : text)
-        {
-            Math::irect& rect = GetCharRect(c);
+        if (!ttf_font || text.empty())
+            return { 0, 0 };
+        int w = 0, h = 0;
+        TTF_SizeUTF8(AsFont(ttf_font), text.c_str(), &w, &h);
+        return { w, h };
+    }
 
-            total_width += rect.Size().x;
-            if (rect.Size().y > max_height)
+    std::shared_ptr<Texture> Font::PrintToTexture(const std::string& text, CS200::RGBA /*color*/)
+    {
+        if (!ttf_font || text.empty())
+            return nullptr;
+
+        // Evict stale cache entries
+        {
+            std::vector<std::string> trash;
+            for (const auto& [key, cache] : text_cache)
             {
-                max_height = rect.Size().y;
+                if ((current_frame - cache.leastUsedFrame > 60) && cache.texture.use_count() == 1)
+                    trash.push_back(key);
             }
-        }
-
-        return { total_width, max_height };
-    }
-
-    void Font::drawChar(char c, Math::TransformationMatrix& matrix, CS200::RGBA color)
-    {
-        Math::irect&      rect     = GetCharRect(c);
-        const Math::ivec2 top_left = { rect.point2.x, rect.point1.y };
-        if (c != ' ')
-        {
-            font_texture->Draw(matrix, top_left, rect.Size(), color);
-        }
-        matrix *= Math::TranslationMatrix(Math::ivec2{ (rect.Size().x), 0 });
-    }
-
-    Math::irect& Font::GetCharRect(char c)
-    {
-        if (c >= ' ' && c <= 'z')
-        {
-            return char_rects[c - ' '];
-        }
-        else
-        {
-            Engine::GetLogger().LogError("Char '" + std::to_string(c) + "' not found");
-            return char_rects[0];
-        }
-    }
-
-    std::shared_ptr<Texture> Font::PrintToTexture(const std::string& text, CS200::RGBA color)
-    {
-        {
-            std::vector<std::string> trash_key;
-            for (const auto& tc : text_cache)
-            {
-                const Cache& cache = tc.second;
-
-                //60 frame & only the cache holds a reference
-                const bool old_frame = (current_frame - cache.leastUsedFrame > 60);
-                const bool is_referenced = (cache.texture.use_count() == 1);
-
-                if (old_frame && is_referenced)
-                {
-                    trash_key.push_back(tc.first);
-                }
-            }
-            for (const auto& key : trash_key)
-            {
+            for (const auto& key : trash)
                 text_cache.erase(key);
-            }
         }
 
-        std::string cache_key = text + "_" + std::to_string(color);
-
-        //cache hit
+        // Cache key is text only; colour tinting is applied by DrawQuad at draw time
+        const std::string& cache_key = text;
         auto it = text_cache.find(cache_key);
         if (it != text_cache.end())
         {
@@ -154,31 +73,47 @@ namespace CS230
             return it->second.texture;
         }
 
-
-        //-------------------------------------------//
-        const Math::ivec2 text_size = measureText(text);
-        if (text_size.x <= 0 || text_size.y <= 0)
+        // Render text in white — colour tint is applied later by the shader
+        const SDL_Color white{ 255, 255, 255, 255 };
+        SDL_Surface* surface = TTF_RenderUTF8_Blended(AsFont(ttf_font), text.c_str(), white);
+        if (!surface)
         {
+            Engine::GetLogger().LogError(std::string("TTF_RenderUTF8_Blended failed: ") + TTF_GetError());
             return nullptr;
         }
 
-        auto& texture_manager = Engine::GetTextureManager();
-        texture_manager.StartRenderTextureMode(text_size.x, text_size.y);
+        const int w = surface->w;
+        const int h = surface->h;
 
-        Math::TransformationMatrix transform_matrix{};
-        for (char c : text)
+        // Convert SDL ARGB8888 to GL_RGBA byte order (R,G,B,A in memory) with vertical flip.
+        // SDL_GetRGBA handles the pixel format portably.
+        std::vector<CS200::RGBA> pixels(w * h);
+
+        SDL_LockSurface(surface);
+        const int   pitch_px = surface->pitch / 4;
+        const auto* src      = static_cast<const uint32_t*>(surface->pixels);
+        for (int row = 0; row < h; ++row)
         {
-            drawChar(c, transform_matrix, color);
+            const int dst_row = h - 1 - row;   // flip Y for OpenGL bottom-up storage
+            for (int col = 0; col < w; ++col)
+            {
+                uint8_t r, g, b, a;
+                SDL_GetRGBA(src[row * pitch_px + col], surface->format, &r, &g, &b, &a);
+                // Pack with R in lowest byte so GL_RGBA GL_UNSIGNED_BYTE reads correctly
+                pixels[dst_row * w + col] =
+                    static_cast<uint32_t>(r)         |
+                    (static_cast<uint32_t>(g) <<  8) |
+                    (static_cast<uint32_t>(b) << 16) |
+                    (static_cast<uint32_t>(a) << 24);
+            }
         }
+        SDL_UnlockSurface(surface);
+        SDL_FreeSurface(surface);
 
-        std::shared_ptr<Texture> new_texture = texture_manager.EndRenderTextureMode();
+        auto handle      = OpenGL::CreateTextureFromMemory({ w, h }, pixels, OpenGL::Filtering::Linear, OpenGL::Wrapping::ClampToEdge);
+        auto new_texture = std::shared_ptr<Texture>(new Texture(handle, { w, h }));
 
-        if (new_texture)
-        {
-            text_cache[cache_key] = { new_texture, current_frame };
-        }
-
+        text_cache[cache_key] = { new_texture, current_frame };
         return new_texture;
     }
-
 }

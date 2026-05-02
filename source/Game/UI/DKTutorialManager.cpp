@@ -29,7 +29,7 @@ namespace Dokev
         isActive         = true;
         currentStepTime  = 0.0f;
 
-        font = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/Font_Outlined.png").string());
+        font = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
 
         CreateSteps();
     }

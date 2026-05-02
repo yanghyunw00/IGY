@@ -18,6 +18,7 @@
 
 class GridMap;
 class Road;
+class ResourceManager;
 namespace Dokev { class GameObjectManager; }
 
 enum class HumanState
@@ -34,6 +35,9 @@ struct HumanStats
     float happiness = 100.0f; // 0-100: happiness
     float energy    = 100.0f; // 0-100: Energy level
     float walkSpeed = 1.0f;   // Movement speed
+    float money     = 0.0f;   // Personal wallet
+    float hourlyWage = 10.0f; // Money earned per game-hour worked
+    float taxRate    = 0.2f;  // Fraction of daily earnings taken as tax at end of shift
 };
 
 enum class WorkType
@@ -109,7 +113,7 @@ public:
     }
 
     // CORE UPDATE & DRAW
-    void Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr = nullptr);
+    void Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr = nullptr, int currentHour = 12);
     void Draw(int viewIndex, const GridMap* map) const;
 
 
@@ -172,6 +176,16 @@ public:
         return stats.happiness;
     }
 
+    float GetMoney() const
+    {
+        return stats.money;
+    }
+
+    void SetResourceManager(ResourceManager* rm)
+    {
+        resourceMgr = rm;
+    }
+
     const std::string& GetName() const
     {
         return name;
@@ -193,10 +207,10 @@ private:
     // INTERNAL UPDATE FUNCTIONS
     void UpdateMovement(float deltaTime, GridMap* map);
     void UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr);
-    void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road);
+    void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour);
     void ChangeState(HumanState newState);
 
-    void UpdateWorking(float deltaTime);
+    void UpdateWorking(float deltaTime, int currentHour);
     void UpdateResting(float deltaTime);
 
     // TERRAIN HELPERS
@@ -233,4 +247,9 @@ private:
     bool        debugMode = false;
     // bool isVisible = true;
     Dokev::Texture2D humanTexture;
+
+    ResourceManager* resourceMgr = nullptr;
+
+    // Accumulated wages this shift (reset on tax collection)
+    float shiftEarnings = 0.0f;
 };

@@ -133,6 +133,11 @@ int Building::GetCost() const
     return cost;
 }
 
+int Building::GetMaintenanceCost() const
+{
+    return maintenanceCost;
+}
+
 Math::fvec2 Building::GetGrid() const
 {
     return gridPosition;
