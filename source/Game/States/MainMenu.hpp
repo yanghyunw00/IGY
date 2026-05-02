@@ -87,8 +87,8 @@ private:
     ////////////////////
     //   Text Scale   //
     ////////////////////
-    double TextScale_Title_x = 2.5;
-    double TextScale_Title_y = 2.7;
+    double TextScale_Title_x = 1.0;
+    double TextScale_Title_y = 1.08;
 
     double TextScale_PlayIGY_x   = 1.0;
     double TextScale_PlayIGY_y   = 1.0;

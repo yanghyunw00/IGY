@@ -41,7 +41,7 @@ void MainMenu::Load()
 
     try
     {
-        Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/DungGeunMo.ttf", 40);
+        Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/DungGeunMo.ttf", 100);
     }
     catch (const std::exception& e)
     {
@@ -57,6 +57,27 @@ void MainMenu::Load()
     bgCamera.SetZoom(0.3f);
 
     auto winSize = Engine::GetWindow().GetSize();
+
+    // Center background camera on map center
+    {
+        const int  midX       = GRID_SIZE_X_HALF;
+        const int  midY       = GRID_SIZE_Y_HALF;
+        GridCell** view       = bgMap.GetViewArray(0);
+        double     cellHeight = view[midY * GRID_SIZE_X + midX]->getHeight();
+
+        int   screenX = bgMap.GetIsoOriginX() + (midX - midY) * TILE_WIDTH_HALF;
+        int   screenY = bgMap.GetIsoOriginY() + (midX + midY) * TILE_HEIGHT_HALF;
+        int   topY    = static_cast<int>(cellHeight) - screenY;
+
+        float cx = static_cast<float>(screenX + TILE_WIDTH_HALF);
+        float cy = static_cast<float>(topY    + TILE_HEIGHT_HALF);
+
+        bgCamera.SetPosition({
+            1.0f - cx * 2.0f / static_cast<float>(winSize.x),
+            1.0f - cy * 2.0f / static_cast<float>(winSize.y)
+        });
+    }
+
     bgFBO.Initialize(winSize.x, winSize.y);
     blurPipeline.Initialize(winSize.x, winSize.y);
 

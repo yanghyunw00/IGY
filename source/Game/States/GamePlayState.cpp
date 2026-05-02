@@ -138,6 +138,30 @@ void GamePlayState::Load()
 
     camera.SetZoom(0.3f);
 
+    // Center camera on the middle of the map
+    {
+        auto*  map     = GetGSComponent<MapManager>()->GetMap();
+        auto   winSize = Engine::GetWindow().GetSize();
+
+        const int midX = GRID_SIZE_X_HALF;
+        const int midY = GRID_SIZE_Y_HALF;
+
+        GridCell** view       = map->GetViewArray(0);
+        double     cellHeight = view[midY * GRID_SIZE_X + midX]->getHeight();
+
+        int screenX = map->GetIsoOriginX() + (midX - midY) * TILE_WIDTH_HALF;
+        int screenY = map->GetIsoOriginY() + (midX + midY) * TILE_HEIGHT_HALF;
+        int topY    = static_cast<int>(cellHeight) - screenY;
+
+        float cx = static_cast<float>(screenX + TILE_WIDTH_HALF);
+        float cy = static_cast<float>(topY    + TILE_HEIGHT_HALF);
+
+        camera.SetPosition({
+            1.0f - cx * 2.0f / static_cast<float>(winSize.x),
+            1.0f - cy * 2.0f / static_cast<float>(winSize.y)
+        });
+    }
+
     // smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
     worldEditor.Initialize(
