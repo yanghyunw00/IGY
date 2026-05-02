@@ -122,6 +122,7 @@ private:
 
     // Day/night cycle
     DayCycleManager dayCycle;
+    int             previousDay = 1;
 
     // Weather cycle
     WeatherCycleManager    weatherCycle;

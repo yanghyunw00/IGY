@@ -65,21 +65,24 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Bui
     switch (bt)
     {
         case BuildingType::WOOD_WORKSHOP:
-            texture      = loggingCampTexture;
-            max_capacity = 2;
-            cost         = 0;
+            texture          = loggingCampTexture;
+            max_capacity     = 2;
+            cost             = 0;
+            maintenanceCost  = 10;
             break;
 
         case BuildingType::ROCK_WORKSHOP:
-            texture      = quarryTexture;
-            max_capacity = 2;
-            cost         = 0;
+            texture          = quarryTexture;
+            max_capacity     = 2;
+            cost             = 0;
+            maintenanceCost  = 10;
             break;
 
         case BuildingType::STEEL_WORKSHOP:
-            texture      = ironMineTexture;
-            max_capacity = 2;
-            cost         = 0;
+            texture          = ironMineTexture;
+            max_capacity     = 2;
+            cost             = 0;
+            maintenanceCost  = 15;
             break;
 
         default:

@@ -207,21 +207,26 @@ void GamePlayState::Load()
         GL::BindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-    // Cloud patches — scattered randomly across the world
+    // Cloud patches — scattered randomly across the visible map area
     {
-        const int   COUNT     = 12;
-        const float SPAN      = 15000.f;
-        const float ORIGIN    = -4000.f;
+        const int   COUNT  = 12;
+        const float X_MIN  = -5000.f;
+        const float X_MAX  = 12000.f;
+        const float Y_MIN  = -2000.f;
+        const float Y_MAX  =   400.f;
         clouds.clear();
         clouds.reserve(COUNT);
+        auto rnd = [](float lo, float hi) {
+            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+        };
         for (int i = 0; i < COUNT; ++i)
         {
             CloudPatch c;
-            c.x     = ORIGIN + (static_cast<float>(std::rand()) / RAND_MAX) * SPAN;
-            c.y     = ORIGIN + (static_cast<float>(std::rand()) / RAND_MAX) * SPAN;
-            c.w     = 700.f  + (static_cast<float>(std::rand()) / RAND_MAX) * 900.f;
-            c.h     = 180.f  + (static_cast<float>(std::rand()) / RAND_MAX) * 220.f;
-            c.alpha = 0.50f  + (static_cast<float>(std::rand()) / RAND_MAX) * 0.20f;
+            c.x     = rnd(X_MIN, X_MAX);
+            c.y     = rnd(Y_MIN, Y_MAX);
+            c.w     = rnd(700.f, 1600.f);
+            c.h     = rnd(180.f, 400.f);
+            c.alpha = rnd(0.50f, 0.70f);
             clouds.push_back(c);
         }
     }
@@ -362,21 +367,61 @@ void GamePlayState::Update(double dt)
     const double simulationDt = GetSimulationDeltaTime(dt);
 
     weatherCycle.Update(static_cast<float>(simulationDt));
+    dayCycle.Update(static_cast<float>(simulationDt));
     rainTime += static_cast<float>(simulationDt);
+
+    // Collect maintenance costs on each new day
+    if (dayCycle.GetCurrentDay() != previousDay)
+    {
+        previousDay = dayCycle.GetCurrentDay();
+
+        auto* resMgr    = GetGSComponent<ResourceManager>().get();
+        auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+
+        int totalMaintenance = 0;
+        for (const auto& b : buildings)
+        {
+            if (b->GetIsBuilt())
+                totalMaintenance += b->GetMaintenanceCost();
+        }
+
+        if (totalMaintenance > 0)
+        {
+            resMgr->TrySpend(totalMaintenance);
+            FloatingTextManager::Instance().Add(
+                "-" + std::to_string(totalMaintenance) + " 유지비",
+                { static_cast<float>(GRID_SIZE_X_HALF) * TILE_WIDTH, static_cast<float>(GRID_SIZE_Y_HALF) * TILE_HEIGHT },
+                0xFF4444FF);
+        }
+    }
 
     // Move cloud patches in world space
     {
-        const float windX     = 90.f;
-        const float windY     = 15.f;
+        const float windX     =  90.f;
+        const float windY     =   8.f;
         const float wrapRight = 12000.f;
         const float wrapLeft  = -5000.f;
+        const float wrapTop   =   600.f;
+        const float wrapBot   = -2200.f;
         const float dt_f      = static_cast<float>(simulationDt);
+        auto rnd = [](float lo, float hi) {
+            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+        };
         for (auto& c : clouds)
         {
             c.x += windX * dt_f;
             c.y += windY * dt_f;
+
             if (c.x - c.w * 0.5f > wrapRight)
-                c.x = wrapLeft - c.w * 0.5f;
+            {
+                c.x     = wrapLeft - c.w * 0.5f;
+                c.y     = rnd(wrapBot, wrapTop);   // 새 Y로 재진입
+                c.w     = rnd(700.f, 1600.f);
+                c.h     = rnd(180.f, 400.f);
+                c.alpha = rnd(0.50f, 0.70f);
+            }
+            if (c.y - c.h * 0.5f > wrapTop)
+                c.y = wrapBot - c.h * 0.5f;
         }
     }
 
