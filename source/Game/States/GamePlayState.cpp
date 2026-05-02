@@ -209,15 +209,12 @@ void GamePlayState::Load()
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
     {
-        const Road* road     = GetGSComponent<MapManager>()->GetRoad();
-        Math::fvec2 spawnPos = { GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f };
-        if (road && !road->GetRoadPositions().empty())
-        {
-            const auto& positions = road->GetRoadPositions();
-            spawnPos              = positions[positions.size() / 2]; // middle of the road
-        }
-        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
-        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
+        const Road*    road    = GetGSComponent<MapManager>()->GetRoad();
+        const GridMap* gridMap = GetGSComponent<MapManager>()->GetMap();
+        Human h1 = Human::CreateImmigrant(road, gridMap);
+        Human h2 = Human::CreateImmigrant(road, gridMap);
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(h1));
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(h2));
     }
 
 
@@ -625,7 +622,7 @@ void GamePlayState::Update(double dt)
 
     if (shouldSpawnImmigrant)
     {
-        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant(mapMgr->GetRoad())));
+        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant(mapMgr->GetRoad(), mapMgr->GetMap())));
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
 

@@ -654,7 +654,7 @@ bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
     return false;
 }
 
-Human Human::CreateImmigrant(const Road* road)
+Human Human::CreateImmigrant(const Road* road, const GridMap* map)
 {
     if (road && !road->GetRoadPositions().empty())
     {
@@ -663,7 +663,31 @@ Human Human::CreateImmigrant(const Road* road)
         return Human(positions[idx]);
     }
 
-    // Fallback: spawn at map centre
+    // Fallback: spiral search from map centre for a walkable (non-water) tile
+    if (map)
+    {
+        GridCell** view = map->GetViewArray(0);
+        const int  cx   = GRID_SIZE_X / 2;
+        const int  cy   = GRID_SIZE_Y / 2;
+
+        for (int r = 0; r < GRID_SIZE_X / 2; ++r)
+        {
+            for (int dx = -r; dx <= r; ++dx)
+            {
+                for (int dy = -r; dy <= r; ++dy)
+                {
+                    if (std::abs(dx) != r && std::abs(dy) != r)
+                        continue; // only check the ring edge
+                    int nx = cx + dx, ny = cy + dy;
+                    if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
+                        continue;
+                    if (view[ny * GRID_SIZE_X + nx]->getHeight() >= 75.0)
+                        return Human(Math::fvec2(static_cast<float>(nx), static_cast<float>(ny)));
+                }
+            }
+        }
+    }
+
     return Human(Math::fvec2(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f));
 }
 

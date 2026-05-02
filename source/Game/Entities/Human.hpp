@@ -128,7 +128,7 @@ public:
 
     void DecideNextAction(GridMap* map);
 
-    static Human CreateImmigrant(const Road* road = nullptr);
+    static Human CreateImmigrant(const Road* road = nullptr, const GridMap* map = nullptr);
 
     Math::fvec2 FindClosestWalkableTile(GridMap* map) const;
 
