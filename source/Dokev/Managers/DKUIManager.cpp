@@ -104,6 +104,15 @@ namespace Dokev
                     steelButton.tint     = Dokev::ColorPalette::LIGHTGRAY;
                     buildingButtons.push_back(steelButton);
 
+                    BuildingButton granaryButton;
+                    granaryButton.type     = BuildingType::GRANARY;
+                    granaryButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2.png").string());
+                    granaryButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 4);
+                    granaryButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    granaryButton.name     = "Granary";
+                    granaryButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(granaryButton);
+
                     BuildingButton cancelButton;
                     cancelButton.type     = BuildingType::NONE;
                     cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
@@ -297,6 +306,10 @@ namespace Dokev
                 else if (input.KeyJustPressed(CS230::Input::Keys::S))
                 {
                     selectedBuilding = BuildingType::STEEL_WORKSHOP;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::G))
+                {
+                    selectedBuilding = BuildingType::GRANARY;
                 }
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
@@ -585,7 +598,7 @@ namespace Dokev
 
         // Draw required resources
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
-                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::HOME))
+                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::HOME))
         {
             float tooltipWidth  = 180.0f;
             float tooltipHeight = 60.0f;
@@ -742,6 +755,8 @@ namespace Dokev
                     return "R";
                 if (button.type == BuildingType::STEEL_WORKSHOP)
                     return "S";
+                if (button.type == BuildingType::GRANARY)
+                    return "G";
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
             {

@@ -87,6 +87,91 @@ namespace
         return map->TransformPathPointForView(tileCoord, inverseRotation);
     }
 
+    Math::ivec2 GetBuildingFootprint(BuildingType type)
+    {
+        if (type == BuildingType::GRANARY)
+        {
+            return { 2, 2 };
+        }
+
+        return { 1, 1 };
+    }
+
+    bool AreaHasOnlyBuildableCells(GridMap* map, int startX, int startY, int width, int height)
+    {
+        if (!map)
+        {
+            return false;
+        }
+
+        GridCell** viewArray = map->GetViewArray(0);
+        if (!viewArray)
+        {
+            return false;
+        }
+
+        for (int y = startY; y < startY + height; ++y)
+        {
+            for (int x = startX; x < startX + width; ++x)
+            {
+                if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
+                {
+                    return false;
+                }
+
+                GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+                if (!cell || cell->getWater())
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    bool AreaIsAdjacentToRoad(const Road* road, int startX, int startY, int width, int height)
+    {
+        if (!road)
+        {
+            return false;
+        }
+
+        for (int y = startY; y < startY + height; ++y)
+        {
+            for (int x = startX; x < startX + width; ++x)
+            {
+                if (road->IsAdjacentToRoad(x, y))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    Building* FindBuildingAtTile(Dokev::GameObjectManager* gameObjMgr, int gridX, int gridY)
+    {
+        if (!gameObjMgr)
+        {
+            return nullptr;
+        }
+
+        for (const auto& building : gameObjMgr->GetBuildings())
+        {
+            int buildingX = static_cast<int>(std::round(building->GetGrid().x));
+            int buildingY = static_cast<int>(std::round(building->GetGrid().y));
+
+            if (gridX >= buildingX && gridX < buildingX + building->GetWidth() && gridY >= buildingY && gridY < buildingY + building->GetHeight())
+            {
+                return building.get();
+            }
+        }
+
+        return nullptr;
+    }
+
     Math::ivec2 lastPlacedRoadPos              = { -1, -1 };
     bool        blockRoadPlacementUntilRelease = false; // avoid placing road with the same click used to select it
 }
@@ -441,6 +526,7 @@ void GamePlayState::Update(double dt)
                     }
 
                     GridCell* clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
+                    const Math::ivec2 footprint = GetBuildingFootprint(selectedBuild);
 
                     if (selectedBuild == BuildingType::FLATTEN)
                     {
@@ -452,7 +538,7 @@ void GamePlayState::Update(double dt)
                     }
                     else if (selectedBuild != BuildingType::DELETE)
                     {
-                        if (!clickedCell || clickedCell->getWater() || !tileMgr->CanPlaceTile(gridX, gridY))
+                        if (!AreaHasOnlyBuildableCells(map, gridX, gridY, footprint.x, footprint.y) || !tileMgr->CanPlaceArea(gridX, gridY, footprint.x, footprint.y))
                         {
                             mouseSelection.SetHasValidPosition(false);
                             return;
@@ -461,7 +547,7 @@ void GamePlayState::Update(double dt)
                         if (selectedBuild != BuildingType::ROAD)
                         {
                             auto* road = mapMgr->GetRoad();
-                            if (!road || !road->IsAdjacentToRoad(gridX, gridY))
+                            if (!AreaIsAdjacentToRoad(road, gridX, gridY, footprint.x, footprint.y))
                             {
                                 mouseSelection.SetHasValidPosition(false);
                                 return;
@@ -555,9 +641,34 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
+                        case BuildingType::GRANARY:
+                            {
+                                if (!consumeResources(BuildingType::GRANARY))
+                                    break;
+
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, BuildingType::GRANARY);
+                                workshop->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(workshop);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::DELETE:
                             {
                                 mouseSelection.SetHasValidPosition(true);
+                                if (Building* building = FindBuildingAtTile(gameObjMgr.get(), gridX, gridY))
+                                {
+                                    int buildingX = static_cast<int>(std::round(building->GetGrid().x));
+                                    int buildingY = static_cast<int>(std::round(building->GetGrid().y));
+                                    tileMgr->DeallocateArea(buildingX, buildingY, building->GetWidth(), building->GetHeight());
+                                    gameObjMgr->RemoveBuilding(buildingX, buildingY);
+                                    placed = true;
+                                    break;
+                                }
+
                                 gameObjMgr->RemoveBuilding(gridX, gridY);
 
                                 auto* road = mapMgr->GetRoad();
