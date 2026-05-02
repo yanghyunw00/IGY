@@ -91,5 +91,7 @@ BuildingType BuildingCostManager::StringToBuildingType(const std::string& str) c
         return BuildingType::ROCK_WORKSHOP;
     if (str == "STEEL_WORKSHOP")
         return BuildingType::STEEL_WORKSHOP;
+    if (str == "GRANARY")
+        return BuildingType::GRANARY;
     return BuildingType::NONE;
 }

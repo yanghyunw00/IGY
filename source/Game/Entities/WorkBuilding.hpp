@@ -24,11 +24,13 @@ protected:
     static Dokev::Texture2D loggingCampTexture;
     static Dokev::Texture2D quarryTexture;
     static Dokev::Texture2D ironMineTexture;
+    static Dokev::Texture2D granaryTexture;
     static Dokev::Texture2D missingTexture;
     //added most recently
     static Dokev::Texture2D loggingCampInterationTexture;
     static Dokev::Texture2D quarryInterationTexture;
     static Dokev::Texture2D ironMineInterationTexture;
+    static Dokev::Texture2D granaryInterationTexture;
 
     static bool             texturesLoaded;
 

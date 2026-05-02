@@ -143,6 +143,16 @@ Math::fvec2 Building::GetGrid() const
     return gridPosition;
 }
 
+int Building::GetWidth() const
+{
+    return width;
+}
+
+int Building::GetHeight() const
+{
+    return height;
+}
+
 bool Building::GetIsBuilt() const
 {
     return isBuilt;

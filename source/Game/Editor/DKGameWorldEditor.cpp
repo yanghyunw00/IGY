@@ -362,6 +362,7 @@ namespace Dokev
                                          : bt == BuildingType::WOOD_WORKSHOP   ? "Wood Workshop"
                                          : bt == BuildingType::ROCK_WORKSHOP   ? "Rock Workshop"
                                          : bt == BuildingType::STEEL_WORKSHOP  ? "Steel Workshop"
+                                         : bt == BuildingType::GRANARY         ? "Granary"
                                                                                : "Unknown";
                     auto         gpos     = building->GetGrid();
                     bool         isBuilt  = building->GetIsBuilt();

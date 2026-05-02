@@ -14,6 +14,9 @@
     },
     "STEEL_WORKSHOP": {
       "Money": 30
+    },
+    "GRANARY": {
+      "Money": 0
     }
   }
 }

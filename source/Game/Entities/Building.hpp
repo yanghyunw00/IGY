@@ -49,6 +49,8 @@ public:
     int          GetCost() const;
     int          GetMaintenanceCost() const;
     Math::fvec2  GetGrid() const;
+    int          GetWidth() const;
+    int          GetHeight() const;
     bool         GetIsBuilt() const;
     unsigned int GetMaxCapacity() const;
     unsigned int GetCurrentCapacity() const;

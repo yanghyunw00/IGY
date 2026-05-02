@@ -18,10 +18,12 @@
 Dokev::Texture2D WorkBuilding::loggingCampTexture;
 Dokev::Texture2D WorkBuilding::quarryTexture;
 Dokev::Texture2D WorkBuilding::ironMineTexture;
+Dokev::Texture2D WorkBuilding::granaryTexture;
 
 Dokev::Texture2D WorkBuilding::loggingCampInterationTexture;
 Dokev::Texture2D WorkBuilding::quarryInterationTexture;
 Dokev::Texture2D WorkBuilding::ironMineInterationTexture;
+Dokev::Texture2D WorkBuilding::granaryInterationTexture;
 
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool             WorkBuilding::texturesLoaded = false;
@@ -41,10 +43,12 @@ void WorkBuilding::LoadTextures()
         loggingCampTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
         quarryTexture      = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
         ironMineTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
+        granaryTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2.png").string());
 
         loggingCampInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp_interaction.png").string());
-        quarryInterationTexture      = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
-        ironMineInterationTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
+        quarryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
+        ironMineInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
+        granaryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2_interaction.png").string());
 
 
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
@@ -83,6 +87,12 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             max_capacity     = 2;
             cost             = 0;
             maintenanceCost  = 15;
+            break;
+
+        case BuildingType::GRANARY:
+            texture      = granaryTexture;
+            max_capacity = 2;
+            cost         = 0;
             break;
 
         default:
@@ -143,6 +153,7 @@ void WorkBuilding::Update(float dt)
             case BuildingType::WOOD_WORKSHOP: resourceManager->AddResource(ResourceType::Wood, amountToProduce); break;
             case BuildingType::ROCK_WORKSHOP: resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
             case BuildingType::STEEL_WORKSHOP: resourceManager->AddResource(ResourceType::Steel, amountToProduce); break;
+            case BuildingType::GRANARY: break;
             default: break;
         }
     }
@@ -155,20 +166,40 @@ void WorkBuilding::Update(float dt)
     {
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP: texture = loggingCampInterationTexture; break;
-            case BuildingType::ROCK_WORKSHOP: texture = quarryInterationTexture; break;
-            case BuildingType::STEEL_WORKSHOP: texture = ironMineInterationTexture; break;
-            default: break;
+        case BuildingType::WOOD_WORKSHOP:
+            texture = loggingCampInterationTexture;
+            break;
+        case BuildingType::ROCK_WORKSHOP:
+            texture = quarryInterationTexture;
+            break;
+        case BuildingType::STEEL_WORKSHOP:
+            texture = ironMineInterationTexture;
+            break;
+        case BuildingType::GRANARY:
+            texture = granaryInterationTexture;
+            break;
+        default:
+            break;
         }
     }
     else
     {
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP: texture = loggingCampTexture; break;
-            case BuildingType::ROCK_WORKSHOP: texture = quarryTexture; break;
-            case BuildingType::STEEL_WORKSHOP: texture = ironMineTexture; break;
-            default: break;
+        case BuildingType::WOOD_WORKSHOP:
+            texture = loggingCampTexture;
+            break;
+        case BuildingType::ROCK_WORKSHOP:
+            texture = quarryTexture;
+            break;
+        case BuildingType::STEEL_WORKSHOP:
+            texture = ironMineTexture;
+            break;
+        case BuildingType::GRANARY:
+            texture = granaryTexture;
+            break;
+        default:
+            break;
         }
     }
 }
@@ -190,7 +221,13 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    texture.Draw(x, y, tint);
+    int drawX = x;
+    if (buildingType == BuildingType::GRANARY)
+    {
+        drawX -= TILE_WIDTH_HALF;
+    }
+
+    texture.Draw(drawX, y, tint);
 
     if (!isBuilt)
     {

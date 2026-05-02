@@ -791,3 +791,47 @@ bool GridMap::FlattenTile(int x, int y)
 
     return true;
 }
+
+bool GridMap::LevelAreaToAverage(int startX, int startY, int width, int height)
+{
+    if (width <= 0 || height <= 0)
+    {
+        return false;
+    }
+
+    double totalHeight = 0.0;
+
+    for (int y = startY; y < startY + height; ++y)
+    {
+        for (int x = startX; x < startX + width; ++x)
+        {
+            if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
+            {
+                return false;
+            }
+
+            GridCell& cell = m_gridCells[y][x];
+            if (cell.getWater())
+            {
+                return false;
+            }
+
+            totalHeight += cell.getHeight();
+        }
+    }
+
+    const double targetHeight = totalHeight / static_cast<double>(width * height);
+
+    for (int y = startY; y < startY + height; ++y)
+    {
+        for (int x = startX; x < startX + width; ++x)
+        {
+            GridCell& cell = m_gridCells[y][x];
+            cell.ApplyTerrain(targetHeight, mapProfile.thresholds);
+            SetPathCost(x, y, cell.getMovementCost());
+            SetWalkable(x, y, cell.isWalkable());
+        }
+    }
+
+    return true;
+}
