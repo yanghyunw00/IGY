@@ -49,18 +49,18 @@ namespace Dokev
     {
         const auto& input = Engine::GetInput();
 
-        // Regenerate map
-        if (input.KeyJustPressed(CS230::Input::Keys::Space))
-        {
-            if (mapManager)
-            {
-                auto map = mapManager->GetMap();
-                map->ReGenerateMap();
-                map->InitializePathFinding();
-                map->ClearPath();
-                printf("Map regenerated and pathfinding reinitialized\n");
-            }
-        }
+        // Regenerate map - space bar to regernerate
+        // if (input.KeyJustPressed(CS230::Input::Keys::Space))
+        // {
+        //     if (mapManager)
+        //     {
+        //         auto map = mapManager->GetMap();
+        //         map->ReGenerateMap();
+        //         map->InitializePathFinding();
+        //         map->ClearPath();
+        //         printf("Map regenerated and pathfinding reinitialized\n");
+        //     }
+        // }
 
         // Camera zoom
         if (camera)
