@@ -33,7 +33,7 @@ void ResidentBuilding::LoadTextures()
     }
 }
 
-ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), satisfaction(1.0f), taxrate(10)
+ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, int hp_, BuildingType bt) : Building(pos, w, h, hp_), satisfaction(1.0f), taxrate(10)
 {
     LoadTextures();
 

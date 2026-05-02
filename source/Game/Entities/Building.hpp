@@ -23,6 +23,7 @@ protected:
     int              width, height;
     Dokev::Texture2D texture;
     bool             isBuilt;
+    int              hp;
     unsigned int     max_capacity;
     unsigned int     current_capacity;
     int              cost;
@@ -31,18 +32,19 @@ protected:
     float            maxBuildTime;
     BuildingType     buildingType;
 
-    Math::ivec2 CalculateScreenPosition(int viewIndex, const GridMap* map) const;
-
 public:
-    Building(Math::fvec2 pos, int w, int h, float buildDuration = 3.0f);
+    Math::ivec2 CalculateScreenPosition(int viewIndex, const GridMap* map) const;
+    Building(Math::fvec2 pos, int w, int h, int hp, float buildDuration = 3.0f);
     virtual ~Building();
 
-    virtual void Update(float dt)                        = 0;
+    virtual void Update(float dt)                                      = 0;
     virtual void Draw(int viewIndex, const GridMap* map, int x, int y) = 0;
 
     void UpdateConstruction(float dt);
     void DrawProgressBar(int viewIndex, const GridMap* map) const;
 
+    int          GetHp() const;
+    void         setHP(int value);
     int          GetCost() const;
     Math::fvec2  GetGrid() const;
     bool         GetIsBuilt() const;
@@ -51,12 +53,18 @@ public:
     float        GetProgress() const;
     BuildingType GetBuildingType() const;
 
-    // constructed 
+    // constructed
     virtual void OnConstructed();
 
-    virtual void OnWorkerArrived(Human* human) { (void)human; }
+    virtual void OnWorkerArrived(Human* human)
+    {
+        (void)human;
+    }
 
-    virtual void OnWorkerLeft(Human* human) { (void)human; }
+    virtual void OnWorkerLeft(Human* human)
+    {
+        (void)human;
+    }
 
     std::string TypeName() override
     {

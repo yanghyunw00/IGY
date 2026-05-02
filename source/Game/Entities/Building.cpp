@@ -15,8 +15,8 @@
 #include <cassert>
 
 
-Building::Building(Math::fvec2 pos, int w, int h, float buildDuration)
-    : gridPosition(pos), width(w), height(h), isBuilt(false), max_capacity(0), current_capacity(0), cost(0), progress(0.0f), buildTime(0.0f),
+Building::Building(Math::fvec2 pos, int w, int h, int hp_, float buildDuration)
+    : gridPosition(pos), width(w), height(h), hp(hp_), isBuilt(false), max_capacity(0), current_capacity(0), cost(0), progress(0.0f), buildTime(0.0f),
       maxBuildTime(buildDuration <= 0.0f ? 0.001f : buildDuration)
 {
     assert(w > 0 && "Building width must be positive");
@@ -116,6 +116,16 @@ void Building::DrawProgressBar(int viewIndex, const GridMap* map) const
     {
         Dokev::DrawRectangle(barX, barY, filledWidth, barHeight, 0x00FF00FF);
     }
+}
+
+int Building::GetHp() const
+{
+    return hp;
+}
+
+void Building::setHP(int value)
+{
+    hp = value;
 }
 
 int Building::GetCost() const

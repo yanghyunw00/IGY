@@ -6,6 +6,7 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKGameWorldEditor.hpp"
+#include "../Managers/EventManager.hpp"
 #include "Dokev/Core/DKSystemInfo.hpp"
 #include "Dokev/Graphics/DKCamera.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
@@ -31,7 +32,7 @@ namespace Dokev
 {
     void GameWorldEditor::Initialize(
         MapManager* mapManagerPtr, Camera* cameraPtr, int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr, GameObjectManager* gameObjectManager,
-        ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr)
+        ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr, EventManager* eventManagerPtr)
     {
         mapManager          = mapManagerPtr;
         camera              = cameraPtr;
@@ -41,6 +42,7 @@ namespace Dokev
         goManager           = gameObjectManager;
         resourceManager     = resourceManagerPtr;
         cityMetrics         = cityMetricsPtr;
+        eventManager        = eventManagerPtr;
     }
 
     void GameWorldEditor::UpdateInput(double dt)
@@ -216,55 +218,6 @@ namespace Dokev
 
         ImGui::Spacing();
 
-        // ROAD CONTROLS Section
-        if (ImGui::TreeNode("Road Building"))
-        {
-            if (mapManager)
-            {
-                auto road = mapManager->GetRoad();
-                auto map  = mapManager->GetMap();
-
-                ImGui::Text("Total roads: %zu", road->getRoadCount());
-
-                static int roadStartX = 10;
-                static int roadStartY = 10;
-                static int roadEndX   = 30;
-                static int roadEndY   = 30;
-
-                ImGui::SliderInt("Road Start X", &roadStartX, 0, GRID_SIZE_X - 1);
-                ImGui::SliderInt("Road Start Y", &roadStartY, 0, GRID_SIZE_Y - 1);
-                ImGui::SliderInt("Road End X", &roadEndX, 0, GRID_SIZE_X - 1);
-                ImGui::SliderInt("Road End Y", &roadEndY, 0, GRID_SIZE_Y - 1);
-
-                if (ImGui::Button("Build Road Path"))
-                {
-                    road->buildRoadPath(*map, roadStartX, roadStartY, roadEndX, roadEndY);
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Clear All Roads"))
-                {
-                    road->removeAllRoad(*map);
-                    printf("All roads cleared\n");
-                }
-
-                if (ImGui::Button("Add Single Road"))
-                {
-                    road->addRoad(roadStartX, roadStartY, *map);
-                    printf("Added road at (%d,%d)\n", roadStartX, roadStartY);
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Remove Road"))
-                {
-                    road->removeRoad(roadStartX, roadStartY, *map);
-                    printf("Removed road at (%d,%d)\n", roadStartX, roadStartY);
-                }
-            }
-            ImGui::TreePop();
-        }
         // BUILDING CONTROLS=============================================================
         ImGui::Separator();
 
@@ -302,7 +255,7 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    goManager->AddBuilding(new ResidentBuilding(pos, 1, 1, BuildingType::HOME));
+                    goManager->AddBuilding(new ResidentBuilding(pos, 1, 1,10, BuildingType::HOME));
                 }
 
                 ImGui::Spacing();
@@ -332,7 +285,7 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::WOOD_WORKSHOP);
+                    auto* workshop = new WorkBuilding(pos, 1, 1,10, BuildingType::WOOD_WORKSHOP);
                     workshop->SetResourceManager(resourceManager);
                     goManager->AddBuilding(workshop);
                 }
@@ -361,7 +314,7 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::ROCK_WORKSHOP);
+                    auto* workshop = new WorkBuilding(pos, 1, 1,10, BuildingType::ROCK_WORKSHOP);
                     workshop->SetResourceManager(resourceManager);
                     goManager->AddBuilding(workshop);
                 }
@@ -390,7 +343,7 @@ namespace Dokev
                             isfound = true;
                         }
                     }
-                    auto* workshop = new WorkBuilding(pos, 1, 1, BuildingType::STEEL_WORKSHOP);
+                    auto* workshop = new WorkBuilding(pos, 1, 1, 10, BuildingType::STEEL_WORKSHOP);
                     workshop->SetResourceManager(resourceManager);
                     goManager->AddBuilding(workshop);
                 }
@@ -426,6 +379,13 @@ namespace Dokev
                         if (!isBuilt)
                             ImGui::ProgressBar(building->GetProgress(), ImVec2(-1, 0), "Construction");
                         ImGui::Text("Workers  : %u / %u", cur, maxCap);
+
+                        int hp = building->GetHp();
+                        ImGui::TextColored(
+                            hp > 6 ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) :
+                            hp > 3 ? ImVec4(1.0f, 0.8f, 0.0f, 1.0f) :
+                                     ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                            "HP       : %d", hp);
 
                         if (!isBuilt)
                         {
@@ -656,6 +616,101 @@ namespace Dokev
         }
         ImGui::Separator();
 
+
+        // DISASTER EVENTS Section
+        if (eventManager)
+        {
+            ImGui::Spacing();
+            const auto& activeEvents = eventManager->GetActiveEvents();
+            if (activeEvents.empty())
+            {
+                ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Current Event: None");
+            }
+            else
+            {
+                for (const auto& e : activeEvents)
+                    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.2f, 1.0f), "Current Event: %s  (%.0f%%)", e->GetName(), e->GetProgress() * 100.0f);
+            }
+            ImGui::Spacing();
+            ImGui::Separator();
+
+            if (ImGui::TreeNode("DISASTER EVENTS"))
+            {
+                ImGui::Separator();
+
+                double dur     = eventManager->GetDuration();
+                double maxTime = eventManager->GetMaxTime();
+                ImGui::Text("Next Event In: %.1f / %.1f sec", maxTime - dur, maxTime);
+                ImGui::ProgressBar(static_cast<float>(dur / maxTime), ImVec2(-1, 0));
+
+                ImGui::Spacing();
+
+                if (ImGui::Button("Force Random Event"))
+                    eventManager->ForceEvent();
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Text("Active Events: %d", eventManager->GetEventCount());
+                
+
+                int eidx = 0;
+                for (const auto& e : eventManager->GetActiveEvents())
+                {
+                    ImGui::PushID(eidx);
+                    float progress = e->GetProgress();
+                    char  label[64];
+                    snprintf(label, sizeof(label), "[%d] %s", eidx, e->GetName());
+                    ImGui::ProgressBar(progress, ImVec2(-1, 0), label);
+                    ImGui::PopID();
+                    eidx++;
+                }
+
+                if (eidx == 0)
+                    ImGui::TextDisabled("No active disasters");
+
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::Text("CITY METRICS");
+                ImGui::Spacing();
+
+                if (cityMetrics)
+                {
+                    float happinessRate = cityMetrics->GetHappinessChangeRate();
+                    ImGui::Text("Happiness:      %.1f", cityMetrics->GetHappiness());
+                    ImGui::Text("Happiness Rate: %.2f  %s", happinessRate,
+                        happinessRate < 1.0f ? "(penalized)" : "(normal)");
+                }
+
+                if (goManager)
+                {
+                    ImGui::Spacing();
+                    WorkBuilding* building = nullptr;
+                    for (const auto& b : goManager->GetBuildings())
+                    {
+                        if (auto* s = dynamic_cast<WorkBuilding*>(b.get()))
+                        {
+                            building = s;
+                            break;
+                        }
+                    }
+                    if (building)
+                    {
+                        float rate = building->GetProductionRate();
+                        ImGui::Text("Production Rate:");
+                        ImGui::SameLine();
+                        ImGui::TextColored(
+                            rate < 1.0f ? ImVec4(1, 0.4f, 0.4f, 1) : ImVec4(0.4f, 1, 0.4f, 1),
+                            "%.2f", rate);
+                    }
+                    else
+                        ImGui::TextDisabled(" No work buildings");
+                }
+
+                ImGui::Spacing();
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
+        }
 
         ImGui::Text("SAVE / LOAD");
         ImGui::Separator();

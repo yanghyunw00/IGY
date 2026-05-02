@@ -137,6 +137,12 @@ set(SOURCE_CODE
     Game/World/GridCell.hpp
     Game/World/CustomCell.hpp Game/World/CustomCell.cpp
     Game/World/pathFinding.hpp Game/World/pathFinding.cpp
+    Game/World/DisasterEvent.hpp
+    Game/World/Drought.hpp Game/World/Drought.cpp
+    Game/World/Meteor.hpp Game/World/Meteor.cpp
+    Game/World/Fire.hpp Game/World/Fire.cpp
+
+
 
     # Game - UI
     Game/UI/DKUserInterfaceEditor.hpp Game/UI/DKUserInterfaceEditor.cpp

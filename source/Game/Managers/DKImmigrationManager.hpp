@@ -24,6 +24,14 @@ namespace Dokev
 
         bool Update(float dt, int availableHomes, float happiness, int humanCount, int totalResources);
 
+        void Block()
+        {
+            baseImmigrationInterval = 9999.9f;
+        }
+        void Free()
+        {
+            baseImmigrationInterval = 10.0f;
+        }
         /**
          * \brief Get time until next immigration check (for UI)
          */

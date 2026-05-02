@@ -10,7 +10,6 @@
 #include "Game/Entities/Human.hpp"
 #include <cmath>
 
-
 namespace Dokev
 {
     void GameObjectManager::AddHuman(Human* human)
@@ -46,6 +45,17 @@ namespace Dokev
                     return buildingX == gridX && buildingY == gridY;
                 }),
             m_buildings.end());
+    }
+
+    void GameObjectManager::CheckHp(Building* building)
+    {
+        if (building->GetHp() <= 0)
+        {
+            int x = static_cast<int>(building->GetGrid().x);
+            int y = static_cast<int>(building->GetGrid().y);
+
+            RemoveBuilding(x,y);
+        }
     }
 
     void GameObjectManager::Refresh()

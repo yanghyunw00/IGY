@@ -11,6 +11,7 @@
 
 class MapManager;
 class ResourceManager;
+class EventManager;
 
 namespace Dokev
 {
@@ -25,7 +26,7 @@ namespace Dokev
 
         void Initialize(
             MapManager* mapManagerPtr, Camera* cameraPtr, int* indexPtr, float* immigrationTimerPtr, float* immigrationIntervalPtr, GameObjectManager* gameObjectManager,
-            ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr = nullptr);
+            ResourceManager* resourceManagerPtr, CityMetrics* cityMetricsPtr = nullptr, EventManager* eventManagerPtr = nullptr);
 
         void UpdateInput(double dt);
         void DrawImGui();
@@ -59,6 +60,7 @@ namespace Dokev
         GameObjectManager* goManager           = nullptr;
         ResourceManager*   resourceManager     = nullptr;
         CityMetrics*       cityMetrics         = nullptr;
+        EventManager*      eventManager        = nullptr;
 
         bool vsyncEnabled      = true;
         bool saveGameRequested = false;

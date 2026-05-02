@@ -1,0 +1,13 @@
+Assets/images/meteor.png
+HotSpot 176 192
+FrameSize 352 384
+Frame 0 0
+Frame 352 0
+Frame 704 0
+Frame 1056 0
+Frame 1408 0
+Frame 1760 0
+Frame 2112 0
+Frame 2464 0
+
+Anim Assets/images/meteor.anm

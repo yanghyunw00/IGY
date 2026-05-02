@@ -35,7 +35,7 @@ protected:
     static void LoadTextures();
 
 public:
-    WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
+    WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt);
     ~WorkBuilding() override;
 
     void SetResourceManager(ResourceManager* rm);
@@ -58,6 +58,7 @@ public:
     void  RemoveWorker(int count);
     int   GetProduction() const;
     float GetProductionRate() const;
+    void SetProductionRate(float rate);
     bool  IsFull() const;
     bool  HasWorker() const;
 };

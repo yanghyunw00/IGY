@@ -140,9 +140,14 @@ void GamePlayState::Load()
 
     // smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
+    eventManager.Initialize(
+        GetGSComponent<CityMetrics>().get(),
+        GetGSComponent<Dokev::GameObjectManager>().get(),
+        GetGSComponent<MapManager>()->GetMap());
+
     worldEditor.Initialize(
         GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get(),
-        GetGSComponent<CityMetrics>().get());
+        GetGSComponent<CityMetrics>().get(), &eventManager);
 
     // Initialize UI Manager
     uiManager.Initialize();
@@ -513,7 +518,7 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::HOME))
                                     break;
 
-                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::HOME);
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1,10, BuildingType::HOME);
                                 gameObjMgr->AddBuilding(building);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
                                 placed = true;
@@ -524,7 +529,7 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::WOOD_WORKSHOP))
                                     break;
 
-                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::WOOD_WORKSHOP);
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1,10, BuildingType::WOOD_WORKSHOP);
                                 workshop->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(workshop);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
@@ -536,7 +541,7 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::ROCK_WORKSHOP))
                                     break;
 
-                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::ROCK_WORKSHOP);
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::ROCK_WORKSHOP);
                                 workshop->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(workshop);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
@@ -548,7 +553,7 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::STEEL_WORKSHOP))
                                     break;
 
-                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, BuildingType::STEEL_WORKSHOP);
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::STEEL_WORKSHOP);
                                 workshop->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(workshop);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
@@ -724,6 +729,8 @@ void GamePlayState::Draw() const
     {
         human->Draw(index, mapMgr->GetMap());
     }
+
+    eventManager.Draw();
 
     renderer2d.EndScene();
     renderer2d_IMMEDIATE.EndScene();

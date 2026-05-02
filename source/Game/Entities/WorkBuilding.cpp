@@ -43,16 +43,16 @@ void WorkBuilding::LoadTextures()
         ironMineTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
 
         loggingCampInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp_interaction.png").string());
-        quarryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
-        ironMineInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
+        quarryInterationTexture      = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
+        ironMineInterationTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
 
 
-        missingTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
-        texturesLoaded     = true;
+        missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        texturesLoaded = true;
     }
 }
 
-WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, BuildingType bt) : Building(pos, w, h), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
+WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt) : Building(pos, w, h,hp), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {
     LoadTextures();
 
@@ -137,47 +137,36 @@ void WorkBuilding::Update(float dt)
 
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP:  resourceManager->AddResource(ResourceType::Wood,  amountToProduce); break;
-            case BuildingType::ROCK_WORKSHOP:  resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
+            case BuildingType::WOOD_WORKSHOP: resourceManager->AddResource(ResourceType::Wood, amountToProduce); break;
+            case BuildingType::ROCK_WORKSHOP: resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
             case BuildingType::STEEL_WORKSHOP: resourceManager->AddResource(ResourceType::Steel, amountToProduce); break;
             default: break;
         }
     }
 
+    //rely on the hp
+    productionRate -= static_cast<float>(hp) * 0.1f;
+
+
     if (HasWorker())
     {
         switch (buildingType)
         {
-        case BuildingType::WOOD_WORKSHOP:
-            texture = loggingCampInterationTexture;
-            break;
-        case BuildingType::ROCK_WORKSHOP:
-            texture = quarryInterationTexture;
-            break;
-        case BuildingType::STEEL_WORKSHOP:
-            texture = ironMineInterationTexture;
-            break;
-        default:
-            break;
+            case BuildingType::WOOD_WORKSHOP: texture = loggingCampInterationTexture; break;
+            case BuildingType::ROCK_WORKSHOP: texture = quarryInterationTexture; break;
+            case BuildingType::STEEL_WORKSHOP: texture = ironMineInterationTexture; break;
+            default: break;
         }
     }
     else
     {
         switch (buildingType)
         {
-        case BuildingType::WOOD_WORKSHOP:
-            texture = loggingCampTexture;
-            break;
-        case BuildingType::ROCK_WORKSHOP:
-            texture = quarryTexture;
-            break;
-        case BuildingType::STEEL_WORKSHOP:
-            texture = ironMineTexture;
-            break;
-        default:
-            break;
+            case BuildingType::WOOD_WORKSHOP: texture = loggingCampTexture; break;
+            case BuildingType::ROCK_WORKSHOP: texture = quarryTexture; break;
+            case BuildingType::STEEL_WORKSHOP: texture = ironMineTexture; break;
+            default: break;
         }
-
     }
 }
 
@@ -188,7 +177,7 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         return;
     }
 
-    //Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
+    // Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
     CS200::RGBA tint = CS200::WHITE;
 
@@ -237,6 +226,11 @@ float WorkBuilding::GetProductionRate() const
     return productionRate;
 }
 
+void WorkBuilding::SetProductionRate(float rate)
+{
+    productionRate = rate;
+}
+
 bool WorkBuilding::IsFull() const
 {
     return current_capacity >= max_capacity;
@@ -245,8 +239,6 @@ bool WorkBuilding::IsFull() const
 bool WorkBuilding::HasWorker() const
 {
     return current_capacity > 0;
-
-
 }
 
 void WorkBuilding::SetResourceManager(ResourceManager* rm)

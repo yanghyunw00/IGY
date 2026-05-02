@@ -24,7 +24,7 @@ protected:
     static void LoadTextures();
 
 public:
-    ResidentBuilding(Math::fvec2 pos, int w, int h, BuildingType bt);
+    ResidentBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt);
     ~ResidentBuilding() override;
 
     void Update(float dt) override;
