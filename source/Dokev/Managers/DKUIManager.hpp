@@ -99,12 +99,21 @@ namespace Dokev
         void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time) const;
         void        DrawResources(ResourceManager* resourceMgr, int humanCount) const;
         void        DrawHappiness(CityMetrics* cm) const;
+        void        CloseButtonMenus();
+        void        CancelSelection();
+        void        UpdateHoverStates(Math::fvec2 mousePos);
+        void        UpdateButtonScales(float dt);
+        void        UpdateSelectedStates();
+        bool        IsMainButtonSelected(const BuildingButton& button) const;
+        bool        IsCategoryButtonSelected(const BuildingButton& button) const;
+        bool        IsBuildingButtonSelected(const BuildingButton& button) const;
         std::string FormatNumber(int value) const;
         std::string GetHotkeyForButton(const BuildingButton& button) const;
 
         float        totalTime        = 0.0f;
         MenuState    currentMenuState = MenuState::MAIN;
         CategoryType currentCategory  = CategoryType::NONE;
+        bool         hotkeyHandled    = false;
 
         std::vector<BuildingButton> mainButtons;
         std::vector<BuildingButton> categoryButtons;

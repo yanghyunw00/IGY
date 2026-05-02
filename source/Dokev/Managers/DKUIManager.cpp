@@ -235,53 +235,73 @@ namespace Dokev
         // Keyboard shortcuts
         const auto& input = Engine::GetInput();
 
+        //Update HoveringState
+        UpdateHoverStates(mousePos);
+
+        //Hotkey use
+        hotkeyHandled = false;
+
         // C key: Cancel (works in any state)
-        if (input.KeyJustPressed(CS230::Input::Keys::C))
+        if (input.KeyJustPressed(CS230::Input::Keys::C) && !hotkeyHandled)
         {
-            selectedBuilding = BuildingType::NONE;
-            categoryButtons.clear();
-            buildingButtons.clear();
-            currentMenuState = MenuState::MAIN;
+
+            if (currentMenuState == MenuState::MAIN)
+            {
+                CancelSelection();
+                hotkeyHandled = true;
+            }
+            else
+            {
+                CloseButtonMenus();
+                hotkeyHandled = true;
+            }
+
         }
 
         // B key: Build (open category menu from MAIN)
-        if (input.KeyJustPressed(CS230::Input::Keys::B) && currentMenuState == MenuState::MAIN)
+        if (input.KeyJustPressed(CS230::Input::Keys::B) && currentMenuState == MenuState::MAIN && !hotkeyHandled)
         {
             currentMenuState = MenuState::CATEGORY;
             CreateCategoryButtons();
+            hotkeyHandled = true;
         }
 
         // Category menu shortcuts (when in CATEGORY state)
-        if (currentMenuState == MenuState::CATEGORY)
+        if (currentMenuState == MenuState::CATEGORY && !hotkeyHandled)
         {
             if (input.KeyJustPressed(CS230::Input::Keys::H))
             {
                 currentMenuState = MenuState::BUILDING;
                 currentCategory  = CategoryType::HOME_CATEGORY;
                 CreateBuildingButtons(CategoryType::HOME_CATEGORY);
+                hotkeyHandled = true;
             }
             else if (input.KeyJustPressed(CS230::Input::Keys::W))
             {
                 currentMenuState = MenuState::BUILDING;
                 currentCategory  = CategoryType::WORK_CATEGORY;
                 CreateBuildingButtons(CategoryType::WORK_CATEGORY);
+                hotkeyHandled = true;
             }
             else if (input.KeyJustPressed(CS230::Input::Keys::R))
             {
                 currentMenuState = MenuState::BUILDING;
                 currentCategory  = CategoryType::ROAD_CATEGORY;
                 CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
+                hotkeyHandled = true;
             }
         }
 
         // Building selection shortcuts (when in BUILDING state)
-        if (currentMenuState == MenuState::BUILDING)
+        if (currentMenuState == MenuState::BUILDING && !hotkeyHandled)
         {
             if (currentCategory == CategoryType::HOME_CATEGORY)
             {
                 if (input.KeyJustPressed(CS230::Input::Keys::H))
                 {
                     selectedBuilding = BuildingType::HOME;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
             }
             else if (currentCategory == CategoryType::WORK_CATEGORY)
@@ -289,14 +309,20 @@ namespace Dokev
                 if (input.KeyJustPressed(CS230::Input::Keys::W))
                 {
                     selectedBuilding = BuildingType::WOOD_WORKSHOP;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
                 else if (input.KeyJustPressed(CS230::Input::Keys::R))
                 {
                     selectedBuilding = BuildingType::ROCK_WORKSHOP;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
                 else if (input.KeyJustPressed(CS230::Input::Keys::S))
                 {
                     selectedBuilding = BuildingType::STEEL_WORKSHOP;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
@@ -304,6 +330,8 @@ namespace Dokev
                 if (input.KeyJustPressed(CS230::Input::Keys::R))
                 {
                     selectedBuilding = BuildingType::ROAD;
+                    CloseButtonMenus();
+                    hotkeyHandled = true; 
                 }
             }
         }
@@ -312,118 +340,121 @@ namespace Dokev
         {
             case MenuState::MAIN:
                 {
+                    if (!mouseClicked)
+                    break;
+
                     for (auto& button : mainButtons)
                     {
-                        button.isHovered             = PointInRect(mousePos, button.position, button.size);
-                        float hoverTarget            = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale           += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
-                        if (button.isHovered && mouseClicked)
+                        if (!button.isHovered) continue;
+
+                        if (button.name == "Build")
                         {
-                            if (button.type == BuildingType::DELETE)
-                            {
-                                selectedBuilding = BuildingType::DELETE;
-                            }
-                            else if (button.type == BuildingType::FLATTEN)
-                            {
-                                selectedBuilding = BuildingType::FLATTEN;
-                            }
-                            else if (button.name == "Build")
-                            {
-                                currentMenuState = MenuState::CATEGORY;
-                                CreateCategoryButtons();
-                            }
-                            else if (button.name == "Cancel")
-                            {
-                                selectedBuilding = BuildingType::NONE;
-                                categoryButtons.clear();
-                                buildingButtons.clear();
-                            }
+                            selectedBuilding = BuildingType::NONE;
+                            currentMenuState = MenuState::CATEGORY;
+                            CreateCategoryButtons();
                         }
+                        else if (button.type == BuildingType::FLATTEN)
+                        {
+                            selectedBuilding = BuildingType::FLATTEN;
+                            categoryButtons.clear();
+                            buildingButtons.clear();
+                        }
+                        else if (button.type == BuildingType::DELETE)
+                        {
+                            selectedBuilding = BuildingType::DELETE;
+                            categoryButtons.clear();
+                            buildingButtons.clear();
+                        }
+                        else if (button.name == "Cancel")
+                        {
+                            //ResetToMainButtonState();
+                            CancelSelection();
+
+                        }
+
+                        break;
                     }
                     break;
                 }
 
             case MenuState::CATEGORY:
                 {
+                    if (!mouseClicked)
+                    break;
+
                     for (auto& button : categoryButtons)
                     {
-                        button.isHovered   = PointInRect(mousePos, button.position, button.size);
-                        float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
-                        if (button.isHovered && mouseClicked)
-                        {
-                            if (button.name == "Home")
-                            {
-                                currentMenuState = MenuState::BUILDING;
-                                currentCategory  = CategoryType::HOME_CATEGORY;
-                                CreateBuildingButtons(CategoryType::HOME_CATEGORY);
-                            }
-                            else if (button.name == "Work")
-                            {
-                                currentMenuState = MenuState::BUILDING;
-                                currentCategory  = CategoryType::WORK_CATEGORY;
-                                CreateBuildingButtons(CategoryType::WORK_CATEGORY);
-                            }
-                            else if (button.name == "Road")
-                            {
-                                currentMenuState = MenuState::BUILDING;
-                                currentCategory  = CategoryType::ROAD_CATEGORY;
-                                CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
-                            }
-                        }
+                        if (!button.isHovered) continue;
+
+                        currentMenuState = MenuState::BUILDING;
+
+                        if (button.name == "Home")
+                            currentCategory = CategoryType::HOME_CATEGORY;
+                        else if (button.name == "Work")
+                            currentCategory = CategoryType::WORK_CATEGORY;
+                        else if (button.name == "Road")
+                            currentCategory = CategoryType::ROAD_CATEGORY;
+
+                        CreateBuildingButtons(currentCategory);
+                        break;
                     }
                     break;
                 }
 
             case MenuState::BUILDING:
                 {
+                    if(!mouseClicked)
+                    break;
+
                     for (auto& button : categoryButtons)
                     {
-                        button.isHovered   = PointInRect(mousePos, button.position, button.size);
-                        float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
-                        if (button.isHovered && mouseClicked)
-                        {
-                            if (button.name == "Home")
-                            {
-                                currentCategory = CategoryType::HOME_CATEGORY;
-                                CreateBuildingButtons(CategoryType::HOME_CATEGORY);
-                            }
-                            else if (button.name == "Work")
-                            {
-                                currentCategory = CategoryType::WORK_CATEGORY;
-                                CreateBuildingButtons(CategoryType::WORK_CATEGORY);
-                            }
-                            else if (button.name == "Road")
-                            {
-                                currentCategory = CategoryType::ROAD_CATEGORY;
-                                CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
-                            }
-                        }
+                        if (!button.isHovered) continue;
+
+                        if (button.name == "Home")
+                            currentCategory = CategoryType::HOME_CATEGORY;
+                        else if (button.name == "Work")
+                            currentCategory = CategoryType::WORK_CATEGORY;
+                        else if (button.name == "Road")
+                            currentCategory = CategoryType::ROAD_CATEGORY;
+
+                        CreateBuildingButtons(currentCategory);
+                        return;
                     }
 
                     for (auto& button : buildingButtons)
                     {
-                        button.isHovered   = PointInRect(mousePos, button.position, button.size);
-                        float hoverTarget  = button.isHovered ? 1.3f : 1.0f;
-                        button.hoverScale += (hoverTarget - button.hoverScale) * std::min(1.0f, 4.0f * dt);
 
-                        if (button.isHovered && mouseClicked)
+                        if (!button.isHovered) continue;
+
+                        if (button.name == "Cancel")
+                        {
+                            // In buildingbuttons, 
+                            // Cancel button maintains the previous selectedbuilding state
+                            CloseButtonMenus();
+                            return;
+
+                            //selectedBuilding = BuildingType::NONE;
+                        }
+                        else
                         {
                             selectedBuilding = button.type;
-                            currentMenuState = MenuState::MAIN;
-                            categoryButtons.clear();
-                            buildingButtons.clear();
                         }
 
-                        button.isSelected = (button.type == selectedBuilding);
+                        currentMenuState = MenuState::MAIN;
+                        currentCategory = CategoryType::NONE;
+                        categoryButtons.clear();
+                        buildingButtons.clear();
+
+                        return;
                     }
                     break;
                 }
         }
+        UpdateSelectedStates(); 
+        UpdateButtonScales(dt);
     }
 
     void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr) const
@@ -553,11 +584,34 @@ namespace Dokev
 
         if (button.isSelected)
         {
-            boxColor = Dokev::ColorPalette::BOX_INSIDE_SELECTED;
+            if(button.type == BuildingType::FLATTEN || button.type == BuildingType::DELETE)
+            {
+                boxColor = Dokev::ColorPalette::BOX_INSIDE_HOVERED; // gray
+            }
+            else if (button.type != BuildingType::NONE)
+            {
+                boxColor = Dokev::ColorPalette::BOX_INSIDE_SELECTED; // green
+            }
+            else
+            {
+                // main / category pressed
+                boxColor = Dokev::ColorPalette::BOX_INSIDE_HOVERED; // gray
+            }
         }
         else if (button.isHovered)
         {
-            boxColor = Dokev::ColorPalette::BOX_INSIDE_HOVERED;
+            if ((button.type != BuildingType::NONE &&
+                button.type != BuildingType::FLATTEN &&
+                button.type != BuildingType::DELETE))
+            {   
+                //building
+                boxColor = Dokev::ColorPalette::BOX_INSIDE_SELECTED; // green
+            }
+            else
+            {
+                // main/category 
+                boxColor = Dokev::ColorPalette::BOX_INSIDE_HOVERED; // gray
+            }
         }
 
         DrawBox(scaledPos, scaledSize, boxColor);
@@ -762,5 +816,136 @@ namespace Dokev
         }
 
         return ""; // No hotkey
+    }
+
+    // ---------------- New Helper --------------- // 
+    void UIManager::CloseButtonMenus()
+    {
+        currentMenuState = MenuState::MAIN;
+        currentCategory = CategoryType::NONE;
+        categoryButtons.clear();
+        buildingButtons.clear();
+    }
+    void UIManager::CancelSelection()
+    {
+        selectedBuilding = BuildingType::NONE;
+        CloseButtonMenus();
+    }
+    void UIManager::UpdateHoverStates(Math::fvec2 mousePos)
+    {
+        for (auto& button : mainButtons)
+        {
+            button.isHovered = PointInRect(mousePos, button.position, button.size);
+        }
+
+        for (auto& button : categoryButtons)
+        {
+            button.isHovered = PointInRect(mousePos, button.position, button.size);
+        }
+
+        for (auto& button : buildingButtons)
+        {
+            button.isHovered = PointInRect(mousePos, button.position, button.size);
+        }
+    }
+    void UIManager::UpdateButtonScales(float dt)
+    {
+        for (auto& button : mainButtons)
+        {
+            float targetScale = button.isHovered ? 1.3f : 1.0f;
+            button.hoverScale +=
+                (targetScale - button.hoverScale) * std::min(1.0f, 4.0f * dt);
+        }
+
+        for (auto& button : categoryButtons)
+        {
+            float targetScale = button.isHovered ? 1.3f : 1.0f;
+            button.hoverScale +=
+                (targetScale - button.hoverScale) * std::min(1.0f, 4.0f * dt);
+        }
+
+        for (auto& button : buildingButtons)
+        {
+            float targetScale = button.isHovered ? 1.3f : 1.0f;
+            button.hoverScale +=
+                (targetScale - button.hoverScale) * std::min(1.0f, 4.0f * dt);
+        }
+    }
+    void UIManager::UpdateSelectedStates()
+    {
+        for (auto& button : mainButtons)
+        {
+            button.isSelected = IsMainButtonSelected(button);
+        }
+
+        for (auto& button : categoryButtons)
+        {
+            button.isSelected = IsCategoryButtonSelected(button);
+        }
+
+        for (auto& button : buildingButtons)
+        {
+            button.isSelected = IsBuildingButtonSelected(button);
+        }
+    }
+    bool UIManager::IsMainButtonSelected(const BuildingButton& button) const
+    {
+        if (button.name == "Cancel")
+        {
+            return false;
+        }
+
+        if (button.name == "Build")
+        {
+            return currentMenuState == MenuState::CATEGORY ||
+                currentMenuState == MenuState::BUILDING;
+        }
+
+        if (button.type == BuildingType::FLATTEN)
+        {
+            return selectedBuilding == BuildingType::FLATTEN;
+        }
+
+        if (button.type == BuildingType::DELETE)
+        {
+            return selectedBuilding == BuildingType::DELETE;
+        }
+
+        return false;
+    }
+    bool UIManager::IsCategoryButtonSelected(const BuildingButton& button) const
+    {
+        if (currentMenuState != MenuState::BUILDING)
+        {
+            return false;
+        }
+
+        if (button.name == "Home")
+        {
+            return currentCategory == CategoryType::HOME_CATEGORY;
+        }
+
+        if (button.name == "Work")
+        {
+            return currentCategory == CategoryType::WORK_CATEGORY;
+        }
+
+        if (button.name == "Road")
+        {
+            return currentCategory == CategoryType::ROAD_CATEGORY;
+        }
+
+        return false;
+    }
+    bool UIManager::IsBuildingButtonSelected(const BuildingButton& button) const
+    {
+        if (button.name == "Cancel")
+        {
+            return false;
+        }
+
+        return selectedBuilding != BuildingType::NONE &&
+            button.type != BuildingType::NONE &&
+            button.type == selectedBuilding;
     }
 }
