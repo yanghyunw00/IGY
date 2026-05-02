@@ -876,7 +876,7 @@ void GamePlayState::Update(double dt)
                                 if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
                                     break;
 
-                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, BuildingType::GRANARY);
+                                auto* workshop = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 10, BuildingType::GRANARY);
                                 workshop->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(workshop);
                                 tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
