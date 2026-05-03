@@ -112,11 +112,6 @@ private:
     int         roadBuildSoundCount = 0;
 
 
-    //Camera Shaking
-    bool       isShaking     = false;
-    float      shakeAmount   = 0.001f;
-    float      shakeDuration = 50.0f;
-
     // Achievement system
     AchievementManager achievementManager;
 

@@ -42,6 +42,10 @@ namespace Dokev
 
         void UpdateZoomInterpolation(double dt);
 
+        void StartShake(float amount, float duration);
+        void UpdateShake(double dt);
+        bool IsShaking() const;
+
         void Reset();
 
     private:
@@ -50,6 +54,8 @@ namespace Dokev
         int        zoomLevel{ 1 };
         float      targetZoom{ 0.8f };
         float      zoomSpeed{ 5.0f };
-        Math::vec2 shakeOffset   = { 0, 0 };
+        Math::vec2 shakeOffset    = { 0, 0 };
+        float      shakeAmount    = 0.0f;
+        float      shakeTimeLeft  = 0.0f;
     };
 }

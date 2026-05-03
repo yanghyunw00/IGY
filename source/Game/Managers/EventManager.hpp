@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -27,9 +28,11 @@ private:
     GridMap*                  gridMap           = nullptr;
 
     std::vector<std::unique_ptr<DisasterEvent>> activeEvents;
+    std::function<void()>                       meteorFunction;
 
 public:
     void Initialize(Dokev::CityMetrics* metrics, Dokev::GameObjectManager* gom, GridMap* map);
+    void SetMeteorCallback(std::function<void()> callback) { meteorFunction = std::move(callback); }
 
     void RandomEvent();
     void EventCycle(double dt);

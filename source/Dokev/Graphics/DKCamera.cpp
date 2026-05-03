@@ -6,7 +6,9 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKCamera.hpp"
+#include "../Core/DKUtility.hpp"
 #include <algorithm>
+#include <cmath>
 
 namespace Dokev
 {
@@ -102,11 +104,41 @@ namespace Dokev
 
     }
 
+    void Camera::StartShake(float amount, float duration)
+    {
+        shakeAmount   = amount;
+        shakeTimeLeft = duration;
+    }
+
+    void Camera::UpdateShake(double dt)
+    {
+        if (shakeTimeLeft <= 0.0f)
+        {
+            shakeOffset   = { 0.0f, 0.0f };
+            shakeTimeLeft = 0.0f;
+            return;
+        }
+
+        shakeTimeLeft -= static_cast<float>(dt);
+
+        float progress = std::max(0.0f, shakeTimeLeft);
+        float decay    = progress * shakeAmount;
+
+        shakeOffset = { GetRandomFloat(-decay, decay), GetRandomFloat(-decay, decay) };
+    }
+
+    bool Camera::IsShaking() const
+    {
+        return shakeTimeLeft > 0.0f;
+    }
+
     void Camera::Reset()
     {
-        position   = { 0.0, 0.0 };
-        zoom       = 0.8f;
-        targetZoom = 0.8f;
-        zoomLevel  = 1;
+        position      = { 0.0, 0.0 };
+        zoom          = 0.8f;
+        targetZoom    = 0.8f;
+        zoomLevel     = 1;
+        shakeOffset   = { 0.0f, 0.0f };
+        shakeTimeLeft = 0.0f;
     }
 }

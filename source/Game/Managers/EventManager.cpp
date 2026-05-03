@@ -38,6 +38,7 @@ void EventManager::RandomEvent()
     {
         activeEvents.push_back(std::make_unique<Meteor>(cityMetrics, gameObjectManager, gridMap));
         activeEvents.back()->OnStart();
+        if (meteorFunction) meteorFunction();
     }
     else if(randomSeed == static_cast<int>(EventList::FIRE))
     {
