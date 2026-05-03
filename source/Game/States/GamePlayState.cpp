@@ -209,15 +209,12 @@ void GamePlayState::Load()
     // Initialize GameObjectManager component
     AddGSComponent<Dokev::GameObjectManager>();
     {
-        const Road* road     = GetGSComponent<MapManager>()->GetRoad();
-        Math::fvec2 spawnPos = { GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f };
-        if (road && !road->GetRoadPositions().empty())
-        {
-            const auto& positions = road->GetRoadPositions();
-            spawnPos              = positions[positions.size() / 2]; // middle of the road
-        }
-        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
-        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(spawnPos));
+        const Road*    road    = GetGSComponent<MapManager>()->GetRoad();
+        const GridMap* gridMap = GetGSComponent<MapManager>()->GetMap();
+        Human h1 = Human::CreateImmigrant(road, gridMap);
+        Human h2 = Human::CreateImmigrant(road, gridMap);
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(h1));
+        GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(h2));
     }
 
 
@@ -635,7 +632,7 @@ void GamePlayState::Update(double dt)
         {
             humans[i]->SetResourceManager(resMgr);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
-            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), nullptr, dayCycle.GetHour());
+            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), gameObjMgr.get(), dayCycle.GetHour());
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
@@ -675,7 +672,7 @@ void GamePlayState::Update(double dt)
 
     if (shouldSpawnImmigrant)
     {
-        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant(mapMgr->GetRoad())));
+        gameObjMgr->AddHuman(new Human(Human::CreateImmigrant(mapMgr->GetRoad(), mapMgr->GetMap())));
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after immigration check");
 
@@ -737,8 +734,9 @@ void GamePlayState::Update(double dt)
     // Update mouse picking for isometric, building placement//
     ///////////////////////////////////////////////////////////
 
-    auto selectBuildingType = uiManager.GetSelectedBuilding();
-    bool shouldplace        = mouseClicked || (ismouseheld && (selectBuildingType == BuildingType::ROAD || selectBuildingType == BuildingType::FLATTEN) && !blockRoadPlacementUntilRelease);
+    auto selectBuildingType  = uiManager.GetSelectedBuilding();
+    bool uiConsumedClick     = uiManager.IsAnyButtonHovered();
+    bool shouldplace         = (!uiConsumedClick && mouseClicked) || (ismouseheld && (selectBuildingType == BuildingType::ROAD || selectBuildingType == BuildingType::FLATTEN) && !blockRoadPlacementUntilRelease);
 
     if (shouldplace)
     {
@@ -933,6 +931,30 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
+                        case BuildingType::CAFE:
+                            {
+                                if (!consumeResources(BuildingType::CAFE))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::CAFE);
+                                building->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::RESTAURANT2:
+                            {
+                                if (!consumeResources(BuildingType::RESTAURANT2))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::RESTAURANT2);
+                                building->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::DELETE:
                             {
                                 mouseSelection.SetHasValidPosition(true);
@@ -1008,6 +1030,8 @@ void GamePlayState::Update(double dt)
 
                     if (placed)
                     {
+                        mouseSelection.SetHasValidPosition(false);
+
                         if (selectedBuild == BuildingType::ROAD)
                         {
                             roadBuildSoundCount++;
@@ -1253,7 +1277,7 @@ void GamePlayState::DrawImGui()
             }
         }
 
-        playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get());
+        playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get(), dayCycle.GetHour(), dayCycle.GetMinute());
     }
 }
 

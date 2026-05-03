@@ -19,6 +19,7 @@
 #include "Engine/Path.hpp"
 #include "Game/Managers/DayCycleManager.hpp"
 #include "Road.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -57,7 +58,6 @@ void Human::CancelWork()
     ai.assignedJobId     = -1;
     ai.assignedWorkType  = WorkType::None;
     ai.workplacePosition = { -1.0f, -1.0f };
-    ai.workSessionTimer  = 0.0f;
     // isVisible = true;
 
     if (state == HumanState::Walking || state == HumanState::Working)
@@ -164,6 +164,15 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
                 ai.isHeadingHome = false;
                 ChangeState(HumanState::Resting);
             }
+            else if (ai.isSeekingCafe &&
+                     static_cast<int>(currentGridPos.x) == static_cast<int>(ai.targetCafePosition.x) &&
+                     static_cast<int>(currentGridPos.y) == static_cast<int>(ai.targetCafePosition.y))
+            {
+                ai.isSeekingCafe = false;
+                stats.energy    = std::min(100.0f, stats.energy    + 50.0f);
+                stats.happiness = std::min(100.0f, stats.happiness + 10.0f);
+                ChangeState(HumanState::Idle);
+            }
             else
             {
                 ChangeState(HumanState::Idle);
@@ -194,9 +203,13 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
 
 void Human::UpdateWorking(float deltaTime, int currentHour)
 {
-    // Earn wages: deltaTime is simulation-scaled seconds, convert to game hours
     const float gameHoursPerSecond = 24.0f / DayCycleManager::kDayDuration;
-    float earned = stats.hourlyWage * deltaTime * gameHoursPerSecond;
+
+    stats.energy    = std::max(0.0f, stats.energy    - 10.0f * deltaTime * gameHoursPerSecond);
+    stats.happiness = std::max(0.0f, stats.happiness -  5.0f * deltaTime * gameHoursPerSecond);
+
+    float multiplier = (stats.energy / 100.0f) * (stats.happiness / 100.0f);
+    float earned = stats.hourlyWage * multiplier * deltaTime * gameHoursPerSecond;
     stats.money   += earned;
     shiftEarnings += earned;
 
@@ -214,16 +227,6 @@ void Human::UpdateWorking(float deltaTime, int currentHour)
         return;
     }
 
-    ai.workSessionTimer += deltaTime;
-    if (ai.workSessionTimer >= ai.maxWorkSessionTime)
-    {
-        ai.workSessionCount++;
-        CancelWork();
-        if (ai.workSessionCount >= ai.maxWorkSessionsBeforeFatigue)
-        {
-            ai.isHeadingHome = true;
-        }
-    }
 }
 
 void Human::UpdateResting(float deltaTime)
@@ -231,19 +234,61 @@ void Human::UpdateResting(float deltaTime)
     ai.restTimer += deltaTime;
     if (ai.restTimer >= ai.maxRestTime)
     {
-        ai.restTimer        = 0.0f;
-        ai.workSessionCount = 0;
+        ai.restTimer = 0.0f;
+        stats.energy = std::min(100.0f, stats.energy + 50.0f);
         ChangeState(HumanState::Idle);
     }
 }
 
 void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr)
 {
+    stats.happiness = std::min(100.0f, stats.happiness + 1.0f * deltaTime);
+
     ai.idleTimer += deltaTime;
 
     if (ai.idleTimer >= ai.maxIdleTime)
     {
         ai.idleTimer = 0.0f;
+
+        if (ai.isSeekingCafe)
+        {
+            Math::fvec2 cafePos = { -1.0f, -1.0f };
+            if (gameObjMgr)
+            {
+                for (const auto& building : gameObjMgr->GetBuildings())
+                {
+                    if (building->GetBuildingType() == BuildingType::CAFE && building->GetIsBuilt())
+                    {
+                        cafePos = building->GetGrid();
+                        break;
+                    }
+                }
+            }
+
+            if (cafePos.x >= 0.0f && map)
+            {
+                map->ClearPath();
+                map->FindPath(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y),
+                              static_cast<int>(cafePos.x), static_cast<int>(cafePos.y));
+                auto path_ = map->GetCurrentPath();
+
+                if (!path_.empty() && path_.size() > 1)
+                {
+                    ai.targetCafePosition = cafePos;
+                    FollowPath(path_);
+                    ChangeState(HumanState::Walking);
+                }
+                else
+                {
+                    ai.isSeekingCafe = false;
+                }
+            }
+            else
+            {
+                ai.isSeekingCafe = false;
+            }
+            return;
+        }
 
         if (ai.isHeadingHome)
         {
@@ -262,7 +307,7 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
 
             if (homePos.x < 0.0f)
             {
-                Destroy();
+                ai.isHeadingHome = false;
                 return;
             }
 
@@ -282,7 +327,6 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
                 else
                 {
                     ai.isHeadingHome = false;
-                    ai.workSessionCount = 0;
                     ChangeState(HumanState::Resting);
                 }
             }
@@ -293,26 +337,51 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
     }
 }
 
-void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour)
+void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr)
 {
     (void)deltaTime;
 
     if (!map)
         return;
 
-    // Outside working hours — go home instead of looking for jobs
-    if (currentHour < 9 || currentHour >= 17)
+    bool outsideHours = (currentHour < 9 || currentHour >= 17);
+
+    if (outsideHours)
     {
         ai.isHeadingHome = true;
+
+        bool homeExists = false;
+        if (gameObjMgr)
+        {
+            for (const auto& b : gameObjMgr->GetBuildings())
+            {
+                if (b->GetBuildingType() == BuildingType::HOME && b->GetIsBuilt())
+                {
+                    homeExists = true;
+                    break;
+                }
+            }
+        }
+
+        if (homeExists)
+        {
+            ChangeState(HumanState::Idle);
+            return;
+        }
+    }
+    else if (stats.energy <= 0.0f)
+    {
+        ai.isSeekingCafe = true;
         ChangeState(HumanState::Idle);
         return;
     }
-
+    else
+    {
+    // Manager Gives Job
     int newJobId = -1;
     Math::fvec2 newJobPos = { -1.0f, -1.0f };
     WorkType newJobType = WorkType::None;
 
-    // Manager Gives Job
     if (!HasWorkAssignment() && WorkManager::GetInstance().RequestJob(this, currentGridPos, newJobId, newJobPos, newJobType, ai.explorationRadius))
     {
         ai.assignedJobId = newJobId;
@@ -333,11 +402,12 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
         }
         else
         {
-            CancelWork(); 
+            CancelWork();
         }
     }
+    } // end else (working hours)
 
-    // NO WORK — road-only movement
+    // road movement — runs both during and outside working hours
     if (road)
     {
         bool onRoad = road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
@@ -419,7 +489,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
     }
     else if (state == HumanState::FindingDestination)
     {
-        UpdateFindingDestination(deltaTime, map, road, currentHour);
+        UpdateFindingDestination(deltaTime, map, road, currentHour, gameObjMgr);
     }
     else if (state == HumanState::Working)
     {
@@ -468,7 +538,6 @@ void Human::ChangeState(HumanState newState)
 
     if (state == HumanState::Working)
     {
-        ai.workSessionTimer = 0.0f;  // timer reset
     }
     else if (state == HumanState::Idle)
     {
@@ -654,7 +723,7 @@ bool Human::FindNearbyRoad(const Road* road, Math::fvec2& outRoadPosition) const
     return false;
 }
 
-Human Human::CreateImmigrant(const Road* road)
+Human Human::CreateImmigrant(const Road* road, const GridMap* map)
 {
     if (road && !road->GetRoadPositions().empty())
     {
@@ -663,7 +732,31 @@ Human Human::CreateImmigrant(const Road* road)
         return Human(positions[idx]);
     }
 
-    // Fallback: spawn at map centre
+    // Fallback: spiral search from map centre for a walkable (non-water) tile
+    if (map)
+    {
+        GridCell** view = map->GetViewArray(0);
+        const int  cx   = GRID_SIZE_X / 2;
+        const int  cy   = GRID_SIZE_Y / 2;
+
+        for (int r = 0; r < GRID_SIZE_X / 2; ++r)
+        {
+            for (int dx = -r; dx <= r; ++dx)
+            {
+                for (int dy = -r; dy <= r; ++dy)
+                {
+                    if (std::abs(dx) != r && std::abs(dy) != r)
+                        continue; // only check the ring edge
+                    int nx = cx + dx, ny = cy + dy;
+                    if (nx < 0 || nx >= GRID_SIZE_X || ny < 0 || ny >= GRID_SIZE_Y)
+                        continue;
+                    if (view[ny * GRID_SIZE_X + nx]->getHeight() >= 75.0)
+                        return Human(Math::fvec2(static_cast<float>(nx), static_cast<float>(ny)));
+                }
+            }
+        }
+    }
+
     return Human(Math::fvec2(GRID_SIZE_X / 2.0f, GRID_SIZE_Y / 2.0f));
 }
 

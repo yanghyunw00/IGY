@@ -20,6 +20,8 @@ enum class BuildingType
 
     // RESIDENT buildings
     HOME,
+    CAFE,
+    RESTAURANT2,
 
     // INFRASTRUCTURE
     ROAD,

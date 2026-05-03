@@ -61,6 +61,24 @@ namespace Dokev
                     homeButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(homeButton);
 
+                    BuildingButton cafeButton;
+                    cafeButton.type     = BuildingType::CAFE;
+                    cafeButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
+                    cafeButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    cafeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cafeButton.name     = "Cafe";
+                    cafeButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(cafeButton);
+
+                    BuildingButton restaurantButton;
+                    restaurantButton.type     = BuildingType::RESTAURANT2;
+                    restaurantButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
+                    restaurantButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    restaurantButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    restaurantButton.name     = "Restaurant";
+                    restaurantButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(restaurantButton);
+
                     BuildingButton cancelButton;
                     cancelButton.type     = BuildingType::NONE;
                     cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
@@ -652,7 +670,8 @@ namespace Dokev
 
         // Draw required resources
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
-                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::HOME))
+                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::HOME ||
+                                 button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2))
         {
             float tooltipWidth  = 180.0f;
             float tooltipHeight = 60.0f;

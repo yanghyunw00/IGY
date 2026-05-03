@@ -80,6 +80,17 @@ namespace Dokev
             return currentMenuState != MenuState::MAIN;
         }
 
+        bool IsAnyButtonHovered() const
+        {
+            for (const auto& b : mainButtons)
+                if (b.isHovered) return true;
+            for (const auto& b : categoryButtons)
+                if (b.isHovered) return true;
+            for (const auto& b : buildingButtons)
+                if (b.isHovered) return true;
+            return false;
+        }
+
         void OpenBuildingCategory(CategoryType category)
         {
             currentMenuState = MenuState::BUILDING;

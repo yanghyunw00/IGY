@@ -17,6 +17,12 @@
     },
     "GRANARY": {
       "Money": 0
+    },
+    "CAFE": {
+      "Money": 20
+    },
+    "RESTAURANT2": {
+      "Money": 25
     }
   }
 }

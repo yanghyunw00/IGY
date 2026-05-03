@@ -45,10 +45,6 @@ void EventManager::RandomEvent()
         activeEvents.push_back(std::make_unique<Fire>(gameObjectManager, gridMap));
         activeEvents.back()->OnStart();
     }
-    else //3, 4
-    {
-        //None
-    }
 }
 
 void EventManager::EventCycle(double dt)

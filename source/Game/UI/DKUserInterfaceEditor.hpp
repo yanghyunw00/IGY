@@ -27,7 +27,7 @@ class UserInterfaceEditor
 {
 public:
     UserInterfaceEditor() = default;
-    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr);
+    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr, int hour = 0, int minute = 0);
 
     void SetSelectedHuman(Human* human) { selectedHuman = human; }
 

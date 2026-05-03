@@ -4,7 +4,12 @@
       "Bash(dir C:\\\\cs200_dongyun\\\\IGY /b)",
       "PowerShell(Get-ChildItem \"C:\\\\cs200_dongyun\\\\IGY\\\\source\" -Recurse | Where-Object { $_.Extension -in '.cpp', '.h', '.hpp' } | Select-Object FullName | Format-Table -AutoSize)",
       "PowerShell(Copy-Item *)",
-      "Bash(Get-ChildItem *)"
+      "Bash(Get-ChildItem *)",
+      "Bash(grep -E \"\\\\.\\(sln|vcxproj|bat|sh|ps1|json\\)$\")",
+      "Bash(\\\\.sh)",
+      "Bash(\\\\.ps1)",
+      "Bash(\\\\.sln\")",
+      "Bash(Select-Object FullName)"
     ]
   }
 }

@@ -74,16 +74,12 @@ struct HumanAI
     WorkType    assignedWorkType = WorkType::None;
     Math::fvec2 workplacePosition = { -1.0f, -1.0f };
 
-    float workSessionTimer   = 0.0f;  // realtime works session
-    float maxWorkSessionTime = 7.0f;  // 5sec for work
-
-    // Fatigue system
-    int   workSessionCount             = 0;
-    int   maxWorkSessionsBeforeFatigue = 3;
-    float restTimer                    = 0.0f;
-    float maxRestTime                  = 7.0f;
-    Math::fvec2 targetHomePosition     = { -1.0f, -1.0f };
-    bool  isHeadingHome                = false;
+    float restTimer             = 0.0f;
+    float maxRestTime           = 7.0f;
+    Math::fvec2 targetHomePosition = { -1.0f, -1.0f };
+    bool  isHeadingHome         = false;
+    Math::fvec2 targetCafePosition = { -1.0f, -1.0f };
+    bool  isSeekingCafe         = false;
 
     // Road following
     bool                 preferRoads           = true;  // Should try to use roads when pathfinding
@@ -128,7 +124,7 @@ public:
 
     void DecideNextAction(GridMap* map);
 
-    static Human CreateImmigrant(const Road* road = nullptr);
+    static Human CreateImmigrant(const Road* road = nullptr, const GridMap* map = nullptr);
 
     Math::fvec2 FindClosestWalkableTile(GridMap* map) const;
 
@@ -143,9 +139,6 @@ public:
 
     int         GetAssignedJobId()       const { return ai.assignedJobId; }
     Math::fvec2 GetWorkplacePosition()   const { return ai.workplacePosition; }
-    float       GetWorkSessionTimer()    const { return ai.workSessionTimer; }
-    float       GetMaxWorkSessionTime()  const { return ai.maxWorkSessionTime; }
-    void        SetMaxWorkSessionTime(float t) { ai.maxWorkSessionTime = t; }
     float       GetJobSearchRadius()     const { return ai.explorationRadius; }
     void        SetJobSearchRadius(float r)    { ai.explorationRadius = r; }
 
@@ -207,7 +200,7 @@ private:
     // INTERNAL UPDATE FUNCTIONS
     void UpdateMovement(float deltaTime, GridMap* map);
     void UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr);
-    void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour);
+    void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr);
     void ChangeState(HumanState newState);
 
     void UpdateWorking(float deltaTime, int currentHour);
