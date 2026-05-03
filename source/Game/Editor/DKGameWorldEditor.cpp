@@ -522,17 +522,6 @@ namespace Dokev
 
                 ImGui::Spacing();
 
-                // Global work session time control
-                {
-                    static float globalWorkTime = 5.0f;
-                    if (ImGui::SliderFloat("Work Session Time (sec)", &globalWorkTime, 1.0f, 60.0f))
-                    {
-                        for (auto& h : humans)
-                            h->SetMaxWorkSessionTime(globalWorkTime);
-                    }
-                    ImGui::Spacing();
-                }
-
                 {
                     static float globalJobRadius = 20.0f;
                     if (ImGui::SliderFloat("Job Search Radius (tiles)", &globalJobRadius, 5.0f, 80.0f))
@@ -576,15 +565,6 @@ namespace Dokev
                                 auto wp = human->GetWorkplacePosition();
                                 ImGui::Text("Job ID    : %d", jobId);
                                 ImGui::Text("Workplace : (%.1f, %.1f)", wp.x, wp.y);
-
-                                if (human->GetState() == HumanState::Working)
-                                {
-                                    float t    = human->GetWorkSessionTimer();
-                                    float tMax = human->GetMaxWorkSessionTime();
-                                    char  buf[32];
-                                    snprintf(buf, sizeof(buf), "%.1f / %.1fs", t, tMax);
-                                    ImGui::ProgressBar(t / tMax, ImVec2(-1, 0), buf);
-                                }
 
                                 if (ImGui::Button("Cancel Work"))
                                     human->CancelWork();

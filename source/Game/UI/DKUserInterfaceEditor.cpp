@@ -18,7 +18,7 @@
 #include <imgui.h>
 
 
-void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics)
+void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute)
 {
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
@@ -55,6 +55,9 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
         ImGui::End();
         return;
     }
+
+    ImGui::Text("Time: %02d:%02d  (%s)", hour, minute, hour >= 9 && hour < 17 ? "Working" : "Off");
+    ImGui::Separator();
 
     if (ImGui::TreeNode("CITY HAPPINESS"))
     {

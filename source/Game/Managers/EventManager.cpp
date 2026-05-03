@@ -34,19 +34,15 @@ void EventManager::RandomEvent()
         activeEvents.push_back(std::make_unique<Drought>(cityMetrics, gameObjectManager));
         activeEvents.back()->OnStart();
     }
-    else if(randomSeed == static_cast<int>(EventList::METEOR))
-    {
-        activeEvents.push_back(std::make_unique<Meteor>(cityMetrics, gameObjectManager, gridMap));
-        activeEvents.back()->OnStart();
-    }
+    // else if(randomSeed == static_cast<int>(EventList::METEOR))
+    // {
+    //     activeEvents.push_back(std::make_unique<Meteor>(cityMetrics, gameObjectManager, gridMap));
+    //     activeEvents.back()->OnStart();
+    // }
     else if(randomSeed == static_cast<int>(EventList::FIRE))
     {
         activeEvents.push_back(std::make_unique<Fire>(gameObjectManager, gridMap));
         activeEvents.back()->OnStart();
-    }
-    else //3, 4
-    {
-        //None
     }
 }
 

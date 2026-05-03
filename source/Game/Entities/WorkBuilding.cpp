@@ -19,11 +19,15 @@ Dokev::Texture2D WorkBuilding::loggingCampTexture;
 Dokev::Texture2D WorkBuilding::quarryTexture;
 Dokev::Texture2D WorkBuilding::ironMineTexture;
 Dokev::Texture2D WorkBuilding::granaryTexture;
+Dokev::Texture2D WorkBuilding::cafeTexture;
+Dokev::Texture2D WorkBuilding::restaurant2Texture;
 
 Dokev::Texture2D WorkBuilding::loggingCampInterationTexture;
 Dokev::Texture2D WorkBuilding::quarryInterationTexture;
 Dokev::Texture2D WorkBuilding::ironMineInterationTexture;
 Dokev::Texture2D WorkBuilding::granaryInterationTexture;
+Dokev::Texture2D WorkBuilding::cafeInteractionTexture;
+Dokev::Texture2D WorkBuilding::restaurant2InteractionTexture;
 
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool             WorkBuilding::texturesLoaded = false;
@@ -49,7 +53,10 @@ void WorkBuilding::LoadTextures()
         quarryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
         ironMineInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
         granaryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2_interaction.png").string());
-
+        cafeTexture              = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
+        restaurant2Texture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
+        cafeInteractionTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Cafe_interaction.png").string());
+        restaurant2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2_interaction.png").string());
 
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
         texturesLoaded = true;
@@ -93,6 +100,20 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             texture      = granaryTexture;
             max_capacity = 2;
             cost         = 0;
+            break;
+
+        case BuildingType::CAFE:
+            texture         = cafeTexture;
+            max_capacity    = 2;
+            cost            = 0;
+            maintenanceCost = 10;
+            break;
+
+        case BuildingType::RESTAURANT2:
+            texture         = restaurant2Texture;
+            max_capacity    = 2;
+            cost            = 0;
+            maintenanceCost = 12;
             break;
 
         default:
@@ -158,10 +179,6 @@ void WorkBuilding::Update(float dt)
         }
     }
 
-    //rely on the hp
-    productionRate -= static_cast<float>(hp) * 0.1f;
-
-
     if (HasWorker())
     {
         switch (buildingType)
@@ -177,6 +194,12 @@ void WorkBuilding::Update(float dt)
             break;
         case BuildingType::GRANARY:
             texture = granaryInterationTexture;
+            break;
+        case BuildingType::CAFE:
+            texture = cafeInteractionTexture;
+            break;
+        case BuildingType::RESTAURANT2:
+            texture = restaurant2InteractionTexture;
             break;
         default:
             break;
@@ -197,6 +220,12 @@ void WorkBuilding::Update(float dt)
             break;
         case BuildingType::GRANARY:
             texture = granaryTexture;
+            break;
+        case BuildingType::CAFE:
+            texture = cafeTexture;
+            break;
+        case BuildingType::RESTAURANT2:
+            texture = restaurant2Texture;
             break;
         default:
             break;
