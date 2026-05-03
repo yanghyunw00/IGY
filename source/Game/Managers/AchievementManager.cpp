@@ -37,7 +37,7 @@ void AchievementManager::Init()
         { "pop10",       "[Achievement Unlocked] Population 10!",  false },
         { "build10",     "[Achievement Unlocked] 10 Buildings!",   false },
         { "happy90",     "[Achievement Unlocked] Happiness 90+!",  false },
-        { "resource100", "[Achievement Unlocked] 100 Resources!",  false },
+        { "resource5000", "[Achievement Unlocked] 5000 Resources!",  false },
     };
 }
 
@@ -52,7 +52,7 @@ void AchievementManager::Update(float dt, int population, int buildingCount, flo
         if      (a.id == "pop10"       && population       >= 10)   met = true;
         else if (a.id == "build10"     && buildingCount    >= 10)   met = true;
         else if (a.id == "happy90"     && happiness        >= 90.f) met = true;
-        else if (a.id == "resource100" && maxSingleResource >= 100) met = true;
+        else if (a.id == "resource5000" && maxSingleResource >= 5000) met = true;
 
         if (met)
             Unlock(a);
