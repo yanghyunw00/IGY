@@ -97,5 +97,7 @@ BuildingType BuildingCostManager::StringToBuildingType(const std::string& str) c
         return BuildingType::CAFE;
     if (str == "RESTAURANT2")
         return BuildingType::RESTAURANT2;
+    if (str == "FLATTEN")
+        return BuildingType::FLATTEN;
     return BuildingType::NONE;
 }

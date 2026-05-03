@@ -16,7 +16,7 @@ private:
 
     static constexpr double maxDuration    = 10.0;
     static constexpr double damageInterval = 3.0; 
-    static constexpr float  radius         = 50.0f;
+    static constexpr float  radius         = 9.0f;
     static constexpr int    fireDamage     = 3;
 
     double elapsed     = 0.0;

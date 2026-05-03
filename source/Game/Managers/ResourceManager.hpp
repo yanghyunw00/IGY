@@ -15,7 +15,7 @@
 class ResourceManager : public IComponent
 {
 public:
-    int totalMoney = 9999;
+    int totalMoney = 30;
 
     void AddResource(ResourceType type, int amount)
     {

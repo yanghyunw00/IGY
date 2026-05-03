@@ -34,7 +34,7 @@ void EventManager::RandomEvent()
         activeEvents.push_back(std::make_unique<Drought>(cityMetrics, gameObjectManager));
         activeEvents.back()->OnStart();
     }
-    else if(randomSeed == static_cast<int>(EventList::METEOR))
+    else if(randomSeed == static_cast<int>(EventList::METEOR)) //Like earthquake
     {
         activeEvents.push_back(std::make_unique<Meteor>(cityMetrics, gameObjectManager, gridMap));
         activeEvents.back()->OnStart();

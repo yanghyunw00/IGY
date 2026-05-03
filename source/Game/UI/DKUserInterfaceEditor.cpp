@@ -12,13 +12,14 @@
 #include "../Entities/Human.hpp"
 #include "../Managers/DKCityMetrics.hpp"
 #include "../Managers/DKImmigrationManager.hpp"
+#include "../Managers/EventManager.hpp"
 #include "../Managers/HappinessManager.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include <imgui.h>
 
 
-void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute)
+void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute, EventManager* eventManager, SimulationControls* simControls)
 {
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
@@ -48,12 +49,18 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     int totalResources = 0;
 
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(300, 550), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(300, 600), ImGuiCond_FirstUseEver);
 
     if (!ImGui::Begin("City Status"))
     {
         ImGui::End();
         return;
+    }
+
+    if (simControls)
+    {
+        DrawGameControlsSection(simControls);
+        ImGui::Separator();
     }
 
     ImGui::Text("Time: %02d:%02d  (%s)", hour, minute, hour >= 9 && hour < 17 ? "Working" : "Off");
@@ -87,6 +94,16 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
         if (ImGui::TreeNode("WIN CONDITION"))
         {
             DrawWinConditionSection(cityMetrics, humanCount);
+            ImGui::TreePop();
+        }
+    }
+
+    if (eventManager)
+    {
+        ImGui::Separator();
+        if (ImGui::TreeNode("DISASTERS"))
+        {
+            DrawDisasterSection(eventManager);
             ImGui::TreePop();
         }
     }
@@ -237,6 +254,51 @@ void UserInterfaceEditor::DrawWinConditionSection(Dokev::CityMetrics* cityMetric
     //  Progress Bar
     float progressRatio = static_cast<float>(humanCount) / static_cast<float>(winPopulation);
     ImGui::ProgressBar(progressRatio, ImVec2(-1, 0));
+}
+
+void UserInterfaceEditor::DrawGameControlsSection(SimulationControls* controls)
+{
+    ImGui::Text("Simulation: %s", controls->paused ? "Paused" : "Running");
+    if (controls->speedLabels && controls->speedIndex < controls->speedCount)
+        ImGui::Text("Speed: %s", controls->speedLabels[controls->speedIndex]);
+
+    if (ImGui::Button(controls->paused ? "Resume" : "Pause"))
+        controls->pauseClicked = true;
+
+    if (controls->speedLabels)
+    {
+        for (std::size_t i = 0; i < controls->speedCount; ++i)
+        {
+            ImGui::SameLine();
+            if (ImGui::RadioButton(controls->speedLabels[i], controls->speedIndex == i))
+                controls->speedClicked = static_cast<int>(i);
+        }
+    }
+
+    ImGui::Spacing();
+    if (ImGui::Button("Back to Main Menu"))
+        controls->backClicked = true;
+}
+
+void UserInterfaceEditor::DrawDisasterSection(EventManager* eventManager)
+{
+    const auto& events = eventManager->GetActiveEvents();
+
+    if (events.empty())
+    {
+        ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "No active disasters");
+
+        double timeLeft = eventManager->GetMaxTime() - eventManager->GetDuration();
+        ImGui::Text("Next event in: %.1f sec", timeLeft);
+        return;
+    }
+
+    for (const auto& e : events)
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "[!] %s", e->GetName());
+        float progress = e->GetProgress();
+        ImGui::ProgressBar(progress, ImVec2(-1, 0));
+    }
 }
 
 void UserInterfaceEditor::DrawNPCInfoPanel()

@@ -27,37 +27,18 @@ void MapManager::Initialize()
     map.ReGenerateMap();
     map.InitializePathFinding();
 
-    // Build initial road across the middle of the map
-    GridCell** viewArray = map.GetViewArray(0);
-    if (viewArray)
+    // Build initial 3x3 cross road at the center of the map
     {
-        const int midY = GRID_SIZE_Y / 2;
+        const int cx = GRID_SIZE_X / 2;
+        const int cy = GRID_SIZE_Y / 2;
 
-        int startX = -1;
-        for (int x = 0; x < GRID_SIZE_X; ++x)
+        const int offsets[9][2] = { {0,0}, {-1,0}, {1,0}, {0,-1}, {0,1}, {-2,0}, {2,0}, {0,-2}, {0,2} };
+        for (auto& off : offsets)
         {
-            GridCell* cell = viewArray[midY * GRID_SIZE_X + x];
-            if (cell && cell->isWalkable())
-            {
-                startX = x;
-                break;
-            }
-        }
-
-        int endX = -1;
-        for (int x = GRID_SIZE_X - 1; x >= 0; --x)
-        {
-            GridCell* cell = viewArray[midY * GRID_SIZE_X + x];
-            if (cell && cell->isWalkable())
-            {
-                endX = x;
-                break;
-            }
-        }
-
-        if (startX != -1 && endX != -1 && startX != endX)
-        {
-            road->buildRoadPath(map, startX, midY, endX, midY);
+            int x = cx + off[0];
+            int y = cy + off[1];
+            if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
+                road->addRoad(x, y, map);
         }
     }
 

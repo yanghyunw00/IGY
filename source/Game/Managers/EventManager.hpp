@@ -21,7 +21,7 @@ class EventManager
 {
 private:
     double duration = 0;
-    double maxTime  = 30.0;
+    double maxTime  = 45.0;
 
     Dokev::CityMetrics*       cityMetrics       = nullptr;
     Dokev::GameObjectManager* gameObjectManager = nullptr;

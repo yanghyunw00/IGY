@@ -1,7 +1,10 @@
 {
   "BuildingCosts": {
     "ROAD": {
-      "Money": 2
+      "Money": 3
+    },
+    "FLATTEN": {
+      "Money": 5
     },
     "HOME": {
       "Money": 15

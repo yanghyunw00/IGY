@@ -986,11 +986,14 @@ void GamePlayState::Update(double dt)
                         case BuildingType::FLATTEN:
                             {
                                 mouseSelection.SetHasValidPosition(true);
+                                if (!consumeResources(BuildingType::FLATTEN))
+                                    break;
                                 if (map->FlattenTile(gridX, gridY))
                                 {
                                     placed = true;
                                     break;
                                 }
+                                resourceMgr->SetMoney(resourceMgr->GetTotalResources() + buildingCostManager.GetCost(BuildingType::FLATTEN).money);
 
                                 // static Math::ivec2 startPos;
                                 // if (mouse.MouseJustPressed(Mouse::Button::Left))
@@ -1213,44 +1216,7 @@ void GamePlayState::Draw() const
 void GamePlayState::DrawImGui()
 {
     // Developer UI
-    worldEditor.DrawImGui();
-
-    if (ImGui::Begin("Game Menu"))
-    {
-        ImGui::Text("Simulation: %s", simulationPaused ? "Paused" : "Running");
-        ImGui::Text("Current Speed: %s", kSimulationSpeedLabels[simulationSpeedPresetIndex]);
-        ImGui::Text("Shortcuts: P pause, Left/Right speed");
-
-        if (ImGui::Button(simulationPaused ? "Resume" : "Pause"))
-        {
-            simulationPaused = !simulationPaused;
-        }
-
-        for (std::size_t presetIndex = 0; presetIndex < kSimulationSpeedPresets.size(); ++presetIndex)
-        {
-            if (presetIndex != 0)
-            {
-                ImGui::SameLine();
-            }
-
-            if (ImGui::RadioButton(kSimulationSpeedLabels[presetIndex], simulationSpeedPresetIndex == presetIndex))
-            {
-                SetSimulationSpeedPreset(presetIndex);
-            }
-        }
-
-        ImGui::Separator();
-
-        if (ImGui::Button("Back to Main Menu"))
-        {
-            auto& gsm = Engine::GetGameStateManager();
-            gsm.PopState();
-            gsm.PushState<MainMenu>();
-            ImGui::End();
-            return;
-        }
-    }
-    ImGui::End();
+    //worldEditor.DrawImGui();
 
     // Player UI
     auto cityMetrics = GetGSComponent<CityMetrics>();
@@ -1277,7 +1243,27 @@ void GamePlayState::DrawImGui()
             }
         }
 
-        playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get(), dayCycle.GetHour(), dayCycle.GetMinute());
+        SimulationControls simControls;
+        simControls.paused     = simulationPaused;
+        simControls.speedIndex = simulationSpeedPresetIndex;
+        simControls.speedLabels = kSimulationSpeedLabels.data();
+        simControls.speedCount  = kSimulationSpeedLabels.size();
+
+        playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get(), dayCycle.GetHour(), dayCycle.GetMinute(), &eventManager, &simControls);
+
+        if (simControls.pauseClicked)
+            simulationPaused = !simulationPaused;
+
+        if (simControls.speedClicked >= 0)
+            SetSimulationSpeedPreset(static_cast<std::size_t>(simControls.speedClicked));
+
+        if (simControls.backClicked)
+        {
+            auto& gsm = Engine::GetGameStateManager();
+            gsm.PopState();
+            gsm.PushState<MainMenu>();
+            return;
+        }
     }
 }
 
