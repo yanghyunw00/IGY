@@ -173,6 +173,7 @@ namespace
     }
 
     Math::ivec2 lastPlacedRoadPos              = { -1, -1 };
+    Math::ivec2 lastPlacedFlattenPos           = { -1, -1 };
     bool        blockRoadPlacementUntilRelease = false; // avoid placing road with the same click used to select it
 }
 
@@ -244,7 +245,7 @@ void GamePlayState::Load()
     // smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
     eventManager.Initialize(GetGSComponent<CityMetrics>().get(), GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<MapManager>()->GetMap());
-    eventManager.SetMeteorCallback([this]() { camera.StartShake(0.005f, 5.0f); });
+    eventManager.SetEarthquakeCallback([this]() { camera.StartShake(0.005f, 5.0f); });
 
     worldEditor.Initialize(
         GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get(),
@@ -580,6 +581,7 @@ void GamePlayState::Update(double dt)
     {
         blockRoadPlacementUntilRelease = false;
         lastPlacedRoadPos              = { -1, -1 };
+        lastPlacedFlattenPos           = { -1, -1 };
     }
 
     if (simulationPaused)
@@ -986,11 +988,16 @@ void GamePlayState::Update(double dt)
                         case BuildingType::FLATTEN:
                             {
                                 mouseSelection.SetHasValidPosition(true);
+                                if (lastPlacedFlattenPos.x == gridX && lastPlacedFlattenPos.y == gridY)
+                                    break;
+                                if (!map->CanFlattenTile(gridX, gridY))
+                                    break;
                                 if (!consumeResources(BuildingType::FLATTEN))
                                     break;
                                 if (map->FlattenTile(gridX, gridY))
                                 {
                                     placed = true;
+                                    lastPlacedFlattenPos = { gridX, gridY };
                                     break;
                                 }
                                 resourceMgr->SetMoney(resourceMgr->GetTotalResources() + buildingCostManager.GetCost(BuildingType::FLATTEN).money);
@@ -1216,7 +1223,7 @@ void GamePlayState::Draw() const
 void GamePlayState::DrawImGui()
 {
     // Developer UI
-    //worldEditor.DrawImGui();
+    worldEditor.DrawImGui();
 
     // Player UI
     auto cityMetrics = GetGSComponent<CityMetrics>();

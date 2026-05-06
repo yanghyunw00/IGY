@@ -63,7 +63,7 @@ struct HumanAI
     float       maxIdleTime     = 0.5f; // Max time before finding new destination
     Math::fvec2 previousGridPos = { -1.0f, -1.0f };
 
-    float explorationRadius = 15.0f; // How far from current position to explore
+    float explorationRadius = 100.0f; // How far from current position to explore
     bool  isExploring       = true;  // Currently in exploration mode
 
     Math::fvec2              lastDirection = { 0.0f, 0.0f }; // Last movement direction

@@ -630,6 +630,10 @@ namespace Dokev
                     eventManager->ForceEvent();
 
                 ImGui::Spacing();
+                if (ImGui::Checkbox("Show Disaster Radius Debug", &disasterDebugDraw))
+                    eventManager->SetDebugDrawRadius(disasterDebugDraw);
+
+                ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Text("Active Events: %d", eventManager->GetEventCount());
                 

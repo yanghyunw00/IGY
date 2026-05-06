@@ -37,7 +37,7 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, int hp_, Build
 {
     LoadTextures();
 
-    max_capacity     = 50;
+    max_capacity     = 2;
     current_capacity = 0;
     cost             = 100;
     buildingType     = bt;
@@ -66,7 +66,12 @@ ResidentBuilding::~ResidentBuilding()
 void ResidentBuilding::OnWorkerArrived(Human* human)
 {
     (void)human;
-    AddResident(1);
+    //Not work
+    std::cout << "arrived at home" << std::endl;
+    if (current_capacity < max_capacity)
+    {
+        AddResident(1);
+    }
 }
 
 void ResidentBuilding::OnWorkerLeft(Human* human)
@@ -88,22 +93,16 @@ void ResidentBuilding::Update(float dt)
     {
         switch (buildingType)
         {
-        case BuildingType::HOME:
-            texture = house2InteractionTexture;
-            break;
-        default:
-            break;
+            case BuildingType::HOME: texture = house2InteractionTexture; break;
+            default: break;
         }
     }
     else
     {
         switch (buildingType)
         {
-        case BuildingType::HOME:
-            texture = house2Texture;
-            break;
-        default:
-            break;
+            case BuildingType::HOME: texture = house2Texture; break;
+            default: break;
         }
     }
 }

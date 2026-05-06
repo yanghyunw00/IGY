@@ -1,5 +1,6 @@
 #pragma once
 #include "Dokev/Graphics/DKTexture.hpp"
+#include "Dokev/Graphics/DKShapes.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "Game/Managers/DKCityMetrics.hpp"
 #include "Game/World/DisasterEvent.hpp"
@@ -21,6 +22,8 @@ private:
 
     double elapsed     = 0.0;
     double damageTimer = 0.0;
+    int    cx          = 0;
+    int    cy          = 0;
     std::vector<Building*> fireRange;
 
 

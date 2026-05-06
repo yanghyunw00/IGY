@@ -1,7 +1,7 @@
 #include "EventManager.hpp"
 #include "Dokev/Core/DKUtility.hpp"
 #include "Game/World/Drought.hpp"
-#include "Game/World/Meteor.hpp"
+#include "Game/World/Earthquake.hpp"
 #include "Game/World/Fire.hpp"
 
 void EventManager::Initialize(Dokev::CityMetrics* metrics, Dokev::GameObjectManager* gom, GridMap* map)
@@ -34,11 +34,11 @@ void EventManager::RandomEvent()
         activeEvents.push_back(std::make_unique<Drought>(cityMetrics, gameObjectManager));
         activeEvents.back()->OnStart();
     }
-    else if(randomSeed == static_cast<int>(EventList::METEOR)) //Like earthquake
+    else if(randomSeed == static_cast<int>(EventList::EARTHQUAKE))
     {
-        activeEvents.push_back(std::make_unique<Meteor>(cityMetrics, gameObjectManager, gridMap));
+        activeEvents.push_back(std::make_unique<Earthquake>(cityMetrics, gameObjectManager, gridMap));
         activeEvents.back()->OnStart();
-        if (meteorFunction) meteorFunction();
+        if (earthquakeFunction) earthquakeFunction();
     }
     else if(randomSeed == static_cast<int>(EventList::FIRE))
     {

@@ -12,8 +12,8 @@ void Fire::OnStart()
     if (!fireTexture.IsValid())
         fireTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/fire.png").string());
 
-    int cx = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
-    int cy = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
+    cx = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
+    cy = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
 
     for (const auto& b : gameObjectManager->GetBuildings())
     {
@@ -55,8 +55,10 @@ void Fire::OnTick(double dt)
                 auto pos = b->GetGrid();
                 int  x   = static_cast<int>(pos.x);
                 int  y   = static_cast<int>(pos.y);
+                int  w   = b->GetWidth();
+                int  h   = b->GetHeight();
                 gameObjectManager->RemoveBuilding(x, y);
-                if (gridMap) gridMap->GetTileManager()->DeallocateTile(x, y);
+                if (gridMap) gridMap->GetTileManager()->DeallocateArea(x, y, w, h);
             }
         }
     }
@@ -73,6 +75,34 @@ bool Fire::IsFinished() const
 
 void Fire::Draw() const
 {
+    if (gridMap)
+    {
+        GridCell** viewArray = gridMap->GetViewArray(0);
+        if (viewArray)
+        {
+            GridCell* cell = viewArray[cy * GRID_SIZE_X + cx];
+            if (cell)
+            {
+                int originX = gridMap->GetIsoOriginX();
+                int originY = gridMap->GetIsoOriginY();
+                int screenX = originX + (cx - cy) * TILE_WIDTH_HALF;
+                int screenY = originY + (cx + cy) * TILE_HEIGHT_HALF;
+                int topY    = static_cast<int>(cell->getHeight()) - screenY;
+                int centerX = screenX + TILE_WIDTH_HALF;
+                int centerY = topY + TILE_HEIGHT * 2;
+
+                if (debugDraw)
+                {
+                    int halfW = static_cast<int>(radius * 1.41421f * TILE_WIDTH_HALF);
+                    int halfH = static_cast<int>(radius * 1.41421f * TILE_HEIGHT_HALF);
+
+                    Dokev::DrawRectangleLinesEx(centerX - halfW, centerY - halfH,
+                                                halfW * 2, halfH * 2, 6.0f, 0xFF0000FF);
+                }
+            }
+        }
+    }
+
     if (!fireTexture.IsValid() || !gridMap) return;
 
     for (auto* b : fireRange)

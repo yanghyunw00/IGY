@@ -769,16 +769,26 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
     }
 }
 
-bool GridMap::FlattenTile(int x, int y)
+bool GridMap::CanFlattenTile(int x, int y) const
 {
     if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
         return false;
 
-    GridCell& cell = m_gridCells[y][x];
+    const GridCell& cell = m_gridCells[y][x];
 
-    // water cannot change
     if (cell.getWater())
         return false;
+
+    double targetHeight = mapProfile.thresholds.waterMax;
+    return std::abs(cell.getHeight() - targetHeight) > 1e-9;
+}
+
+bool GridMap::FlattenTile(int x, int y)
+{
+    if (!CanFlattenTile(x, y))
+        return false;
+
+    GridCell& cell = m_gridCells[y][x];
 
     double targetHeight = mapProfile.thresholds.waterMax;
 

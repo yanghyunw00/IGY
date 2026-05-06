@@ -32,13 +32,21 @@ void MapManager::Initialize()
         const int cx = GRID_SIZE_X / 2;
         const int cy = GRID_SIZE_Y / 2;
 
+        GridCell** viewArray = map.GetViewArray(0);
         const int offsets[9][2] = { {0,0}, {-1,0}, {1,0}, {0,-1}, {0,1}, {-2,0}, {2,0}, {0,-2}, {0,2} };
         for (auto& off : offsets)
         {
             int x = cx + off[0];
             int y = cy + off[1];
-            if (x >= 0 && x < GRID_SIZE_X && y >= 0 && y < GRID_SIZE_Y)
-                road->addRoad(x, y, map);
+            if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
+                continue;
+            if (viewArray)
+            {
+                GridCell* cell = viewArray[y * GRID_SIZE_X + x];
+                if (cell && cell->getWater())
+                    continue;
+            }
+            road->addRoad(x, y, map);
         }
     }
 

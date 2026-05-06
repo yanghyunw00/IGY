@@ -131,29 +131,21 @@ WorkBuilding::~WorkBuilding()
 
 void WorkBuilding::OnConstructed()
 {
-    // add job when constructed
-    if (max_capacity > 0)
-    {
+    for (unsigned int i = 0; i < max_capacity; ++i)
         WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
-    }
 }
 
 void WorkBuilding::OnWorkerArrived(Human* human)
 {
     (void)human;
     AddWorker(1);
-
-    // Add next worker if not full
-    if (!IsFull())
-    {
-        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
-    }
 }
 
 void WorkBuilding::OnWorkerLeft(Human* human)
 {
     (void)human;
     RemoveWorker(1);
+    WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
 }
 
 void WorkBuilding::Update(float dt)

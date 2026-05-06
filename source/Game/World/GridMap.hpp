@@ -114,6 +114,7 @@ public:
     
 
     //Flatten
+    bool CanFlattenTile(int x, int y) const;
     bool FlattenTile(int x, int y);
     bool LevelAreaToAverage(int startX, int startY, int width, int height);
 
