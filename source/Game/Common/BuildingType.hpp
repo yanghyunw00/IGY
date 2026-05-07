@@ -23,6 +23,10 @@ enum class BuildingType
     CAFE,
     RESTAURANT2,
 
+    // DECORATIONS
+    MISSING_TEXTURE,
+    STREET_LIGHT,
+
     // INFRASTRUCTURE
     ROAD,
     // Delete

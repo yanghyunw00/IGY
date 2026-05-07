@@ -36,6 +36,9 @@ void Road::updateRoadTileAt(int x, int y, GridMap& map)
 
 void Road::addRoad(int x, int y, GridMap& map)
 {
+    if (hasRoad(x, y))
+        return;
+
     auto* tileManager = map.GetTileManager();
 
     roadPositions.push_back({static_cast<float>(x), static_cast<float>(y)});

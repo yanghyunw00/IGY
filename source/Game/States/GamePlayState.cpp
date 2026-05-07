@@ -27,6 +27,7 @@
 
 
 #include "Engine/AudioManager.hpp"
+#include "Engine/Random.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/FontManager.hpp"
 #include "Engine/GameStateManager.hpp"
@@ -270,7 +271,8 @@ void GamePlayState::Load()
 
     // Rain overlay shader
     {
-        rainShader = OpenGL::CreateShader(assets::locate_asset("Assets/shaders/simple.vert"), assets::locate_asset("Assets/shaders/rain.frag"));
+        rainShader       = OpenGL::CreateShader(assets::locate_asset("Assets/shaders/simple.vert"), assets::locate_asset("Assets/shaders/rain.frag"));
+        pointLightShader = OpenGL::CreateShader(assets::locate_asset("Assets/shaders/simple.vert"), assets::locate_asset("Assets/shaders/pointlight.frag"));
 
         struct Vert
         {
@@ -307,7 +309,7 @@ void GamePlayState::Load()
         clouds.reserve(COUNT);
         auto rnd = [](float lo, float hi)
         {
-            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+            return static_cast<float>(util::random(static_cast<double>(lo), static_cast<double>(hi)));
         };
         for (int i = 0; i < COUNT; ++i)
         {
@@ -448,6 +450,38 @@ void GamePlayState::Load()
             }
             return "Money: " + std::to_string(rm->totalMoney);
         });
+
+    console.RegisterCommand(
+        "time", "time set HH:MM  set in-game time (24h)",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.size() == 2 && args[0] == "set")
+            {
+                const std::string& hhmm = args[1];
+                auto colon = hhmm.find(':');
+                if (colon == std::string::npos)
+                    return "Usage: time set HH:MM";
+                try
+                {
+                    int h = std::stoi(hhmm.substr(0, colon));
+                    int m = std::stoi(hhmm.substr(colon + 1));
+                    if (h < 0 || h > 23 || m < 0 || m > 59)
+                        return "Invalid time. Use 0-23 for hours, 0-59 for minutes.";
+                    dayCycle.SetTime(h, m);
+                    return "Time set to " + std::to_string(h) + ":" +
+                           (m < 10 ? "0" : "") + std::to_string(m);
+                }
+                catch (...)
+                {
+                    return "Usage: time set HH:MM";
+                }
+            }
+            return "Day " + std::to_string(dayCycle.GetCurrentDay()) +
+                   "  " + std::to_string(dayCycle.GetHour()) + ":" +
+                   (dayCycle.GetMinute() < 10 ? "0" : "") +
+                   std::to_string(dayCycle.GetMinute()) +
+                   "  (" + dayCycle.GetPhaseName() + ")";
+        });
 }
 
 void GamePlayState::UpdateTimeControls()
@@ -476,6 +510,17 @@ void GamePlayState::UpdateTimeControls()
     if (input.KeyJustPressed(CS230::Input::Keys::Right) && simulationSpeedPresetIndex + 1 < kSimulationSpeedPresets.size())
     {
         ++simulationSpeedPresetIndex;
+    }
+
+    // Mouse wheel zoom — finer-grained than Q/E
+    int scroll = mouse.GetScrollDelta();
+    if (scroll != 0)
+    {
+        constexpr float kWheelFactor = 1.08f;
+        float factor = (scroll > 0) ? kWheelFactor : (1.0f / kWheelFactor);
+        int steps = std::abs(scroll);
+        for (int i = 0; i < steps; ++i)
+            camera.AdjustTargetZoom(factor);
     }
 }
 
@@ -542,7 +587,7 @@ void GamePlayState::Update(double dt)
         const float dt_f      = static_cast<float>(simulationDt);
         auto        rnd       = [](float lo, float hi)
         {
-            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+            return static_cast<float>(util::random(static_cast<double>(lo), static_cast<double>(hi)));
         };
         for (auto& c : clouds)
         {
@@ -771,10 +816,10 @@ void GamePlayState::Update(double dt)
 
             Math::fvec2 gridCoord = ConvertViewTileToGrid({ tileX, tileY }, index, mapMgr->GetMap());
 
-            mouseSelection.Update(gridCoord.x, gridCoord.y);
-            mouseSelection.SetHasValidPosition(true);
-
             auto selectedBuild = uiManager.GetSelectedBuilding();
+
+            mouseSelection.Update(gridCoord.x, gridCoord.y);
+            mouseSelection.SetHasValidPosition(selectedBuild != BuildingType::NONE);
 
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
             {
@@ -957,6 +1002,26 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
+                        case BuildingType::MISSING_TEXTURE:
+                            {
+                                if (!consumeResources(BuildingType::MISSING_TEXTURE))
+                                    break;
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::MISSING_TEXTURE);
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::STREET_LIGHT:
+                            {
+                                if (!consumeResources(BuildingType::STREET_LIGHT))
+                                    break;
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::STREET_LIGHT);
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::DELETE:
                             {
                                 mouseSelection.SetHasValidPosition(true);
@@ -1052,6 +1117,7 @@ void GamePlayState::Update(double dt)
                         }
                         else if (selectedBuild != BuildingType::DELETE && selectedBuild != BuildingType::FLATTEN)
                         {
+                            uiManager.SetSelectedBuilding(BuildingType::NONE);
                         }
 
                         if (input.KeyJustPressed(CS230::Input::Keys::Escape))
@@ -1189,25 +1255,86 @@ void GamePlayState::Draw() const
     }
 
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
-    renderer2d.BeginScene(ndcMatrixUI);
 
-    // Day/night overlay
+    renderer2d.BeginScene(ndcMatrixUI);
     CS200::RGBA dayOverlay = dayCycle.GetOverlayColor();
     if (dayOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, dayOverlay);
-
-    // Weather overlay (tint + thunder flash)
     CS200::RGBA weatherOverlay = weatherCycle.GetOverlayColor();
     if (weatherOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, weatherOverlay);
+    renderer2d.EndScene();
 
+    // Point light pass: built buildings glow at night
+    {
+        float nightIntensity = static_cast<float>(dayOverlay & 0xFF) / 255.0f;
+        if (nightIntensity > 0.01f && pointLightShader.Shader != 0)
+        {
+            auto*  map      = GetGSComponent<MapManager>()->GetMap();
+            auto&  buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+
+            constexpr int kMaxLights = 64;
+            float         lightPos[kMaxLights * 2];
+            float         lightRadius[kMaxLights];
+            int           lightCount = 0;
+
+            const float W   = static_cast<float>(windowSize.x);
+            const float H   = static_cast<float>(windowSize.y);
+            const float zoom = camera.GetZoom();
+            const auto  cp  = camera.GetPosition();
+            const float cpx = static_cast<float>(cp.x);
+            const float cpy = static_cast<float>(cp.y);
+
+            for (const auto& building : buildings)
+            {
+                if (lightCount >= kMaxLights)
+                    break;
+                bool isStreetLight = building->GetBuildingType() == BuildingType::STREET_LIGHT && building->GetIsBuilt();
+                if (!building->HasLightOn() && !isStreetLight)
+                    continue;
+                auto  lp  = building->GetLightPos(index, map);
+                float nx  = lp.x * 2.0f / W - 1.0f;
+                float ny  = lp.y * 2.0f / H - 1.0f;
+                lightPos[lightCount * 2]     = (zoom * (nx + cpx) + 1.0f) * W * 0.5f;
+                lightPos[lightCount * 2 + 1] = (zoom * (ny + cpy) + 1.0f) * H * 0.5f;
+                lightRadius[lightCount]      = isStreetLight ? 80.0f : 90.0f;
+                ++lightCount;
+            }
+
+            if (lightCount > 0)
+            {
+                const auto& locs   = pointLightShader.UniformLocations;
+                auto        it_cnt = locs.find("uLightCount");
+                auto        it_pos = locs.find("uLightPos[0]");
+                auto        it_rad = locs.find("uLightRadius[0]");
+                auto        it_ngt = locs.find("uNightIntensity");
+
+                if (it_cnt != locs.end() && it_pos != locs.end() &&
+                    it_rad != locs.end() && it_ngt != locs.end())
+                {
+                    GL::Enable(GL_BLEND);
+                    GL::BlendFunc(GL_ONE, GL_ONE);
+                    GL::UseProgram(pointLightShader.Shader);
+                    GL::Uniform1i(it_cnt->second, lightCount);
+                    GL::Uniform2fv(it_pos->second, lightCount, lightPos);
+                    GL::Uniform1fv(it_rad->second, lightCount, lightRadius);
+                    GL::Uniform1f(it_ngt->second, nightIntensity);
+                    GL::BindVertexArray(rainVAO);
+                    GL::DrawArrays(GL_TRIANGLES, 0, 3);
+                    GL::BindVertexArray(0);
+                    GL::UseProgram(0);
+                    GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                }
+            }
+        }
+    }
+
+    renderer2d.BeginScene(ndcMatrixUI);
     int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
-
     tutorialManager.Draw();
     achievementManager.Draw();
     console.Draw(); // drawn last so it sits on top of everything
-
     renderer2d.EndScene();
     // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
 
@@ -1277,6 +1404,7 @@ void GamePlayState::DrawImGui()
 void GamePlayState::Unload()
 {
     OpenGL::DestroyShader(rainShader);
+    OpenGL::DestroyShader(pointLightShader);
     if (rainVAO != 0)
     {
         GL::DeleteVertexArrays(1, &rainVAO);

@@ -33,6 +33,7 @@ namespace Dokev
         float GetZoom() const;
 
         void AdjustZoom(float factor);
+        void AdjustTargetZoom(float factor, float minZoom = 0.15f, float maxZoom = 2.0f);
 
         void ClampZoom(float minZoom, float maxZoom);
 

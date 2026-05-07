@@ -14,6 +14,13 @@ void DayCycleManager::Update(float simulationDt)
     }
 }
 
+void DayCycleManager::SetTime(int hour, int minute)
+{
+    hour   = (hour   % 24 + 24) % 24;
+    minute = (minute % 60 + 60) % 60;
+    dayTimer = (static_cast<float>(hour) + static_cast<float>(minute) / 60.0f) / 24.0f * kDayDuration;
+}
+
 const char* DayCycleManager::GetPhaseName() const
 {
     const int hour = GetHour();

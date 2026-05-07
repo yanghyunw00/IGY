@@ -95,6 +95,21 @@ Math::ivec2 Building::CalculateScreenPosition(int viewIndex, const GridMap* map)
     return { drawX, drawY };
 }
 
+void Building::UpdateLightTimer(float dt)
+{
+    if (current_capacity > 0)
+        lightTimer = 30.0f;
+    else if (lightTimer > 0.0f)
+        lightTimer -= dt;
+}
+
+Math::ivec2 Building::GetLightPos(int viewIndex, const GridMap* map) const
+{
+    auto p = CalculateScreenPosition(viewIndex, map);
+    float yFrac = (buildingType == BuildingType::STREET_LIGHT) ? 0.06f : 0.5f;
+    return { p.x + texture.GetWidth() / 2, p.y - static_cast<int>(texture.GetHeight() * yFrac) };
+}
+
 void Building::DrawProgressBar(int viewIndex, const GridMap* map) const
 {
     if (isBuilt || !map)
