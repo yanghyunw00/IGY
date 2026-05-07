@@ -70,6 +70,8 @@ public:
         (void)human;
     }
 
+    virtual bool IsFull() const { return false; }
+
     std::string TypeName() override
     {
         return "Building";

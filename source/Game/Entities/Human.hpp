@@ -19,6 +19,7 @@
 class GridMap;
 class Road;
 class ResourceManager;
+class Building;
 namespace Dokev { class GameObjectManager; }
 
 enum class HumanState
@@ -45,7 +46,8 @@ enum class WorkType
     None,
     Gathering,
     Building,
-    Farming
+    Farming,
+    REST
 };
 
 /**
@@ -77,7 +79,8 @@ struct HumanAI
     float restTimer             = 0.0f;
     float maxRestTime           = 7.0f;
     Math::fvec2 targetHomePosition = { -1.0f, -1.0f };
-    bool  isHeadingHome         = false;
+    bool        isHeadingHome      = false;
+    Building*   assignedHome       = nullptr;
     Math::fvec2 targetCafePosition = { -1.0f, -1.0f };
     bool  isSeekingCafe         = false;
 

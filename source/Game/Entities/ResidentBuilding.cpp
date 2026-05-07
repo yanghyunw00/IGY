@@ -66,12 +66,7 @@ ResidentBuilding::~ResidentBuilding()
 void ResidentBuilding::OnWorkerArrived(Human* human)
 {
     (void)human;
-    //Not work
-    std::cout << "arrived at home" << std::endl;
-    if (current_capacity < max_capacity)
-    {
-        AddResident(1);
-    }
+    AddResident(1);
 }
 
 void ResidentBuilding::OnWorkerLeft(Human* human)
