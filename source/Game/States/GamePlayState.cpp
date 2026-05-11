@@ -452,6 +452,35 @@ void GamePlayState::Load()
         });
 
     console.RegisterCommand(
+        "event", "event [fire|drought|earthquake|random]  trigger a disaster event",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+                return "Usage: event [fire|drought|earthquake|random]";
+            const std::string& arg = args[0];
+            if (arg == "fire")
+            {
+                eventManager.ForceEventByType(EventList::FIRE);
+                return "Fire started";
+            }
+            else if (arg == "drought")
+            {
+                eventManager.ForceEventByType(EventList::DROUGHT);
+                return "Drought started";
+            }
+            else if (arg == "earthquake")
+            {
+                eventManager.ForceEventByType(EventList::EARTHQUAKE);
+                return "Earthquake started";
+            }
+            else if (arg == "random")
+            {
+                eventManager.ForceEvent();
+                return "Random event triggered";
+            }
+            return "Usage: event [fire|drought|earthquake|random]";
+        });
+    console.RegisterCommand(
         "time", "time set HH:MM  set in-game time (24h)",
         [this](const std::vector<std::string>& args) -> std::string
         {

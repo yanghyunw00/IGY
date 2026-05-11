@@ -19,6 +19,30 @@ void EventManager::ForceEvent()
     RandomEvent();
 }
 
+void EventManager::ForceEventByType(EventList type)
+{
+    for (auto& e : activeEvents) e->OnEnd();
+    activeEvents.clear();
+    duration = 0;
+
+    if (type == EventList::FIRE)
+    {
+        activeEvents.push_back(std::make_unique<Fire>(gameObjectManager, gridMap));
+        activeEvents.back()->OnStart();
+    }
+    else if (type == EventList::DROUGHT)
+    {
+        activeEvents.push_back(std::make_unique<Drought>(cityMetrics, gameObjectManager));
+        activeEvents.back()->OnStart();
+    }
+    else if (type == EventList::EARTHQUAKE)
+    {
+        activeEvents.push_back(std::make_unique<Earthquake>(cityMetrics, gameObjectManager, gridMap));
+        activeEvents.back()->OnStart();
+        if (earthquakeFunction) earthquakeFunction();
+    }
+}
+
 void EventManager::RandomEvent()
 {
     int randomSeed = Dokev::GetRandomInt(0,4);

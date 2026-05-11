@@ -39,6 +39,7 @@ public:
     void RandomEvent();
     void EventCycle(double dt);
     void ForceEvent();
+    void ForceEventByType(EventList type);
 
     void Draw() const
     {
