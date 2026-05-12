@@ -131,34 +131,27 @@ WorkBuilding::~WorkBuilding()
 
 void WorkBuilding::OnConstructed()
 {
-    // add job when constructed
-    if (max_capacity > 0)
-    {
+    for (unsigned int i = 0; i < max_capacity; ++i)
         WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
-    }
 }
 
 void WorkBuilding::OnWorkerArrived(Human* human)
 {
     (void)human;
     AddWorker(1);
-
-    // Add next worker if not full
-    if (!IsFull())
-    {
-        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
-    }
 }
 
 void WorkBuilding::OnWorkerLeft(Human* human)
 {
     (void)human;
     RemoveWorker(1);
+    WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
 }
 
 void WorkBuilding::Update(float dt)
 {
     UpdateConstruction(dt);
+    UpdateLightTimer(dt);
 
     if (!isBuilt)
     {
@@ -233,14 +226,12 @@ void WorkBuilding::Update(float dt)
     }
 }
 
-void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
+void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int x, [[maybe_unused]] int y)
 {
     if (!map)
     {
         return;
     }
-
-    // Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
     CS200::RGBA tint = CS200::WHITE;
 
@@ -250,13 +241,8 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    int drawX = x;
-    if (buildingType == BuildingType::GRANARY)
-    {
-        drawX -= TILE_WIDTH_HALF;
-    }
-
-    texture.Draw(drawX, y, tint);
+    Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
+    texture.Draw(drawPos.x, drawPos.y, tint);
 
     if (!isBuilt)
     {

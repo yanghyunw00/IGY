@@ -12,6 +12,7 @@ public:
     static constexpr float kDayDuration = 300.0f;
 
     void Update(float simulationDt);
+    void SetTime(int hour, int minute);
 
     int         GetCurrentDay()    const { return currentDay; }
     float       GetDayProgress()   const { return dayTimer / kDayDuration; }

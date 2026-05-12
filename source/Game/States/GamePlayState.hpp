@@ -122,6 +122,7 @@ private:
     // Weather cycle
     WeatherCycleManager    weatherCycle;
     OpenGL::CompiledShader rainShader;
+    OpenGL::CompiledShader pointLightShader;
     GLuint                 rainVAO = 0;
     GLuint                 rainVBO = 0;
     float                  rainTime = 0.f;

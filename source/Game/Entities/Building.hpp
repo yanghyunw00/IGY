@@ -32,9 +32,13 @@ protected:
     float            buildTime;
     float            maxBuildTime;
     BuildingType     buildingType;
+    float            lightTimer = 0.0f;
 
 public:
     Math::ivec2 CalculateScreenPosition(int viewIndex, const GridMap* map) const;
+    Math::ivec2 GetLightPos(int viewIndex, const GridMap* map) const;
+    void        UpdateLightTimer(float dt);
+    bool        HasLightOn() const { return lightTimer > 0.0f; }
     Building(Math::fvec2 pos, int w, int h, int hp, float buildDuration = 3.0f);
     virtual ~Building();
 
@@ -69,6 +73,8 @@ public:
     {
         (void)human;
     }
+
+    virtual bool IsFull() const { return false; }
 
     std::string TypeName() override
     {

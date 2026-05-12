@@ -39,6 +39,7 @@ namespace Dokev
         HOME_CATEGORY,
         WORK_CATEGORY,
         ROAD_CATEGORY,
+        DECORATION_CATEGORY,
         DELETE_CATEGORY
     };
 

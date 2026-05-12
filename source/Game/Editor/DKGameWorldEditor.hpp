@@ -62,8 +62,9 @@ namespace Dokev
         CityMetrics*       cityMetrics         = nullptr;
         EventManager*      eventManager        = nullptr;
 
-        bool vsyncEnabled      = true;
-        bool saveGameRequested = false;
-        bool loadGameRequested = false;
+        bool vsyncEnabled         = true;
+        bool saveGameRequested    = false;
+        bool loadGameRequested    = false;
+        bool disasterDebugDraw    = false;
     };
 }

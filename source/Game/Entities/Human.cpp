@@ -236,6 +236,12 @@ void Human::UpdateResting(float deltaTime)
     {
         ai.restTimer = 0.0f;
         stats.energy = std::min(100.0f, stats.energy + 50.0f);
+        if (ai.assignedHome)
+        {
+            ai.assignedHome->OnWorkerLeft(this);
+            ai.assignedHome     = nullptr;
+            ai.assignedWorkType = WorkType::None;
+        }
         ChangeState(HumanState::Idle);
     }
 }
@@ -292,24 +298,30 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
 
         if (ai.isHeadingHome)
         {
-            Math::fvec2 homePos = { -1.0f, -1.0f };
+            Math::fvec2 homePos    = { -1.0f, -1.0f };
+            Building*   foundHome  = nullptr;
             if (gameObjMgr)
             {
                 for (const auto& building : gameObjMgr->GetBuildings())
                 {
-                    if (building->GetBuildingType() == BuildingType::HOME && building->GetIsBuilt())
+                    if (building->GetBuildingType() == BuildingType::HOME && building->GetIsBuilt() && !building->IsFull())
                     {
-                        homePos = building->GetGrid();
+                        homePos   = building->GetGrid();
+                        foundHome = building.get();
                         break;
                     }
                 }
             }
 
-            if (homePos.x < 0.0f)
+            if (!foundHome)
             {
                 ai.isHeadingHome = false;
                 return;
             }
+
+            ai.assignedHome     = foundHome;
+            ai.assignedWorkType = WorkType::REST;
+            foundHome->OnWorkerArrived(this);
 
             if (map)
             {
@@ -348,26 +360,29 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
     if (outsideHours)
     {
-        ai.isHeadingHome = true;
-
-        bool homeExists = false;
+        bool availableHomeExists = false;
         if (gameObjMgr)
         {
             for (const auto& b : gameObjMgr->GetBuildings())
             {
-                if (b->GetBuildingType() == BuildingType::HOME && b->GetIsBuilt())
+                if (b->GetBuildingType() == BuildingType::HOME && b->GetIsBuilt() && !b->IsFull())
                 {
-                    homeExists = true;
+                    availableHomeExists = true;
                     break;
                 }
             }
         }
 
-        if (homeExists)
+        if (availableHomeExists)
+        {
+            ai.isHeadingHome = true;
+            ChangeState(HumanState::Idle);
+        }
+        else
         {
             ChangeState(HumanState::Idle);
-            return;
         }
+        return;
     }
     else if (stats.energy <= 0.0f)
     {
