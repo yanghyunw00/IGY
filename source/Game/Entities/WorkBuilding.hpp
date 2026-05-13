@@ -25,6 +25,7 @@ protected:
     static Dokev::Texture2D quarryTexture;
     static Dokev::Texture2D ironMineTexture;
     static Dokev::Texture2D granaryTexture;
+    static Dokev::Texture2D farmTexture;
     static Dokev::Texture2D cafeTexture;
     static Dokev::Texture2D restaurant2Texture;
     static Dokev::Texture2D missingTexture;
@@ -33,6 +34,7 @@ protected:
     static Dokev::Texture2D quarryInterationTexture;
     static Dokev::Texture2D ironMineInterationTexture;
     static Dokev::Texture2D granaryInterationTexture;
+    static Dokev::Texture2D farmInteractionTexture;
     static Dokev::Texture2D cafeInteractionTexture;
     static Dokev::Texture2D restaurant2InteractionTexture;
 

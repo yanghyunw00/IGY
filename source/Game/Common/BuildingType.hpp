@@ -17,6 +17,7 @@ enum class BuildingType
     WOOD_WORKSHOP,
     STEEL_WORKSHOP,
     GRANARY,
+    FARM,
 
     // RESIDENT buildings
     HOME,

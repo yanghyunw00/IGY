@@ -19,6 +19,7 @@ Dokev::Texture2D WorkBuilding::loggingCampTexture;
 Dokev::Texture2D WorkBuilding::quarryTexture;
 Dokev::Texture2D WorkBuilding::ironMineTexture;
 Dokev::Texture2D WorkBuilding::granaryTexture;
+Dokev::Texture2D WorkBuilding::farmTexture;
 Dokev::Texture2D WorkBuilding::cafeTexture;
 Dokev::Texture2D WorkBuilding::restaurant2Texture;
 
@@ -26,6 +27,7 @@ Dokev::Texture2D WorkBuilding::loggingCampInterationTexture;
 Dokev::Texture2D WorkBuilding::quarryInterationTexture;
 Dokev::Texture2D WorkBuilding::ironMineInterationTexture;
 Dokev::Texture2D WorkBuilding::granaryInterationTexture;
+Dokev::Texture2D WorkBuilding::farmInteractionTexture;
 Dokev::Texture2D WorkBuilding::cafeInteractionTexture;
 Dokev::Texture2D WorkBuilding::restaurant2InteractionTexture;
 
@@ -48,11 +50,13 @@ void WorkBuilding::LoadTextures()
         quarryTexture      = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
         ironMineTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
         granaryTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2.png").string());
+        farmTexture        = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Farm.png").string());
 
         loggingCampInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp_interaction.png").string());
         quarryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
         ironMineInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
         granaryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2_interaction.png").string());
+        farmInteractionTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Farm.png").string());
         cafeTexture              = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
         restaurant2Texture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
         cafeInteractionTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Cafe_interaction.png").string());
@@ -97,9 +101,17 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             break;
 
         case BuildingType::GRANARY:
-            texture      = granaryTexture;
-            max_capacity = 2;
-            cost         = 0;
+            texture         = granaryTexture;
+            max_capacity    = 2;
+            cost            = 0;
+            maintenanceCost = 5;
+            break;
+
+        case BuildingType::FARM:
+            texture         = farmTexture;
+            max_capacity    = 2;
+            cost            = 0;
+            maintenanceCost = 10;
             break;
 
         case BuildingType::CAFE:
@@ -127,12 +139,17 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
 WorkBuilding::~WorkBuilding()
 {
     WorkManager::GetInstance().RemoveAllJobsForBuilding(this);
+    if (buildingType == BuildingType::GRANARY && resourceManager != nullptr)
+        resourceManager->RemoveFoodCapacity(200);
 }
 
 void WorkBuilding::OnConstructed()
 {
     for (unsigned int i = 0; i < max_capacity; ++i)
         WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
+
+    if (buildingType == BuildingType::GRANARY && resourceManager != nullptr)
+        resourceManager->AddFoodCapacity(200);
 }
 
 void WorkBuilding::OnWorkerArrived(Human* human)
@@ -168,6 +185,10 @@ void WorkBuilding::Update(float dt)
             case BuildingType::ROCK_WORKSHOP: resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
             case BuildingType::STEEL_WORKSHOP: resourceManager->AddResource(ResourceType::Steel, amountToProduce); break;
             case BuildingType::GRANARY: break;
+            case BuildingType::FARM:
+                if (resourceManager->GetFoodCapacity() > 0)
+                    resourceManager->AddFood(amountToProduce);
+                break;
             default: break;
         }
     }
@@ -187,6 +208,9 @@ void WorkBuilding::Update(float dt)
             break;
         case BuildingType::GRANARY:
             texture = granaryInterationTexture;
+            break;
+        case BuildingType::FARM:
+            texture = farmInteractionTexture;
             break;
         case BuildingType::CAFE:
             texture = cafeInteractionTexture;
@@ -213,6 +237,9 @@ void WorkBuilding::Update(float dt)
             break;
         case BuildingType::GRANARY:
             texture = granaryTexture;
+            break;
+        case BuildingType::FARM:
+            texture = farmTexture;
             break;
         case BuildingType::CAFE:
             texture = cafeTexture;

@@ -16,6 +16,8 @@ class ResourceManager : public IComponent
 {
 public:
     int totalMoney = 1000;
+    int totalFood = 0;
+    int foodCapacity = 0;
 
     void AddResource(ResourceType type, int amount)
     {
@@ -57,5 +59,40 @@ public:
     int GetTotalResources() const
     {
         return totalMoney;
+    }
+
+    void AddFood(int amount)
+    {
+        assert(amount >= 0 && "Food amount cannot be negative");
+        totalFood += amount;
+        if (totalFood > foodCapacity)
+            totalFood = foodCapacity;
+    }
+
+    void SetFood(int amount)
+    {
+        assert(amount >= 0 && "Food amount cannot be negative");
+        totalFood = amount;
+        if (totalFood > foodCapacity)
+            totalFood = foodCapacity;
+    }
+
+    int GetFood() const { return totalFood; }
+    int GetFoodCapacity() const { return foodCapacity; }
+
+    void AddFoodCapacity(int capacity)
+    {
+        assert(capacity >= 0 && "Food capacity cannot be negative");
+        foodCapacity += capacity;
+    }
+
+    void RemoveFoodCapacity(int capacity)
+    {
+        assert(capacity >= 0 && "Food capacity cannot be negative");
+        foodCapacity -= capacity;
+        if (foodCapacity < 0)
+            foodCapacity = 0;
+        if (totalFood > foodCapacity)
+            totalFood = foodCapacity;
     }
 };

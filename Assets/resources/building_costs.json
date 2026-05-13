@@ -19,7 +19,10 @@
       "Money": 30
     },
     "GRANARY": {
-      "Money": 0
+      "Money": 30
+    },
+    "FARM": {
+      "Money": 20
     },
     "CAFE": {
       "Money": 20

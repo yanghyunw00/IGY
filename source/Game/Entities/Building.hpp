@@ -63,6 +63,7 @@ public:
 
     // constructed
     virtual void OnConstructed();
+    void         ForceComplete();
 
     virtual void OnWorkerArrived(Human* human)
     {

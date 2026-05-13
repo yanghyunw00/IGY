@@ -375,14 +375,20 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
         if (availableHomeExists)
         {
+            bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
+            if (onRoad)
+            {
+                ai.isHeadingHome = true;
+                ChangeState(HumanState::Idle);
+                return;
+            }
             ai.isHeadingHome = true;
-            ChangeState(HumanState::Idle);
         }
         else
         {
             ChangeState(HumanState::Idle);
+            return;
         }
-        return;
     }
     else if (stats.energy <= 0.0f)
     {

@@ -90,7 +90,7 @@ namespace
 
     Math::ivec2 GetBuildingFootprint(BuildingType type)
     {
-        if (type == BuildingType::GRANARY)
+        if (type == BuildingType::GRANARY || type == BuildingType::FARM)
         {
             return { 2, 2 };
         }
@@ -1007,6 +1007,21 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
+                        case BuildingType::FARM:
+                            {
+                                if (!consumeResources(BuildingType::FARM))
+                                    break;
+
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* farm = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 10, BuildingType::FARM);
+                                farm->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(farm);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::CAFE:
                             {
                                 if (!consumeResources(BuildingType::CAFE))
@@ -1463,7 +1478,9 @@ void GamePlayState::SaveGame(const std::string& filename)
     if (resourceMgr)
     {
         j["PlayerResources"] = {
-            { "Money", resourceMgr->totalMoney }
+            { "Money",        resourceMgr->totalMoney    },
+            { "Food",         resourceMgr->GetFood()     },
+            { "FoodCapacity", resourceMgr->GetFoodCapacity() }
         };
     }
 
@@ -1495,10 +1512,26 @@ void GamePlayState::SaveGame(const std::string& filename)
         }
     }
 
-    //  Save Human Info
+    //  Save Buildings
     auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
     if (gameObjMgr)
     {
+        json& j_buildings = j["Buildings"];
+        for (const auto& building : gameObjMgr->GetBuildings())
+        {
+            j_buildings.push_back({
+                {           "Type", static_cast<int>(building->GetBuildingType()) },
+                {              "X",                         building->GetGrid().x },
+                {              "Y",                         building->GetGrid().y },
+                {          "Width",                        building->GetWidth()   },
+                {         "Height",                        building->GetHeight()  },
+                {        "IsBuilt",                       building->GetIsBuilt()  },
+                {       "Progress",                       building->GetProgress() },
+                { "CurrentWorkers",            (int)building->GetCurrentCapacity() }
+            });
+        }
+
+        //  Save Human Info
         json& j_humans = j["Humans"];
         for (const auto& human : gameObjMgr->GetHumans())
         {
@@ -1579,6 +1612,7 @@ void GamePlayState::LoadGame(const std::string& filename)
         {
             resourceMgr->SetResources(playerResources.value("Wood", 0), playerResources.value("Stone", 0), playerResources.value("Steel", 0));
         }
+        // Food is restored after buildings (so foodCapacity is set first)
     }
 
     //  Load Map Resources
@@ -1612,8 +1646,69 @@ void GamePlayState::LoadGame(const std::string& filename)
         }
     }
 
-    //  Load Human Info
+    //  Load Buildings
     auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
+    if (gameObjMgr && j.contains("Buildings") && mapMgr)
+    {
+        auto tileMgr2 = mapMgr->GetMap()->GetTileManager();
+
+        auto isWorkBuilding = [](BuildingType bt) {
+            return bt != BuildingType::HOME && bt != BuildingType::MISSING_TEXTURE && bt != BuildingType::STREET_LIGHT;
+        };
+
+        auto getTileType = [](BuildingType bt) {
+            if (bt == BuildingType::HOME || bt == BuildingType::MISSING_TEXTURE || bt == BuildingType::STREET_LIGHT)
+                return Dokev::TileType::RESIDENTIAL;
+            return Dokev::TileType::INDUSTRIAL;
+        };
+
+        for (const auto& bData : j["Buildings"])
+        {
+            BuildingType bt   = static_cast<BuildingType>(bData.value("Type", 0));
+            float        bx   = bData.value("X", 0.0f);
+            float        by   = bData.value("Y", 0.0f);
+            int          bw   = bData.value("Width", 1);
+            int          bh   = bData.value("Height", 1);
+            bool         built = bData.value("IsBuilt", false);
+
+            Building* building = nullptr;
+            if (isWorkBuilding(bt))
+            {
+                auto* wb = new WorkBuilding(Math::fvec2(bx, by), bw, bh, 10, bt);
+                wb->SetResourceManager(resourceMgr.get());
+                building = wb;
+            }
+            else
+            {
+                building = new ResidentBuilding(Math::fvec2(bx, by), bw, bh, 10, bt);
+            }
+
+            if (built)
+                building->ForceComplete();
+
+            gameObjMgr->AddBuilding(building);
+
+            if (tileMgr2)
+            {
+                int ix = static_cast<int>(bx);
+                int iy = static_cast<int>(by);
+                if (bw == 1 && bh == 1)
+                    tileMgr2->AllocateTile(ix, iy, getTileType(bt));
+                else
+                    tileMgr2->AllocateArea(ix, iy, bw, bh, getTileType(bt));
+            }
+        }
+    }
+
+    // Restore food after buildings (foodCapacity is now set by Granary ForceComplete)
+    if (resourceMgr && j.contains("PlayerResources"))
+    {
+        const auto& pr = j["PlayerResources"];
+        if (pr.contains("Food"))
+            resourceMgr->SetFood(pr.value("Food", 0));
+    }
+
+    //  Load Human Info
     if (gameObjMgr && j.contains("Humans"))
     {
         for (const auto& humanData : j["Humans"])

@@ -196,3 +196,11 @@ BuildingType Building::GetBuildingType() const
 void Building::OnConstructed()
 {
 }
+
+void Building::ForceComplete()
+{
+    buildTime = maxBuildTime;
+    progress  = 1.0f;
+    isBuilt   = true;
+    OnConstructed();
+}

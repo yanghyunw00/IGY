@@ -124,6 +124,15 @@ namespace Dokev
                     granaryButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(granaryButton);
 
+                    BuildingButton farmButton;
+                    farmButton.type     = BuildingType::FARM;
+                    farmButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Farm.png").string());
+                    farmButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 5);
+                    farmButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    farmButton.name     = "Farm";
+                    farmButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(farmButton);
+
                     // Column 2: food/service buildings
                     BuildingButton cafeButton;
                     cafeButton.type     = BuildingType::CAFE;
@@ -407,6 +416,14 @@ namespace Dokev
                 else if (input.KeyJustPressed(CS230::Input::Keys::G))
                 {
                     selectedBuilding = BuildingType::GRANARY;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::F))
+                {
+                    selectedBuilding = BuildingType::FARM;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
@@ -631,6 +648,19 @@ namespace Dokev
         }
         currentY -= height + 5.0f;
 
+        // Draw food count
+        if (outlined)
+        {
+            std::string foodText = "Food: " + std::to_string(resourceMgr->GetFood()) + "/" + std::to_string(resourceMgr->GetFoodCapacity());
+            if (auto textTexture = outlined->PrintToTexture(foodText, Dokev::ColorPalette::WHITE))
+            {
+                textTexture->Draw(
+                    Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }),
+                    Dokev::ColorPalette::WHITE);
+            }
+            currentY -= height + 5.0f;
+        }
+
         if (humanIcon.IsValid())
         {
             humanIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
@@ -742,8 +772,8 @@ namespace Dokev
 
         // Draw required resources
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
-                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::HOME ||
-                                 button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2 ||
+                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::FARM ||
+                                 button.type == BuildingType::HOME || button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2 ||
                                  button.type == BuildingType::MISSING_TEXTURE || button.type == BuildingType::STREET_LIGHT))
         {
             float tooltipWidth  = 180.0f;
@@ -905,6 +935,8 @@ namespace Dokev
                     return "S";
                 if (button.type == BuildingType::GRANARY)
                     return "G";
+                if (button.type == BuildingType::FARM)
+                    return "F";
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
             {
