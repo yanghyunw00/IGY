@@ -9,7 +9,10 @@
       "Bash(\\\\.sh)",
       "Bash(\\\\.ps1)",
       "Bash(\\\\.sln\")",
-      "Bash(Select-Object FullName)"
+      "Bash(Select-Object FullName)",
+      "Bash(ninja)",
+      "Read(//usr/**)",
+      "Read(//opt/homebrew/**)"
     ]
   }
 }

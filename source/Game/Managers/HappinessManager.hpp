@@ -34,7 +34,7 @@ public:
     void UpdateFactors(int humanCount, int homeCapacity, int workplaceCount)
     {
         // housing
-        float housingRatio = (float)homeCapacity / std::max(1, humanCount);
+        float housingRatio = static_cast<float>(homeCapacity) / std::max(1, humanCount);
 
         if (housingRatio >= 1.5f)
             factors.housingScore = 100.0f;
@@ -48,7 +48,7 @@ public:
             factors.housingScore = 10.0f;
 
         // workshop
-        float jobRatio = (float)workplaceCount / std::max(1, humanCount);
+        float jobRatio = static_cast<float>(workplaceCount) / std::max(1, humanCount);
 
         if (jobRatio >= 0.8f && jobRatio <= 1.2f)
             factors.employmentScore = 100.0f;

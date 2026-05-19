@@ -1,6 +1,5 @@
-#version 300 es
+#version 330 core
 
-precision mediump float;
 
 uniform sampler2D uColorTexture;
 in vec2 vTexCoord;

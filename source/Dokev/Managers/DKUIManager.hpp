@@ -21,7 +21,10 @@
 
 class ResourceManager;
 class BuildingCostManager;
-class Dokev::CityMetrics;
+namespace Dokev
+{
+    class CityMetrics;
+}
 
 namespace Dokev
 {

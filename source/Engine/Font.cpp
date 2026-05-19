@@ -87,7 +87,7 @@ namespace CS230
 
         // Convert SDL ARGB8888 to GL_RGBA byte order (R,G,B,A in memory) with vertical flip.
         // SDL_GetRGBA handles the pixel format portably.
-        std::vector<CS200::RGBA> pixels(w * h);
+        std::vector<CS200::RGBA> pixels(static_cast<size_t>(w * h));
 
         SDL_LockSurface(surface);
         const int   pitch_px = surface->pitch / 4;
@@ -100,7 +100,7 @@ namespace CS230
                 uint8_t r, g, b, a;
                 SDL_GetRGBA(src[row * pitch_px + col], surface->format, &r, &g, &b, &a);
                 // Pack with R in lowest byte so GL_RGBA GL_UNSIGNED_BYTE reads correctly
-                pixels[dst_row * w + col] =
+                pixels[static_cast<size_t>(dst_row * w + col)] =
                     static_cast<uint32_t>(r)         |
                     (static_cast<uint32_t>(g) <<  8) |
                     (static_cast<uint32_t>(b) << 16) |
