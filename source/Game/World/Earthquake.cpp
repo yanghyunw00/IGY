@@ -37,8 +37,9 @@ void Earthquake::OnEnd()
     cityMetrics->GetImmigrationManager()->Free();
 }
 
-void Earthquake::Draw() const
+void Earthquake::Draw(int index) const
 {
+    (void)index;
     // sprite.DrawAtPosition(drawX, drawY);
 
     if (!gridMap) return;

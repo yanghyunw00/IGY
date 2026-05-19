@@ -31,7 +31,7 @@ public:
     void OnStart() override;
     void OnTick(double dt) override { elapsed += dt; sprite.Update(elapsed); }
     void OnEnd() override;
-    void Draw() const override;
+    void Draw(int index) const override;
 
     bool IsFinished() const override { return elapsed >= maxDuration; }
     const char* GetName() const override { return "Earthquake"; }

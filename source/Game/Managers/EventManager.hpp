@@ -41,12 +41,12 @@ public:
     void ForceEvent();
     void ForceEventByType(EventList type);
 
-    void Draw() const
+    void Draw(int index) const
     {
         for (const auto& e : activeEvents)
         {
             e->SetDebugDraw(debugDrawRadius);
-            e->Draw();
+            e->Draw(index);
         }
     }
 

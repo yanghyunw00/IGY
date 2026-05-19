@@ -1257,7 +1257,7 @@ void GamePlayState::Draw() const
         human->Draw(index, mapMgr->GetMap());
     }
 
-    eventManager.Draw();
+    eventManager.Draw(index);
 
     // Cloud patches drawn in world space (same camera transform as the map)
     {

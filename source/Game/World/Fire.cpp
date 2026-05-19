@@ -73,7 +73,7 @@ bool Fire::IsFinished() const
     return elapsed >= maxDuration;
 }
 
-void Fire::Draw() const
+void Fire::Draw(int index) const
 {
     if (gridMap)
     {
@@ -107,7 +107,7 @@ void Fire::Draw() const
 
     for (auto* b : fireRange)
     {
-        auto pos = b->CalculateScreenPosition(0, gridMap);
-        fireTexture.Draw(pos.x, pos.y);
+        auto pos = b->CalculateScreenPosition(index, gridMap);
+        fireTexture.Draw(pos.x + 16, pos.y - TILE_HEIGHT);
     }
 }
