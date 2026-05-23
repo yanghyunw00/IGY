@@ -69,6 +69,24 @@ namespace Dokev
                     homeButton.name     = "Home";
                     homeButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(homeButton);
+
+                    BuildingButton casinoButton;
+                    casinoButton.type     = BuildingType::CASINO;
+                    casinoButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
+                    casinoButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    casinoButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    casinoButton.name     = "Casino";
+                    casinoButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(casinoButton);
+
+                    BuildingButton eduButton;
+                    eduButton.type     = BuildingType::EDU_BUILDING;
+                    eduButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
+                    eduButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    eduButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    eduButton.name     = "School";
+                    eduButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(eduButton);
                     break;
                 }
 
@@ -151,6 +169,24 @@ namespace Dokev
                     restaurantButton.name     = "Restaurant";
                     restaurantButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(restaurantButton);
+
+                    BuildingButton wp3Button;
+                    wp3Button.type     = BuildingType::WORKPLACE3;
+                    wp3Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/workplace3.png").string());
+                    wp3Button.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    wp3Button.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    wp3Button.name     = "Fire Station";
+                    wp3Button.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(wp3Button);
+
+                    BuildingButton wp4Button;
+                    wp4Button.type     = BuildingType::WORKPLACE4;
+                    wp4Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/workplace4.png").string());
+                    wp4Button.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 4);
+                    wp4Button.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    wp4Button.name     = "Workplace 4";
+                    wp4Button.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(wp4Button);
                     break;
                 }
 
@@ -210,6 +246,15 @@ namespace Dokev
                     streetLightButton.name     = "Street Light";
                     streetLightButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(streetLightButton);
+
+                    BuildingButton parkButton;
+                    parkButton.type     = BuildingType::PARK;
+                    parkButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/park.png").string());
+                    parkButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    parkButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    parkButton.name     = "Park";
+                    parkButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(parkButton);
                     break;
                 }
 
@@ -577,9 +622,9 @@ namespace Dokev
         UpdateButtonScales(dt);
     }
 
-    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr) const
+    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr, int hour, int minute) const
     {
-        DrawResources(resourceMgr, humanCount);
+        DrawResources(resourceMgr, humanCount, hour, minute);
         DrawHappiness(cm);
 
         switch (currentMenuState)
@@ -619,7 +664,7 @@ namespace Dokev
         }
     }
 
-    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount) const
+    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount, int hour, int minute) const
     {
         if (!resourceMgr)
             return;
@@ -671,6 +716,20 @@ namespace Dokev
             if (auto textTexture = outlined->PrintToTexture(humanText, Dokev::ColorPalette::WHITE))
             {
                 textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+            }
+        }
+        currentY -= height + 5.0f;
+
+        // Draw time (HH:MM)
+        if (outlined)
+        {
+            char timeBuf[16];
+            std::snprintf(timeBuf, sizeof(timeBuf), "Time : %02d : %02d", hour, minute);
+            if (auto textTexture = outlined->PrintToTexture(timeBuf, Dokev::ColorPalette::WHITE))
+            {
+                textTexture->Draw(
+                    Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }),
+                    Dokev::ColorPalette::WHITE);
             }
         }
     }
@@ -774,7 +833,10 @@ namespace Dokev
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
                                  button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::FARM ||
                                  button.type == BuildingType::HOME || button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2 ||
-                                 button.type == BuildingType::MISSING_TEXTURE || button.type == BuildingType::STREET_LIGHT))
+                                 button.type == BuildingType::MISSING_TEXTURE || button.type == BuildingType::STREET_LIGHT ||
+                                 button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::WORKPLACE4 ||
+                                 button.type == BuildingType::CASINO || button.type == BuildingType::EDU_BUILDING ||
+                                 button.type == BuildingType::PARK))
         {
             float tooltipWidth  = 180.0f;
             float tooltipHeight = 60.0f;

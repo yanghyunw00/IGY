@@ -32,6 +32,8 @@ namespace CS230
         void DrawText(
             const std::string& fontName, const std::string& text, Math::fvec2 pos, TextAlign align = TextAlign::Left, CS200::RGBA color = 0xFFFFFFFF, Math::vec2 scale = Math::vec2{ 1.0, 1.0 });
 
+        void Clear() { fonts.clear(); }
+
     private:
         std::unordered_map<std::string, std::shared_ptr<Font>> fonts;
 

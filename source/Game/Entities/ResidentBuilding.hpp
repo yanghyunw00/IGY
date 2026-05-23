@@ -20,11 +20,13 @@ protected:
     static Dokev::Texture2D missingTexture;
     static Dokev::Texture2D house2InteractionTexture;
     static Dokev::Texture2D streetLightTexture;
+    static Dokev::Texture2D parkTexture;
     static bool             texturesLoaded;
 
     static void LoadTextures();
 
 public:
+    static void UnloadTextures();
     ResidentBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt);
     ~ResidentBuilding() override;
 

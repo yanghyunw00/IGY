@@ -42,11 +42,12 @@ class UserInterfaceEditor
 {
 public:
     UserInterfaceEditor() = default;
-    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr, int hour = 0, int minute = 0, EventManager* eventManager = nullptr, SimulationControls* simControls = nullptr);
+    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr, int hour = 0, int minute = 0, int currentDay = 1, EventManager* eventManager = nullptr, SimulationControls* simControls = nullptr);
 
     void SetSelectedHuman(Human* human) { selectedHuman = human; }
 
 private:
+    void DrawTimeSection(int hour, int minute, int currentDay);
     void DrawHappinessSection(HappinessManager* happinessManager);
     void DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager, int availableHomes, int totalResources, int humanCount);
     void DrawPopulationSection(Dokev::GameObjectManager* gameObjectManager, int homeCapacity, int totalHouses, int workplaceCount, int humanCount);

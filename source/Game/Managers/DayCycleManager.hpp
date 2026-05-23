@@ -8,8 +8,8 @@
 class DayCycleManager
 {
 public:
-    // 5 real minutes at 1x simulation speed = 1 game day
-    static constexpr float kDayDuration = 300.0f;
+    // 2 real minutes at 1x simulation speed = 1 game day
+    static constexpr float kDayDuration = 120.0f;
 
     void Update(float simulationDt);
     void SetTime(int hour, int minute);

@@ -13,6 +13,7 @@ Dokev::Texture2D ResidentBuilding::house2Texture;
 Dokev::Texture2D ResidentBuilding::house2InteractionTexture;
 Dokev::Texture2D ResidentBuilding::missingTexture;
 Dokev::Texture2D ResidentBuilding::streetLightTexture;
+Dokev::Texture2D ResidentBuilding::parkTexture;
 bool             ResidentBuilding::texturesLoaded = false;
 
 namespace
@@ -31,8 +32,19 @@ void ResidentBuilding::LoadTextures()
         house2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/house2_interation.png").string());
         missingTexture           = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
         streetLightTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/street_light.png").string());
+        parkTexture              = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/park.png").string());
         texturesLoaded           = true;
     }
+}
+
+void ResidentBuilding::UnloadTextures()
+{
+    house2Texture            = Dokev::Texture2D{};
+    missingTexture           = Dokev::Texture2D{};
+    house2InteractionTexture = Dokev::Texture2D{};
+    streetLightTexture       = Dokev::Texture2D{};
+    parkTexture              = Dokev::Texture2D{};
+    texturesLoaded           = false;
 }
 
 ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, int hp_, BuildingType bt) : Building(pos, w, h, hp_), satisfaction(1.0f), taxrate(10)
@@ -57,6 +69,13 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, int hp_, Build
             texture      = streetLightTexture;
             max_capacity = 0;
             cost         = 0;
+            break;
+
+        case BuildingType::PARK:
+            texture         = parkTexture;
+            max_capacity    = 0;
+            cost            = 0;
+            maintenanceCost = 3;
             break;
 
         default:

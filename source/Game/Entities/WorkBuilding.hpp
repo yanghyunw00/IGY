@@ -28,6 +28,10 @@ protected:
     static Dokev::Texture2D farmTexture;
     static Dokev::Texture2D cafeTexture;
     static Dokev::Texture2D restaurant2Texture;
+    static Dokev::Texture2D workplace3Texture;
+    static Dokev::Texture2D workplace4Texture;
+    static Dokev::Texture2D casinoTexture;
+    static Dokev::Texture2D eduBuildingTexture;
     static Dokev::Texture2D missingTexture;
     //added most recently
     static Dokev::Texture2D loggingCampInterationTexture;
@@ -43,6 +47,7 @@ protected:
     static void LoadTextures();
 
 public:
+    static void UnloadTextures();
     WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt);
     ~WorkBuilding() override;
 

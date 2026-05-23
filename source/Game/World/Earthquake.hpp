@@ -20,13 +20,13 @@ private:
     int cx    = 0;
     int cy    = 0;
 
-    static constexpr float  radius      = 10.0f;
+    float  radius      = 10.0f;
     static constexpr double maxDuration = 6.0;
     double elapsed = 0.0;
 
 public:
-    Earthquake(Dokev::CityMetrics* metrics, Dokev::GameObjectManager* gom, GridMap* map)
-        : cityMetrics(metrics), gameObjectManager(gom), gridMap(map) {}
+    Earthquake(Dokev::CityMetrics* metrics, Dokev::GameObjectManager* gom, GridMap* map, float r = 10.0f)
+        : cityMetrics(metrics), gameObjectManager(gom), gridMap(map), radius(r) {}
 
     void OnStart() override;
     void OnTick(double dt) override { elapsed += dt; sprite.Update(elapsed); }
