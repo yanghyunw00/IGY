@@ -16,6 +16,7 @@
 #include "AudioManager.hpp"
 #include "FPS.hpp"
 #include "Font.hpp"
+#include "FontManager.hpp"
 #include "GameState.hpp"
 #include "GameStateManager.hpp"
 #include "Input.hpp"
@@ -133,6 +134,7 @@ void Engine::Stop()
     impl->InstancedRenderer2D.Shutdown(); //MC
 
     impl->gameStateManager.Clear();
+    CS230::FontManager::Instance().Clear();
     CS230::AudioManager::Instance().Shutdown();
     TTF_Quit();
     ImGuiHelper::Shutdown();

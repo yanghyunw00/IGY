@@ -29,6 +29,21 @@
     },
     "RESTAURANT2": {
       "Money": 25
+    },
+    "WORKPLACE3": {
+      "Money": 25
+    },
+    "WORKPLACE4": {
+      "Money": 35
+    },
+    "CASINO": {
+      "Money": 40
+    },
+    "EDU_BUILDING": {
+      "Money": 35
+    },
+    "PARK": {
+      "Money": 15
     }
   }
 }

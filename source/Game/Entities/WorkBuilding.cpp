@@ -22,6 +22,10 @@ Dokev::Texture2D WorkBuilding::granaryTexture;
 Dokev::Texture2D WorkBuilding::farmTexture;
 Dokev::Texture2D WorkBuilding::cafeTexture;
 Dokev::Texture2D WorkBuilding::restaurant2Texture;
+Dokev::Texture2D WorkBuilding::workplace3Texture;
+Dokev::Texture2D WorkBuilding::workplace4Texture;
+Dokev::Texture2D WorkBuilding::casinoTexture;
+Dokev::Texture2D WorkBuilding::eduBuildingTexture;
 
 Dokev::Texture2D WorkBuilding::loggingCampInterationTexture;
 Dokev::Texture2D WorkBuilding::quarryInterationTexture;
@@ -62,9 +66,38 @@ void WorkBuilding::LoadTextures()
         cafeInteractionTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Cafe_interaction.png").string());
         restaurant2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2_interaction.png").string());
 
+        workplace3Texture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/workplace3.png").string());
+        workplace4Texture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/workplace4.png").string());
+        casinoTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
+        eduBuildingTexture  = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
+
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
         texturesLoaded = true;
     }
+}
+
+void WorkBuilding::UnloadTextures()
+{
+    loggingCampTexture            = Dokev::Texture2D{};
+    quarryTexture                 = Dokev::Texture2D{};
+    ironMineTexture               = Dokev::Texture2D{};
+    granaryTexture                = Dokev::Texture2D{};
+    farmTexture                   = Dokev::Texture2D{};
+    cafeTexture                   = Dokev::Texture2D{};
+    restaurant2Texture            = Dokev::Texture2D{};
+    workplace3Texture             = Dokev::Texture2D{};
+    workplace4Texture             = Dokev::Texture2D{};
+    casinoTexture                 = Dokev::Texture2D{};
+    eduBuildingTexture            = Dokev::Texture2D{};
+    missingTexture                = Dokev::Texture2D{};
+    loggingCampInterationTexture  = Dokev::Texture2D{};
+    quarryInterationTexture       = Dokev::Texture2D{};
+    ironMineInterationTexture     = Dokev::Texture2D{};
+    granaryInterationTexture      = Dokev::Texture2D{};
+    farmInteractionTexture        = Dokev::Texture2D{};
+    cafeInteractionTexture        = Dokev::Texture2D{};
+    restaurant2InteractionTexture = Dokev::Texture2D{};
+    texturesLoaded                = false;
 }
 
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt) : Building(pos, w, h,hp), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
@@ -128,6 +161,34 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             maintenanceCost = 12;
             break;
 
+        case BuildingType::WORKPLACE3:
+            texture         = workplace3Texture;
+            max_capacity    = 3;
+            cost            = 0;
+            maintenanceCost = 12;
+            break;
+
+        case BuildingType::WORKPLACE4:
+            texture         = workplace4Texture;
+            max_capacity    = 4;
+            cost            = 0;
+            maintenanceCost = 15;
+            break;
+
+        case BuildingType::CASINO:
+            texture         = casinoTexture;
+            max_capacity    = 3;
+            cost            = 0;
+            maintenanceCost = 18;
+            break;
+
+        case BuildingType::EDU_BUILDING:
+            texture         = eduBuildingTexture;
+            max_capacity    = 3;
+            cost            = 0;
+            maintenanceCost = 15;
+            break;
+
         default:
             texture      = missingTexture;
             max_capacity = 0;
@@ -145,6 +206,9 @@ WorkBuilding::~WorkBuilding()
 
 void WorkBuilding::OnConstructed()
 {
+    if (buildingType == BuildingType::WORKPLACE3)
+        return;
+
     for (unsigned int i = 0; i < max_capacity; ++i)
         WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
 

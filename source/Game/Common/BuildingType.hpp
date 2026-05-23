@@ -18,6 +18,12 @@ enum class BuildingType
     STEEL_WORKSHOP,
     GRANARY,
     FARM,
+    WORKPLACE3, // Fire station
+    WORKPLACE4,
+
+    // ENTERTAINMENT / SERVICE buildings
+    CASINO,
+    EDU_BUILDING,
 
     // RESIDENT buildings
     HOME,
@@ -27,6 +33,7 @@ enum class BuildingType
     // DECORATIONS
     MISSING_TEXTURE,
     STREET_LIGHT,
+    PARK,
 
     // INFRASTRUCTURE
     ROAD,

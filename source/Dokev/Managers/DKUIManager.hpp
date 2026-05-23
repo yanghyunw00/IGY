@@ -67,7 +67,7 @@ namespace Dokev
         void Initialize();
         void Update(Math::fvec2 mousePos, bool mouseClicked, float dt = 0.016f);
 
-        void Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr = nullptr) const;
+        void Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr = nullptr, int hour = 0, int minute = 0) const;
 
         BuildingType GetSelectedBuilding() const
         {
@@ -112,7 +112,7 @@ namespace Dokev
         void        UpdateBuildingMenu(Math::fvec2 mousePos, bool mouseClicked);
         void        DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
         void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time) const;
-        void        DrawResources(ResourceManager* resourceMgr, int humanCount) const;
+        void        DrawResources(ResourceManager* resourceMgr, int humanCount, int hour, int minute) const;
         void        DrawHappiness(CityMetrics* cm) const;
         void        CloseButtonMenus();
         void        CancelSelection();
