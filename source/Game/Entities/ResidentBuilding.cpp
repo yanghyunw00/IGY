@@ -144,12 +144,8 @@ void ResidentBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    int drawX = (buildingType == BuildingType::STREET_LIGHT)
-                    ? x + TILE_WIDTH_HALF - texture.GetWidth() / 2
-                    : x;
-    int drawY = (buildingType == BuildingType::STREET_LIGHT)
-                    ? y + (texture.GetHeight() - 64) / 2
-                    : y;
+    int drawX = (buildingType == BuildingType::STREET_LIGHT) ? x + TILE_WIDTH_HALF / 2 : x;
+    int drawY = (buildingType == BuildingType::STREET_LIGHT) ? y - TILE_HEIGHT_HALF : y;
     texture.Draw(drawX, drawY, tint);
 
     if (!isBuilt)

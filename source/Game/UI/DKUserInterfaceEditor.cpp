@@ -236,6 +236,16 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.employmentScore);
 
+    // Night Safety
+    ImGui::Text("  Night Safety:");
+    ImGui::SameLine();
+    if (factors.nightSafetyScore >= 80.0f)
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%.0f%%", factors.nightSafetyScore);
+    else if (factors.nightSafetyScore >= 50.0f)
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%.0f%%", factors.nightSafetyScore);
+    else
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.nightSafetyScore);
+
 }
 
 void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager, int availableHomes, int totalResources, int humanCount)
