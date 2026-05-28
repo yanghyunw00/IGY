@@ -15,6 +15,7 @@
 #include "Engine/Window.hpp"
 #include "GamePlayState.hpp"
 #include "MainMenu.hpp"
+#include "SplashGame.hpp"
 
 Splash::Splash()
 {
@@ -37,7 +38,7 @@ void Splash::Update(double dt)
     if (timercounter >= timerLimit)
     {
         Engine::GetGameStateManager().PopState();
-        Engine::GetGameStateManager().PushState<MainMenu>();
+        Engine::GetGameStateManager().PushState<SplashGame>();
     }
     // Draw();
 }

@@ -7,7 +7,9 @@
  */
 
 #pragma once
+#include "../Entities/Road.hpp"
 #include "../World/GridMap.hpp"
+#include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
 #include "CS200/OffscreenFramebuffer.hpp"
@@ -29,6 +31,7 @@
 #include "Game/Managers/DayCycleManager.hpp"
 #include "OpenGL/Shader.hpp"
 #include <GL/glew.h>
+#include <memory>
 #include <string>
 
 class MainMenu : public Dokev::GameState
@@ -42,6 +45,7 @@ public:
     void                  DrawImGui() override;
     void                  DrawText(const std::string& text, const Math::vec2& position, CS230::Font& font, CS200::RGBA color, Math::vec2 textscale) const;
     void                  CycleMapVariant(int direction);
+    void                  SetupBackground();
     std::string           GetMapLabel() const;
 
 private:
@@ -157,8 +161,15 @@ private:
     Main_Keys  current         = Main_Keys::GamePlayKey;
     MapVariant selectedVariant = MapVariant::Balanced;
 
+    // Play transition
+    bool   transitionActive   = false;
+    double transitionTimer    = 0.0;
+    static constexpr double transitionDuration = 1.5;
+
     // Animated background map
-    GridMap                    bgMap;
+    std::unique_ptr<GridMap>                  bgMap;
+    std::unique_ptr<Road>                     bgRoad;
+    std::unique_ptr<Dokev::GameObjectManager> bgGameObjMgr;
     DayCycleManager            bgDayCycle;
     mutable OffscreenFramebuffer bgFBO;
     mutable PostProcessingPipeline blurPipeline;

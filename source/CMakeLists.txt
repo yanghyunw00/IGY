@@ -100,6 +100,7 @@ set(SOURCE_CODE
     Game/States/GamePlayState.hpp Game/States/GamePlayState.cpp
     Game/States/MainMenu.hpp Game/States/MainMenu.cpp
     Game/States/Splash.hpp Game/States/Splash.cpp
+    Game/States/SplashGame.hpp Game/States/SplashGame.cpp
     Game/States/Setting.hpp Game/States/Setting.cpp
     Game/States/GameCredit.hpp Game/States/GameCredit.cpp
     Game/States/DEMO.hpp Game/States/DEMO.cpp

@@ -26,7 +26,7 @@ private:
 
     // Returns 4-bit neighbor connection mask.
     // bit0=N(y-1)  bit1=E(x+1)  bit2=S(y+1)  bit3=W(x-1)
-    int  getConnectionMask(int x, int y) const;
+    int  getConnectionMask(int x, int y, const GridMap& map) const;
     void updateRoadTileAt(int x, int y, GridMap& map);
 
 public:
@@ -41,6 +41,8 @@ public:
     bool IsAdjacentToRoad(int x, int y) const;
     void drawRoads(const GridMap& map, int currentview);
     void buildRoadPath(GridMap& map, int startX, int startY, int endX, int endY);
+    void refreshConnectionsAround(int x, int y, GridMap& map);
+    void refreshAllConnections(GridMap& map);
 
     size_t getRoadCount() const
     {

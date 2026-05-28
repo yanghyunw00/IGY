@@ -323,10 +323,10 @@ static int maskToTileIndex(int mask)
     switch (mask)
     {
         case 0:  return 8;
-        case 1:  return 7;   // N only
-        case 2:  return 3;   // E only → E-W straight (no tile 5 exists)
-        case 4:  return 7;   // S only
-        case 8:  return 3;   // W only → E-W straight (no tile 5 exists)
+        case 1:  return 2;   // N only → N-S style (consistent with N+S straight)
+        case 2:  return 3;   // E only → E-W style (consistent with E+W straight)
+        case 4:  return 2;   // S only → N-S style (consistent with N+S straight)
+        case 8:  return 3;   // W only → E-W style (consistent with E+W straight)
         case 5:  return 2;   // N+S straight
         case 10: return 3;   // E+W straight
         case 9:  return 9;   // N+W corner

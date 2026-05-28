@@ -222,7 +222,7 @@ void GamePlayState::Load()
     }
 
 
-    camera.SetZoom(0.3f);
+    camera.SetZoom(0.8f);
 
     // Center camera on the middle of the map
     {
@@ -947,6 +947,7 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::ROAD))
                                     break;
                                 road->addRoad(gridX, gridY, *map);
+                                road->refreshAllConnections(*map);
                                 placed            = true;
                                 lastPlacedRoadPos = { gridX, gridY };
                                 break;
