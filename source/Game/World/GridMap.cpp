@@ -342,6 +342,48 @@ static int maskToTileIndex(int mask)
     }
 }
 
+namespace
+{
+    struct BuildingDrawTrigger
+    {
+        int  originalX = 0;
+        int  originalY = 0;
+        int  viewX     = 0;
+        int  viewY     = 0;
+        int  order     = 0;
+        bool valid     = false;
+    };
+
+    BuildingDrawTrigger SelectBuildingDrawTrigger(const Building& building, const GridMap& map, int viewIndex)
+    {
+        BuildingDrawTrigger result;
+
+        const int baseX = static_cast<int>(std::round(building.GetGrid().x));
+        const int baseY = static_cast<int>(std::round(building.GetGrid().y));
+
+        for (int y = 0; y < building.GetHeight(); ++y)
+        {
+            for (int x = 0; x < building.GetWidth(); ++x)
+            {
+                const int originalX = baseX + x;
+                const int originalY = baseY + y;
+
+                Math::fvec2 transformed = map.TransformPathPointForView({ static_cast<float>(originalX), static_cast<float>(originalY) }, viewIndex);
+                const int   viewX       = std::clamp(static_cast<int>(std::round(transformed.x)), 0, GRID_SIZE_X - 1);
+                const int   viewY       = std::clamp(static_cast<int>(std::round(transformed.y)), 0, GRID_SIZE_Y - 1);
+                const int   order       = viewX + viewY;
+
+                if (!result.valid || order > result.order || (order == result.order && viewX > result.viewX))
+                {
+                    result = { originalX, originalY, viewX, viewY, order, true };
+                }
+            }
+        }
+
+        return result;
+    }
+}
+
 void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, const Dokev::MouseSelection* mouseSelection, Dokev::GameObjectManager* gameObjMgr) const
 {
     currentView = index % 4;
@@ -437,22 +479,8 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
 
                         for (const auto& building : buildings)
                         {
-                            int bX = static_cast<int>(building->GetGrid().x);
-                            int bY = static_cast<int>(building->GetGrid().y);
-                            int w  = building->GetWidth();
-                            int h  = building->GetHeight();
-
-                            int triggerX = bX, triggerY = bY;
-                            switch (index % 4)
-                            {
-                                case 0: triggerX = bX + w - 1; triggerY = bY + h - 1; break;
-                                case 1: triggerX = bX + w - 1;                        break;
-                                case 2:                                                break;
-                                case 3:                         triggerY = bY + h - 1; break;
-                                default:                                               break;
-                            }
-
-                            if (triggerX == originalX && triggerY == originalY)
+                            BuildingDrawTrigger trigger = SelectBuildingDrawTrigger(*building, *this, currentView);
+                            if (trigger.valid && trigger.originalX == originalX && trigger.originalY == originalY)
                             {
                                 building->Draw(index, this, screenX, topY + 64);
                             }
