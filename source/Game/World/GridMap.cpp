@@ -160,15 +160,11 @@ void GridMap::EnsureMouseAtlasInitialized() const
     if (mouseAtlasFBO != 0 && mouseAtlasTex != 0)
     {
         // Resize texture if window size changed
-        GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
-        int currentW = 0, currentH = 0;
-        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &currentW);
-        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &currentH);
-        if (currentW == targetWidth && currentH == targetHeight)
+        if (mouseAtlasW == targetWidth && mouseAtlasH == targetHeight)
         {
-            GL::BindTexture(GL_TEXTURE_2D, 0);
             return;
         }
+        GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
     }
 
     if (mouseAtlasFBO == 0)
@@ -184,6 +180,8 @@ void GridMap::EnsureMouseAtlasInitialized() const
     GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
 
     GL::TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, targetWidth, targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    mouseAtlasW = targetWidth;
+    mouseAtlasH = targetHeight;
 
     GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -200,6 +198,8 @@ void GridMap::EnsureMouseAtlasInitialized() const
         {
             GL::DeleteTextures(1, &mouseAtlasTex);
             mouseAtlasTex = 0;
+            mouseAtlasW   = 0;
+            mouseAtlasH   = 0;
         }
         if (mouseAtlasFBO != 0)
         {

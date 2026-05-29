@@ -211,8 +211,11 @@ if(EMSCRIPTEN)
     -sWASM=1 
     -sDISABLE_EXCEPTION_CATCHING=0 
     -sALLOW_MEMORY_GROWTH=1 
-    -sEXIT_RUNTIME=1 
-    -sSINGLE_FILE=1 
+    -sEXIT_RUNTIME=1
+    # NOTE: -sSINGLE_FILE=1 disabled. Embedding the wasm as raw bytes inside a
+    # UTF-8 html corrupts the binary in the browser ("illegal flag value").
+    # Emitting separate .js/.wasm/.data files is the robust way to deploy (e.g. GitHub Pages).
+    # -sSINGLE_FILE=1
     --embed-file ${CMAKE_SOURCE_DIR}/Assets@/Assets
     --use-preload-cache
     -lembind

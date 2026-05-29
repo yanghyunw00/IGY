@@ -222,4 +222,6 @@ public:
 
     mutable GLuint mouseAtlasFBO = 0;
     mutable GLuint mouseAtlasTex = 0;
+    mutable int    mouseAtlasW   = 0;
+    mutable int    mouseAtlasH   = 0;
 };

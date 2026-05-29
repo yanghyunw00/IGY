@@ -50,6 +50,18 @@ namespace ImGuiHelper
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
+#if defined(__EMSCRIPTEN__)
+        {
+            int drawable_w = 0, drawable_h = 0;
+            SDL_GL_GetDrawableSize(gCachedWindow, &drawable_w, &drawable_h);
+            if (drawable_w > 0 && drawable_h > 0)
+            {
+                ImGuiIO& io                = ImGui::GetIO();
+                io.DisplaySize             = ImVec2(static_cast<float>(drawable_w), static_cast<float>(drawable_h));
+                io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
+            }
+        }
+#endif
         ImGui::NewFrame();
 
         // enable docking on main window, based off of imgui docking demo

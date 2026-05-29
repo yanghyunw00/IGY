@@ -114,7 +114,6 @@ namespace Dokev
 
         Math::ivec2 framePos  = spriteSheet.GetFramePosition(frameIndex);
         Math::ivec2 frameSize = spriteSheet.GetFrameSize();
-        Math::vec2  hotSpot   = spriteSheet.GetHotSpot();
 
         Math::vec2 position = transform * Math::vec2(1.0, 1.0);
 

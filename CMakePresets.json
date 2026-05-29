@@ -61,10 +61,10 @@
             "hidden": true,
             "inherits": "conf-unixlike-common",
             "generator": "Ninja",
-            "toolchainFile": "~/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
+            "toolchainFile": "$env{HOME}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake",
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "~/emsdk/upstream/emscripten/emcc",
-                "CMAKE_CXX_COMPILER": "~/emsdk/upstream/emscripten/em++"
+                "CMAKE_C_COMPILER": "$env{HOME}/emsdk/upstream/emscripten/emcc",
+                "CMAKE_CXX_COMPILER": "$env{HOME}/emsdk/upstream/emscripten/em++"
             }
         },
         {

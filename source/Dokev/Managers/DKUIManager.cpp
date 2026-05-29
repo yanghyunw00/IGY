@@ -32,7 +32,7 @@ namespace Dokev
     {
         CreateMainButtons();
         happyIcon = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
-        humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/human.png").string());
+        humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
         outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
     }
 

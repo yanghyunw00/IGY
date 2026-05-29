@@ -119,7 +119,7 @@ namespace Dokev
     {
         if (shakeTimeLeft <= 0.0f)
         {
-            shakeOffset   = { 0.0f, 0.0f };
+            shakeOffset   = { 0.0, 0.0 };
             shakeTimeLeft = 0.0f;
             return;
         }
