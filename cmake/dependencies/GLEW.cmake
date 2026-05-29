@@ -15,10 +15,8 @@ add_library(the_glew INTERFACE)
 if(NOT WIN32 AND NOT EMSCRIPTEN)
     # on    Mac : brew install glew
     # on Ubuntu : apt install libglew-dev
-    set(GLEW_STATIC_LIBS TRUE)
     find_package(GLEW REQUIRED)
-    target_link_libraries(the_glew INTERFACE ${GLEW_STATIC_LIBRARIES} $<$<PLATFORM_ID:Linux>:GL>)
-    target_include_directories(the_glew SYSTEM INTERFACE ${GLEW_INCLUDE_DIRS})
+    target_link_libraries(the_glew INTERFACE GLEW::GLEW $<$<PLATFORM_ID:Linux>:GL>)
 elseif(WIN32)
     # download binaries for GLEW for windows x64
     FetchContent_Declare(

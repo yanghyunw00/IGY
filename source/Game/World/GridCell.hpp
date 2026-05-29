@@ -140,13 +140,20 @@ struct GridCell
 
     int x = 0, y = 0;
 
+    int    getFlattenStage()          const { return flattenStage; }
+    void   setFlattenStage(int s)           { flattenStage = s; }
+    double getFlattenBaseHeight()     const { return flattenBaseHeight; }
+    void   setFlattenBaseHeight(double h)   { flattenBaseHeight = h; }
+
 private:
     double      Height      = 0.0;
     TerrainType Type        = TerrainType::None;
     double      Temperature = 0.0;
-    int         resources   = 0;
 
     bool isOccupied  = false; // if the cell is occupied by a building or person
     bool isDestroyed = false; // if the cell is destroyed by a disaster or something else. if true, the cell cannot be used until it is repaired.
     bool isWater     = false; // if the cell under water, it cannot be used for building or walking. only for boats and bridges.
+
+    int    flattenStage      = 0;
+    double flattenBaseHeight = 0.0;
 };

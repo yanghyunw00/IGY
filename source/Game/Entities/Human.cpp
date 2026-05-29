@@ -13,12 +13,14 @@
 #include "../Managers/ResourceManager.hpp"
 #include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Graphics/DKShapes.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "Game/Managers/WorkManager.hpp"
 #include "../Common/BuildingType.hpp"
 #include "Engine/Path.hpp"
 #include "Game/Managers/DayCycleManager.hpp"
 #include "Road.hpp"
+#include "../Managers/FloatingTextManager.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -171,6 +173,17 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
                 ai.isSeekingCafe = false;
                 stats.energy    = std::min(100.0f, stats.energy    + 50.0f);
                 stats.happiness = std::min(100.0f, stats.happiness + 10.0f);
+                if (map)
+                {
+                    int   gx     = static_cast<int>(actualPosition.x);
+                    int   gy     = static_cast<int>(actualPosition.y);
+                    GridCell** va = map->GetViewArray(0);
+                    float cellH  = va ? static_cast<float>(va[gy * GRID_SIZE_X + gx]->getHeight()) : 0.0f;
+                    float rawY   = static_cast<float>(map->GetIsoOriginY() + (actualPosition.x + actualPosition.y) * TILE_HEIGHT_HALF);
+                    float sx     = static_cast<float>(map->GetIsoOriginX() + (actualPosition.x - actualPosition.y) * TILE_WIDTH_HALF);
+                    float sy     = cellH - rawY + TILE_HEIGHT_HALF * 3;
+                    FloatingTextManager::Instance().Add("+10 Happiness (Cafe)", {sx, sy}, 0xFFDD44FF);
+                }
                 ChangeState(HumanState::Idle);
             }
             else
@@ -236,6 +249,12 @@ void Human::UpdateResting(float deltaTime)
     {
         ai.restTimer = 0.0f;
         stats.energy = std::min(100.0f, stats.energy + 50.0f);
+        if (ai.assignedHome)
+        {
+            ai.assignedHome->OnWorkerLeft(this);
+            ai.assignedHome     = nullptr;
+            ai.assignedWorkType = WorkType::None;
+        }
         ChangeState(HumanState::Idle);
     }
 }
@@ -292,24 +311,30 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
 
         if (ai.isHeadingHome)
         {
-            Math::fvec2 homePos = { -1.0f, -1.0f };
+            Math::fvec2 homePos    = { -1.0f, -1.0f };
+            Building*   foundHome  = nullptr;
             if (gameObjMgr)
             {
                 for (const auto& building : gameObjMgr->GetBuildings())
                 {
-                    if (building->GetBuildingType() == BuildingType::HOME && building->GetIsBuilt())
+                    if (building->GetBuildingType() == BuildingType::HOME && building->GetIsBuilt() && !building->IsFull())
                     {
-                        homePos = building->GetGrid();
+                        homePos   = building->GetGrid();
+                        foundHome = building.get();
                         break;
                     }
                 }
             }
 
-            if (homePos.x < 0.0f)
+            if (!foundHome)
             {
                 ai.isHeadingHome = false;
                 return;
             }
+
+            ai.assignedHome     = foundHome;
+            ai.assignedWorkType = WorkType::REST;
+            foundHome->OnWorkerArrived(this);
 
             if (map)
             {
@@ -348,22 +373,31 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
     if (outsideHours)
     {
-        ai.isHeadingHome = true;
-
-        bool homeExists = false;
+        bool availableHomeExists = false;
         if (gameObjMgr)
         {
             for (const auto& b : gameObjMgr->GetBuildings())
             {
-                if (b->GetBuildingType() == BuildingType::HOME && b->GetIsBuilt())
+                if (b->GetBuildingType() == BuildingType::HOME && b->GetIsBuilt() && !b->IsFull())
                 {
-                    homeExists = true;
+                    availableHomeExists = true;
                     break;
                 }
             }
         }
 
-        if (homeExists)
+        if (availableHomeExists)
+        {
+            bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
+            if (onRoad)
+            {
+                ai.isHeadingHome = true;
+                ChangeState(HumanState::Idle);
+                return;
+            }
+            ai.isHeadingHome = true;
+        }
+        else
         {
             ChangeState(HumanState::Idle);
             return;
@@ -499,6 +533,49 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
     {
         UpdateResting(deltaTime);
     }
+    else if (state == HumanState::Firefighting)
+    {
+        if (isMoving)
+            UpdateMovement(deltaTime, map);
+        else
+            UpdateFirefighting();
+    }
+}
+
+void Human::DispatchToFire(Math::fvec2 fireCenter, GridMap* map)
+{
+    (void)map;
+    if (HasWorkAssignment())
+        CancelWork();
+
+    ai.isHeadingHome = false;
+    ai.isSeekingCafe = false;
+
+    fireTargetPos    = fireCenter;
+    firefightingDone = false;
+
+    ChangeState(HumanState::Firefighting);
+    // Stay at fire station — no movement
+}
+
+void Human::CancelFirefighting()
+{
+    firefightingDone = true;
+}
+
+bool Human::IsAtFireLocation() const
+{
+    return state == HumanState::Firefighting && !isMoving;
+}
+
+void Human::UpdateFirefighting()
+{
+    if (firefightingDone)
+    {
+        firefightingDone = false;
+        fireTargetPos    = { 0.0f, 0.0f };
+        ChangeState(HumanState::FindingDestination);
+    }
 }
 
 void Human::Draw(int viewIndex, const GridMap* map) const
@@ -526,10 +603,17 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF - humanTexture.GetWidth() / 2;
     int drawY = topY + TILE_HEIGHT_HALF;
 
-    // For Debugging stuffs
-    // Dokev::DrawCircle(drawX, drawY, 20, Dokev::ColorPalette::RED);
-    // Dokev::DrawCircleLines(drawX, drawY, 20, Dokev::ColorPalette::YELLOW);
-    humanTexture.Draw(drawX, drawY);
+    if (state == HumanState::Firefighting)
+    {
+        humanTexture.Draw(drawX, drawY, CS200::WHITE, Dokev::RenderState::IMMEDIATE);
+        int cx = drawX + humanTexture.GetWidth() / 2;
+        int cy = drawY - 6;
+        Dokev::DrawCircle(cx, cy, 5.0f, 0x0080FFFF);
+    }
+    else
+    {
+        humanTexture.Draw(drawX, drawY);
+    }
 }
 
 void Human::ChangeState(HumanState newState)

@@ -42,7 +42,7 @@ namespace Dokev
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
+        float totalWidth = BUTTON_WIDTH * 4 + BUTTON_SPACING * 3;
         float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
 
         switch (category)
@@ -50,7 +50,16 @@ namespace Dokev
             case CategoryType::HOME_CATEGORY:
                 {
                     float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
-                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
+
+                    BuildingButton cancelButton;
+                    cancelButton.type     = BuildingType::NONE;
+                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+                    cancelButton.position = Math::fvec2(offsetX, startY);
+                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelButton.name     = "Cancel";
+                    cancelButton.tint     = Dokev::ColorPalette::RED;
+                    buildingButtons.push_back(cancelButton);
 
                     BuildingButton homeButton;
                     homeButton.type     = BuildingType::HOME;
@@ -61,24 +70,33 @@ namespace Dokev
                     homeButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(homeButton);
 
-                    BuildingButton cafeButton;
-                    cafeButton.type     = BuildingType::CAFE;
-                    cafeButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
-                    cafeButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
-                    cafeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    cafeButton.name     = "Cafe";
-                    cafeButton.tint     = Dokev::ColorPalette::WHITE;
-                    buildingButtons.push_back(cafeButton);
+                    BuildingButton casinoButton;
+                    casinoButton.type     = BuildingType::CASINO;
+                    casinoButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
+                    casinoButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    casinoButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    casinoButton.name     = "Casino";
+                    casinoButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(casinoButton);
 
-                    BuildingButton restaurantButton;
-                    restaurantButton.type     = BuildingType::RESTAURANT2;
-                    restaurantButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
-                    restaurantButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
-                    restaurantButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    restaurantButton.name     = "Restaurant";
-                    restaurantButton.tint     = Dokev::ColorPalette::WHITE;
-                    buildingButtons.push_back(restaurantButton);
+                    BuildingButton eduButton;
+                    eduButton.type     = BuildingType::EDU_BUILDING;
+                    eduButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
+                    eduButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    eduButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    eduButton.name     = "School";
+                    eduButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(eduButton);
+                    break;
+                }
 
+            case CategoryType::WORK_CATEGORY:
+                {
+                    float startY   = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
+                    float offsetX  = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
+                    float offsetX2 = offsetX + BUTTON_WIDTH + BUTTON_SPACING;  // second column for food buildings
+
+                    // Column 1: production buildings
                     BuildingButton cancelButton;
                     cancelButton.type     = BuildingType::NONE;
                     cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
@@ -87,31 +105,6 @@ namespace Dokev
                     cancelButton.name     = "Cancel";
                     cancelButton.tint     = Dokev::ColorPalette::RED;
                     buildingButtons.push_back(cancelButton);
-                    break;
-                }
-
-            case CategoryType::WORK_CATEGORY:
-                {
-                    float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
-                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
-
-                    BuildingButton woodButton;
-                    woodButton.type     = BuildingType::WOOD_WORKSHOP;
-                    woodButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
-                    woodButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
-                    woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    woodButton.name     = "Wood Workshop";
-                    woodButton.tint     = Dokev::ColorPalette::BROWN;
-                    buildingButtons.push_back(woodButton);
-
-                    BuildingButton rockButton;
-                    rockButton.type     = BuildingType::ROCK_WORKSHOP;
-                    rockButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
-                    rockButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
-                    rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    rockButton.name     = "Rock Workshop";
-                    rockButton.tint     = Dokev::ColorPalette::GRAY;
-                    buildingButtons.push_back(rockButton);
 
                     BuildingButton steelButton;
                     steelButton.type     = BuildingType::STEEL_WORKSHOP;
@@ -122,6 +115,24 @@ namespace Dokev
                     steelButton.tint     = Dokev::ColorPalette::LIGHTGRAY;
                     buildingButtons.push_back(steelButton);
 
+                    BuildingButton rockButton;
+                    rockButton.type     = BuildingType::ROCK_WORKSHOP;
+                    rockButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
+                    rockButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    rockButton.name     = "Rock Workshop";
+                    rockButton.tint     = Dokev::ColorPalette::GRAY;
+                    buildingButtons.push_back(rockButton);
+
+                    BuildingButton woodButton;
+                    woodButton.type     = BuildingType::WOOD_WORKSHOP;
+                    woodButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
+                    woodButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    woodButton.name     = "Wood Workshop";
+                    woodButton.tint     = Dokev::ColorPalette::BROWN;
+                    buildingButtons.push_back(woodButton);
+
                     BuildingButton granaryButton;
                     granaryButton.type     = BuildingType::GRANARY;
                     granaryButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2.png").string());
@@ -131,21 +142,58 @@ namespace Dokev
                     granaryButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(granaryButton);
 
-                    BuildingButton cancelButton;
-                    cancelButton.type     = BuildingType::NONE;
-                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
-                    cancelButton.position = Math::fvec2(offsetX, startY);
-                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    cancelButton.name     = "Cancel";
-                    cancelButton.tint     = Dokev::ColorPalette::RED;
-                    buildingButtons.push_back(cancelButton);
+                    BuildingButton farmButton;
+                    farmButton.type     = BuildingType::FARM;
+                    farmButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Farm.png").string());
+                    farmButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 5);
+                    farmButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    farmButton.name     = "Farm";
+                    farmButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(farmButton);
+
+                    // Column 2: food/service buildings
+                    BuildingButton cafeButton;
+                    cafeButton.type     = BuildingType::CAFE;
+                    cafeButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
+                    cafeButton.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    cafeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cafeButton.name     = "Cafe";
+                    cafeButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(cafeButton);
+
+                    BuildingButton restaurantButton;
+                    restaurantButton.type     = BuildingType::RESTAURANT2;
+                    restaurantButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
+                    restaurantButton.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    restaurantButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    restaurantButton.name     = "Restaurant";
+                    restaurantButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(restaurantButton);
+
+                    BuildingButton wp3Button;
+                    wp3Button.type     = BuildingType::WORKPLACE3;
+                    wp3Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/workplace3.png").string());
+                    wp3Button.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    wp3Button.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    wp3Button.name     = "Fire Station";
+                    wp3Button.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(wp3Button);
+
+                    BuildingButton wp4Button;
+                    wp4Button.type     = BuildingType::WORKPLACE4;
+                    wp4Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/workplace4.png").string());
+                    wp4Button.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 4);
+                    wp4Button.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    wp4Button.name     = "Workplace 4";
+                    wp4Button.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(wp4Button);
                     break;
                 }
 
             case CategoryType::ROAD_CATEGORY:
                 {
                     float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
-                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
 
                     BuildingButton roadButton;
                     roadButton.type     = BuildingType::ROAD;
@@ -164,6 +212,49 @@ namespace Dokev
                     cancelButton.name     = "Cancel";
                     cancelButton.tint     = Dokev::ColorPalette::RED;
                     buildingButtons.push_back(cancelButton);
+                    break;
+                }
+
+            case CategoryType::DECORATION_CATEGORY:
+                {
+                    float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
+
+                    BuildingButton cancelButton;
+                    cancelButton.type     = BuildingType::NONE;
+                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+                    cancelButton.position = Math::fvec2(offsetX, startY);
+                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelButton.name     = "Cancel";
+                    cancelButton.tint     = Dokev::ColorPalette::RED;
+                    buildingButtons.push_back(cancelButton);
+
+                    BuildingButton missingButton;
+                    missingButton.type     = BuildingType::MISSING_TEXTURE;
+                    missingButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+                    missingButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    missingButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    missingButton.name     = "Missing Texture";
+                    missingButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(missingButton);
+
+                    BuildingButton streetLightButton;
+                    streetLightButton.type     = BuildingType::STREET_LIGHT;
+                    streetLightButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/street_light.png").string());
+                    streetLightButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    streetLightButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    streetLightButton.name     = "Street Light";
+                    streetLightButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(streetLightButton);
+
+                    BuildingButton parkButton;
+                    parkButton.type     = BuildingType::PARK;
+                    parkButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/park.png").string());
+                    parkButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    parkButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    parkButton.name     = "Park";
+                    parkButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(parkButton);
                     break;
                 }
 
@@ -224,7 +315,7 @@ namespace Dokev
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
+        float totalWidth = BUTTON_WIDTH * 4 + BUTTON_SPACING * 3;
         float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
         float startY     = UI_SPACING + BUTTON_HEIGHT + BUTTON_SPACING;
 
@@ -254,6 +345,15 @@ namespace Dokev
         roadButton.name     = "Road";
         roadButton.tint     = Dokev::ColorPalette::WHITE;
         categoryButtons.push_back(roadButton);
+
+        BuildingButton decorationButton;
+        decorationButton.type     = BuildingType::NONE;
+        decorationButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        decorationButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3, startY);
+        decorationButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        decorationButton.name     = "Decoration";
+        decorationButton.tint     = Dokev::ColorPalette::WHITE;
+        categoryButtons.push_back(decorationButton);
     }
 
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked, float dt)
@@ -317,6 +417,13 @@ namespace Dokev
                 CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
                 hotkeyHandled = true;
             }
+            else if (input.KeyJustPressed(CS230::Input::Keys::D))
+            {
+                currentMenuState = MenuState::BUILDING;
+                currentCategory  = CategoryType::DECORATION_CATEGORY;
+                CreateBuildingButtons(CategoryType::DECORATION_CATEGORY);
+                hotkeyHandled = true;
+            }
         }
 
         // Building selection shortcuts (when in BUILDING state)
@@ -354,6 +461,14 @@ namespace Dokev
                 else if (input.KeyJustPressed(CS230::Input::Keys::G))
                 {
                     selectedBuilding = BuildingType::GRANARY;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::F))
+                {
+                    selectedBuilding = BuildingType::FARM;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
@@ -362,7 +477,22 @@ namespace Dokev
                 {
                     selectedBuilding = BuildingType::ROAD;
                     CloseButtonMenus();
-                    hotkeyHandled = true; 
+                    hotkeyHandled = true;
+                }
+            }
+            else if (currentCategory == CategoryType::DECORATION_CATEGORY)
+            {
+                if (input.KeyJustPressed(CS230::Input::Keys::M))
+                {
+                    selectedBuilding = BuildingType::MISSING_TEXTURE;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::S))
+                {
+                    selectedBuilding = BuildingType::STREET_LIGHT;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
             }
         }
@@ -427,6 +557,8 @@ namespace Dokev
                             currentCategory = CategoryType::WORK_CATEGORY;
                         else if (button.name == "Road")
                             currentCategory = CategoryType::ROAD_CATEGORY;
+                        else if (button.name == "Decoration")
+                            currentCategory = CategoryType::DECORATION_CATEGORY;
 
                         CreateBuildingButtons(currentCategory);
                         break;
@@ -450,6 +582,8 @@ namespace Dokev
                             currentCategory = CategoryType::WORK_CATEGORY;
                         else if (button.name == "Road")
                             currentCategory = CategoryType::ROAD_CATEGORY;
+                        else if (button.name == "Decoration")
+                            currentCategory = CategoryType::DECORATION_CATEGORY;
 
                         CreateBuildingButtons(currentCategory);
                         return;
@@ -488,9 +622,9 @@ namespace Dokev
         UpdateButtonScales(dt);
     }
 
-    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr) const
+    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr, int hour, int minute) const
     {
-        DrawResources(resourceMgr, humanCount);
+        DrawResources(resourceMgr, humanCount, hour, minute);
         DrawHappiness(cm);
 
         switch (currentMenuState)
@@ -530,7 +664,7 @@ namespace Dokev
         }
     }
 
-    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount) const
+    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount, int hour, int minute) const
     {
         if (!resourceMgr)
             return;
@@ -559,6 +693,19 @@ namespace Dokev
         }
         currentY -= height + 5.0f;
 
+        // Draw food count
+        if (outlined)
+        {
+            std::string foodText = "Food: " + std::to_string(resourceMgr->GetFood()) + "/" + std::to_string(resourceMgr->GetFoodCapacity());
+            if (auto textTexture = outlined->PrintToTexture(foodText, Dokev::ColorPalette::WHITE))
+            {
+                textTexture->Draw(
+                    Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }),
+                    Dokev::ColorPalette::WHITE);
+            }
+            currentY -= height + 5.0f;
+        }
+
         if (humanIcon.IsValid())
         {
             humanIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
@@ -569,6 +716,20 @@ namespace Dokev
             if (auto textTexture = outlined->PrintToTexture(humanText, Dokev::ColorPalette::WHITE))
             {
                 textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+            }
+        }
+        currentY -= height + 5.0f;
+
+        // Draw time (HH:MM)
+        if (outlined)
+        {
+            char timeBuf[16];
+            std::snprintf(timeBuf, sizeof(timeBuf), "Time : %02d : %02d", hour, minute);
+            if (auto textTexture = outlined->PrintToTexture(timeBuf, Dokev::ColorPalette::WHITE))
+            {
+                textTexture->Draw(
+                    Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }),
+                    Dokev::ColorPalette::WHITE);
             }
         }
     }
@@ -670,8 +831,12 @@ namespace Dokev
 
         // Draw required resources
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
-                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::HOME ||
-                                 button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2))
+                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::FARM ||
+                                 button.type == BuildingType::HOME || button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2 ||
+                                 button.type == BuildingType::MISSING_TEXTURE || button.type == BuildingType::STREET_LIGHT ||
+                                 button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::WORKPLACE4 ||
+                                 button.type == BuildingType::CASINO || button.type == BuildingType::EDU_BUILDING ||
+                                 button.type == BuildingType::PARK))
         {
             float tooltipWidth  = 180.0f;
             float tooltipHeight = 60.0f;
@@ -810,6 +975,8 @@ namespace Dokev
                 return "W";
             if (button.name == "Road")
                 return "R";
+            if (button.name == "Decoration")
+                return "D";
         }
 
         // Building buttons
@@ -830,11 +997,20 @@ namespace Dokev
                     return "S";
                 if (button.type == BuildingType::GRANARY)
                     return "G";
+                if (button.type == BuildingType::FARM)
+                    return "F";
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
             {
                 if (button.type == BuildingType::ROAD)
                     return "R";
+            }
+            else if (currentCategory == CategoryType::DECORATION_CATEGORY)
+            {
+                if (button.type == BuildingType::MISSING_TEXTURE)
+                    return "M";
+                if (button.type == BuildingType::STREET_LIGHT)
+                    return "S";
             }
             if (button.name == "Cancel")
                 return "C";
@@ -967,6 +1143,11 @@ namespace Dokev
         if (button.name == "Road")
         {
             return currentCategory == CategoryType::ROAD_CATEGORY;
+        }
+
+        if (button.name == "Decoration")
+        {
+            return currentCategory == CategoryType::DECORATION_CATEGORY;
         }
 
         return false;

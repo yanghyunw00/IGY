@@ -19,7 +19,7 @@
 #include <imgui.h>
 
 
-void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute, EventManager* eventManager, SimulationControls* simControls)
+void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute, int currentDay, EventManager* eventManager, SimulationControls* simControls)
 {
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
@@ -63,7 +63,7 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
         ImGui::Separator();
     }
 
-    ImGui::Text("Time: %02d:%02d  (%s)", hour, minute, hour >= 9 && hour < 17 ? "Working" : "Off");
+    DrawTimeSection(hour, minute, currentDay);
     ImGui::Separator();
 
     if (ImGui::TreeNode("CITY HAPPINESS"))
@@ -113,6 +113,85 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     DrawNPCInfoPanel();
 }
 
+void UserInterfaceEditor::DrawTimeSection(int hour, int minute, int currentDay)
+{
+    // Day 6-20, Night 22-4
+    const char* phaseName;
+    ImVec4      phaseColor;
+    ImVec4      barColor;
+    const char* phaseIcon;
+
+    if (hour >= 4 && hour < 6)
+    {
+        phaseName  = "Dawn";
+        phaseColor = { 1.0f, 0.6f, 0.2f, 1.0f };
+        barColor   = { 1.0f, 0.55f, 0.1f, 1.0f };
+        phaseIcon  = "~";
+    }
+    else if (hour >= 6 && hour < 12)
+    {
+        phaseName  = "Morning";
+        phaseColor = { 1.0f, 0.95f, 0.3f, 1.0f };
+        barColor   = { 1.0f, 0.88f, 0.15f, 1.0f };
+        phaseIcon  = "*";
+    }
+    else if (hour >= 12 && hour < 18)
+    {
+        phaseName  = "Afternoon";
+        phaseColor = { 1.0f, 0.85f, 0.1f, 1.0f };
+        barColor   = { 1.0f, 0.82f, 0.0f, 1.0f };
+        phaseIcon  = "*";
+    }
+    else if (hour >= 18 && hour < 20)
+    {
+        phaseName  = "Evening";
+        phaseColor = { 1.0f, 0.5f, 0.1f, 1.0f };
+        barColor   = { 1.0f, 0.45f, 0.05f, 1.0f };
+        phaseIcon  = "~";
+    }
+    else if (hour >= 20 && hour < 22)
+    {
+        phaseName  = "Dusk";
+        phaseColor = { 0.8f, 0.35f, 0.15f, 1.0f };
+        barColor   = { 0.5f, 0.3f, 0.5f, 1.0f };
+        phaseIcon  = "o";
+    }
+    else
+    {
+        phaseName  = "Night";
+        phaseColor = { 0.55f, 0.55f, 0.95f, 1.0f };
+        barColor   = { 0.25f, 0.25f, 0.65f, 1.0f };
+        phaseIcon  = "o";
+    }
+
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Day %d", currentDay);
+    ImGui::SameLine();
+    ImGui::TextColored(phaseColor, "  [%s] %s", phaseIcon, phaseName);
+
+    ImGui::Text("%02d:%02d", hour, minute);
+    ImGui::SameLine();
+    bool isWorking = (hour >= 9 && hour < 17);
+    ImGui::TextColored(
+        isWorking ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+        " %s", isWorking ? "(Working)" : "(Off)");
+
+    float progress = static_cast<float>(hour * 60 + minute) / 1440.0f;
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, barColor);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.12f, 0.12f, 0.28f, 0.85f));
+    ImGui::ProgressBar(progress, ImVec2(-1.0f, 10.0f), "");
+    ImGui::PopStyleColor(2);
+
+    int totalMinutes = hour * 60 + minute;
+    int remainMinutes;
+    const char* nextPhase;
+    if (totalMinutes < 6 * 60)          { remainMinutes = 6 * 60 - totalMinutes;  nextPhase = "Sunrise"; }
+    else if (totalMinutes < 20 * 60)    { remainMinutes = 20 * 60 - totalMinutes; nextPhase = "Sunset"; }
+    else                                { remainMinutes = (24 * 60 - totalMinutes) + 6 * 60; nextPhase = "Sunrise"; }
+
+    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s in %dh %02dm",
+        nextPhase, remainMinutes / 60, remainMinutes % 60);
+}
+
 void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManager)
 {
     float totalHappiness = happinessManager->CalculateTotalHappiness();
@@ -156,6 +235,16 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
         ImGui::TextColored(ImVec4(1, 1, 0, 1), "%.0f%%", factors.employmentScore);
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.employmentScore);
+
+    // Night Safety
+    ImGui::Text("  Night Safety:");
+    ImGui::SameLine();
+    if (factors.nightSafetyScore >= 80.0f)
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%.0f%%", factors.nightSafetyScore);
+    else if (factors.nightSafetyScore >= 50.0f)
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%.0f%%", factors.nightSafetyScore);
+    else
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.nightSafetyScore);
 
 }
 

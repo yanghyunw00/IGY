@@ -323,10 +323,10 @@ static int maskToTileIndex(int mask)
     switch (mask)
     {
         case 0:  return 8;
-        case 1:  return 7;   // N only
-        case 2:  return 8;   // E only
-        case 4:  return 7;   // S only
-        case 8:  return 8;   // W only
+        case 1:  return 2;   // N only → N-S style (consistent with N+S straight)
+        case 2:  return 3;   // E only → E-W style (consistent with E+W straight)
+        case 4:  return 2;   // S only → N-S style (consistent with N+S straight)
+        case 8:  return 3;   // W only → E-W style (consistent with E+W straight)
         case 5:  return 2;   // N+S straight
         case 10: return 3;   // E+W straight
         case 9:  return 9;   // N+W corner
@@ -439,8 +439,20 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                         {
                             int bX = static_cast<int>(building->GetGrid().x);
                             int bY = static_cast<int>(building->GetGrid().y);
+                            int w  = building->GetWidth();
+                            int h  = building->GetHeight();
 
-                            if (bX == originalX && bY == originalY)
+                            int triggerX = bX, triggerY = bY;
+                            switch (index % 4)
+                            {
+                                case 0: triggerX = bX + w - 1; triggerY = bY + h - 1; break;
+                                case 1: triggerX = bX + w - 1;                        break;
+                                case 2:                                                break;
+                                case 3:                         triggerY = bY + h - 1; break;
+                                default:                                               break;
+                            }
+
+                            if (triggerX == originalX && triggerY == originalY)
                             {
                                 building->Draw(index, this, screenX, topY + 64);
                             }
@@ -769,24 +781,50 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
     }
 }
 
-bool GridMap::FlattenTile(int x, int y)
+bool GridMap::CanFlattenTile(int x, int y) const
 {
     if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
         return false;
 
-    GridCell& cell = m_gridCells[y][x];
+    const GridCell& cell = m_gridCells[y][x];
 
-    // water cannot change
     if (cell.getWater())
         return false;
 
+    if (cell.getFlattenStage() >= 3)
+        return false;
+
     double targetHeight = mapProfile.thresholds.waterMax;
+    return std::abs(cell.getHeight() - targetHeight) > 1e-9;
+}
 
-    cell.ApplyTerrain(targetHeight, mapProfile.thresholds);
+bool GridMap::FlattenTile(int x, int y)
+{
+    if (!CanFlattenTile(x, y))
+        return false;
 
-    // Update pathfinding cost
-    SetPathCost(x, y, 1.0f);
-    SetWalkable(x, y, true);
+    GridCell& cell        = m_gridCells[y][x];
+    double    targetHeight = mapProfile.thresholds.waterMax;
+
+    int stage = cell.getFlattenStage();
+
+    if (stage == 0)
+        cell.setFlattenBaseHeight(cell.getHeight());
+
+    stage++;
+    cell.setFlattenStage(stage);
+
+    double baseH     = cell.getFlattenBaseHeight();
+    double newHeight = (stage >= 3) ? targetHeight
+                                    : baseH + (targetHeight - baseH) * (stage / 3.0);
+
+    cell.ApplyTerrain(newHeight, mapProfile.thresholds);
+
+    if (stage >= 3)
+    {
+        SetPathCost(x, y, 1.0f);
+        SetWalkable(x, y, true);
+    }
 
     return true;
 }

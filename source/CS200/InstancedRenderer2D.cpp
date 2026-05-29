@@ -21,13 +21,6 @@
 #include <sstream>
 #include <string>
 
-static constexpr Math::vec2 quadVertices[4] = {
-    { -0.5, -0.5 }, // Bottom left
-    {  0.5, -0.5 }, // Bottom right
-    {  0.5,  0.5 }, // Top right
-    { -0.5,  0.5 }  // Top left
-};
-
 CS200::InstancedRenderer2D::InstancedRenderer2D(unsigned max_quads)
 {
     MaxQuadCount = max_quads;

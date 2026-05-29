@@ -71,7 +71,7 @@ namespace Dokev
             return;
         }
 
-        const auto& currentFrame = frames[currentFrameIndex];
+        const auto& currentFrame = frames[static_cast<size_t>(currentFrameIndex)];
 
         if (timer == 0.0)
         {
@@ -137,7 +137,7 @@ namespace Dokev
         {
             return 0;
         }
-        return frames[currentFrameIndex].frameIndex;
+        return frames[static_cast<size_t>(currentFrameIndex)].frameIndex;
     }
 
     void Animation::Reset()

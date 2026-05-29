@@ -1,4 +1,4 @@
-#version 300 es
+#version 330 core
 /**
  * \file instanced.frag
  * \author Hyunwoo Yang
@@ -6,7 +6,6 @@
  * \par CS200 Computer Graphics I
  * \copyright DigiPen Institute of Technology
  */
-precision mediump float;
 
 #ifndef MAX_TEXTURE_SLOTS
 #    define MAX_TEXTURE_SLOTS 8

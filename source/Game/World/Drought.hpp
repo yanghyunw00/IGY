@@ -23,7 +23,7 @@ public:
     void OnTick(double dt) override;
     void OnEnd() override;
     bool IsFinished() const override;
-    void Draw() const override;
+    void Draw(int index) const override;
 
     const char* GetName() const override
     {

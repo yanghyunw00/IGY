@@ -130,10 +130,10 @@ namespace Dokev
 
         std::snprintf(buffer, bufferSize,
             "RAM: %.1f MB / %.1f MB (%.1f%%) | Process: %.1f MB",
-            info.GetUsedPhysicalMB(),
-            info.GetTotalPhysicalMB(),
-            info.GetUsagePercent(),
-            info.GetProcessUsageMB()
+            static_cast<double>(info.GetUsedPhysicalMB()),
+            static_cast<double>(info.GetTotalPhysicalMB()),
+            static_cast<double>(info.GetUsagePercent()),
+            static_cast<double>(info.GetProcessUsageMB())
         );
     }
 }

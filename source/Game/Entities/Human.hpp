@@ -19,6 +19,7 @@
 class GridMap;
 class Road;
 class ResourceManager;
+class Building;
 namespace Dokev { class GameObjectManager; }
 
 enum class HumanState
@@ -28,6 +29,7 @@ enum class HumanState
     FindingDestination, // Deciding where to go next
     Working,            // work
     Resting,            // resting at home after fatigue
+    Firefighting,       // dispatched to fight a fire
 };
 
 struct HumanStats
@@ -45,7 +47,8 @@ enum class WorkType
     None,
     Gathering,
     Building,
-    Farming
+    Farming,
+    REST
 };
 
 /**
@@ -63,7 +66,7 @@ struct HumanAI
     float       maxIdleTime     = 0.5f; // Max time before finding new destination
     Math::fvec2 previousGridPos = { -1.0f, -1.0f };
 
-    float explorationRadius = 15.0f; // How far from current position to explore
+    float explorationRadius = 100.0f; // How far from current position to explore
     bool  isExploring       = true;  // Currently in exploration mode
 
     Math::fvec2              lastDirection = { 0.0f, 0.0f }; // Last movement direction
@@ -77,7 +80,8 @@ struct HumanAI
     float restTimer             = 0.0f;
     float maxRestTime           = 7.0f;
     Math::fvec2 targetHomePosition = { -1.0f, -1.0f };
-    bool  isHeadingHome         = false;
+    bool        isHeadingHome      = false;
+    Building*   assignedHome       = nullptr;
     Math::fvec2 targetCafePosition = { -1.0f, -1.0f };
     bool  isSeekingCafe         = false;
 
@@ -136,6 +140,11 @@ public:
 
     bool HasWorkAssignment() const { return ai.assignedJobId != -1; }
     void CancelWork(); // Cancel the work when some situation happened
+
+    void DispatchToFire(Math::fvec2 fireCenter, GridMap* map);
+    void CancelFirefighting();
+    bool IsFirefighting()    const { return state == HumanState::Firefighting; }
+    bool IsAtFireLocation()  const;
 
     int         GetAssignedJobId()       const { return ai.assignedJobId; }
     Math::fvec2 GetWorkplacePosition()   const { return ai.workplacePosition; }
@@ -205,6 +214,7 @@ private:
 
     void UpdateWorking(float deltaTime, int currentHour);
     void UpdateResting(float deltaTime);
+    void UpdateFirefighting();
 
     // TERRAIN HELPERS
     std::string GetTerrainName(double height) const;
@@ -245,4 +255,8 @@ private:
 
     // Accumulated wages this shift (reset on tax collection)
     float shiftEarnings = 0.0f;
+
+    // Firefighting
+    Math::fvec2 fireTargetPos    = { 0.0f, 0.0f };
+    bool        firefightingDone = false;
 };

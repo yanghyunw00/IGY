@@ -121,4 +121,6 @@ public:
 
     const std::vector<Job>& GetJobs() const { return jobList; }
     int                     GetJobCount() const { return static_cast<int>(jobList.size()); }
+
+    void ClearAllJobs() { jobList.clear(); }
 };

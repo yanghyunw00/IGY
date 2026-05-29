@@ -14,8 +14,8 @@ namespace Dokev
     enum class RenderState
     {
         IMMEDIATE, // Value 0
-        INSTANCED, // Value 1
-        BATCH,     // Value 2
-        DOODOOBIRD // Value 3
+        INSTANCED // Value 1
+        //BATCH     // Value 2
+        //DOODOOBIRD // Value 3
     };
 }

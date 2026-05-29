@@ -15,9 +15,10 @@ namespace Dokev
             return false;
 
         // Gather game state data
-        int humanCount     = static_cast<int>(gameObjectManager->GetHumans().size());
-        int homeCapacity   = 0;
-        int workplaceCount = 0;
+        int humanCount      = static_cast<int>(gameObjectManager->GetHumans().size());
+        int homeCapacity    = 0;
+        int workplaceCount  = 0;
+        int streetLightCount = 0;
 
         for (const auto& building : gameObjectManager->GetBuildings())
         {
@@ -32,10 +33,15 @@ namespace Dokev
             {
                 workplaceCount++;
             }
+
+            if (type == BuildingType::STREET_LIGHT && building->GetIsBuilt())
+            {
+                streetLightCount++;
+            }
         }
 
         // Update Happiness Manager
-        happinessManager.UpdateFactors(humanCount, homeCapacity, workplaceCount);
+        happinessManager.UpdateFactors(humanCount, homeCapacity, workplaceCount, streetLightCount);
         averageHappiness = happinessManager.CalculateTotalHappiness();
 
         //  Update Immigration Manager

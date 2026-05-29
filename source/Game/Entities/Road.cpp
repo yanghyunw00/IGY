@@ -15,7 +15,7 @@
 #include <vector>
 
 // bit0=N(y-1)  bit1=E(x+1)  bit2=S(y+1)  bit3=W(x-1)
-int Road::getConnectionMask(int x, int y) const
+int Road::getConnectionMask(int x, int y, const GridMap& /*map*/) const
 {
     int mask = 0;
     if (hasRoad(x,     y - 1)) mask |= 1;  // N
@@ -30,12 +30,15 @@ void Road::updateRoadTileAt(int x, int y, GridMap& map)
     if (!hasRoad(x, y))
         return;
 
-    int mask = getConnectionMask(x, y);
+    int mask = getConnectionMask(x, y, map);
     map.SetRoadConnectionMask(x, y, mask);
 }
 
 void Road::addRoad(int x, int y, GridMap& map)
 {
+    if (hasRoad(x, y))
+        return;
+
     auto* tileManager = map.GetTileManager();
 
     roadPositions.push_back({static_cast<float>(x), static_cast<float>(y)});
@@ -122,6 +125,21 @@ void Road::buildRoadPath(GridMap& map, int startX, int startY, int endX, int end
     }
 
     map.ClearPath();
+}
+
+void Road::refreshConnectionsAround(int x, int y, GridMap& map)
+{
+    updateRoadTileAt(x,     y,     map);
+    updateRoadTileAt(x,     y - 1, map);
+    updateRoadTileAt(x + 1, y,     map);
+    updateRoadTileAt(x,     y + 1, map);
+    updateRoadTileAt(x - 1, y,     map);
+}
+
+void Road::refreshAllConnections(GridMap& map)
+{
+    for (const auto& pos : roadPositions)
+        updateRoadTileAt(static_cast<int>(pos.x), static_cast<int>(pos.y), map);
 }
 
 void Road::removeAllRoad()

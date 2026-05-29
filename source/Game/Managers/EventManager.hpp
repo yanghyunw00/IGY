@@ -13,7 +13,7 @@ enum class EventList
 {
     FIRE,
     DROUGHT,
-    METEOR,
+    EARTHQUAKE,
     NONE1
 };
 
@@ -28,17 +28,36 @@ private:
     GridMap*                  gridMap           = nullptr;
 
     std::vector<std::unique_ptr<DisasterEvent>> activeEvents;
-    std::function<void()>                       meteorFunction;
+    std::function<void()>                       earthquakeFunction;
+    bool   debugDrawRadius    = false;
+    float  fireRadius         = 20.0f;
+    float  earthquakeRadius   = 13.0f;
+    double redispatchTimer    = 0.0;
+    static constexpr double redispatchInterval = 2.0;
 
 public:
     void Initialize(Dokev::CityMetrics* metrics, Dokev::GameObjectManager* gom, GridMap* map);
-    void SetMeteorCallback(std::function<void()> callback) { meteorFunction = std::move(callback); }
+    void SetEarthquakeCallback(std::function<void()> callback) { earthquakeFunction = std::move(callback); }
+    void SetDebugDrawRadius(bool b) { debugDrawRadius = b; }
+    void SetFireRadius(float r)       { fireRadius = r; }
+    void SetEarthquakeRadius(float r) { earthquakeRadius = r; }
+    float GetFireRadius()       const { return fireRadius; }
+    float GetEarthquakeRadius() const { return earthquakeRadius; }
 
     void RandomEvent();
     void EventCycle(double dt);
     void ForceEvent();
+    void ForceEventByType(EventList type);
+    void DispatchFirefighters();
 
-    void Draw() const { for (const auto& e : activeEvents) e->Draw(); }
+    void Draw(int index) const
+    {
+        for (const auto& e : activeEvents)
+        {
+            e->SetDebugDraw(debugDrawRadius);
+            e->Draw(index);
+        }
+    }
 
     const std::vector<std::unique_ptr<DisasterEvent>>& GetActiveEvents() const { return activeEvents; }
     double GetDuration()  const { return duration; }
