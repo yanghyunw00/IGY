@@ -215,22 +215,30 @@ namespace Dokev
         float bubbleX      = (windowSize.x - bubbleWidth) / 2.0f;
         float bubbleY      = windowSize.y - bubbleHeight - 50.0f;
 
-        DrawRectangle(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), ColorPalette::TOOLTIP_BACKGROUND);
+        DrawRectangle(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), ColorPalette::BLACK);
 
-        DrawRectangleLinesEx(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), 3.0f, ColorPalette::WHITE);
+        DrawRectangleLinesEx(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), 4.0f, ColorPalette::WHITE);
 
         if (font)
         {
+            const float scale       = 0.5f;
+            const float lineHeight  = 32.0f;
+            const float lineSpacing = 6.0f;
+            const float cornerPad   = 10.0f;
+
+            // Corner star decorators
+            if (auto starTexture = font->PrintToTexture("*", ColorPalette::WHITE))
+            {
+                starTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + cornerPad, bubbleY + cornerPad }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+                starTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + bubbleWidth - lineHeight - cornerPad, bubbleY + bubbleHeight - lineHeight - cornerPad }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+            }
+
             // Split text by \n and render each line separately (TTF doesn't support newlines)
             std::vector<std::string> lines;
             std::istringstream       stream(currentStep.text);
             std::string              line;
             while (std::getline(stream, line))
                 lines.push_back(line);
-
-            const float scale       = 0.5f;
-            const float lineHeight  = 32.0f;
-            const float lineSpacing = 6.0f;
 
             float totalHeight = static_cast<float>(lines.size()) * lineHeight + static_cast<float>(lines.size() - 1) * lineSpacing;
             float startY      = bubbleY + (bubbleHeight - totalHeight) / 2.0f;
@@ -242,7 +250,7 @@ namespace Dokev
                 if (auto textTexture = font->PrintToTexture(lines[i], ColorPalette::WHITE))
                 {
                     float lineY = startY + static_cast<float>(i) * (lineHeight + lineSpacing);
-                    textTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + 25.0f, lineY }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+                    textTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + 50.0f, lineY }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
                 }
             }
         }
