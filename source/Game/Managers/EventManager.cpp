@@ -18,8 +18,11 @@ void EventManager::ForceEvent()
 {
     for (auto& e : activeEvents) e->OnEnd();
     activeEvents.clear();
-    duration = 0;
+    duration      = 0;
+    warningActive = false;
+    warningFired  = false;
     RandomEvent();
+    PrerollNextEvent();
 }
 
 void EventManager::ForceEventByType(EventList type)
@@ -45,6 +48,19 @@ void EventManager::ForceEventByType(EventList type)
         activeEvents.back()->OnStart();
         if (earthquakeFunction) earthquakeFunction();
     }
+}
+
+void EventManager::PrerollNextEvent()
+{
+    int randomSeed = Dokev::GetRandomInt(0, 4);
+    if (randomSeed == static_cast<int>(EventList::DROUGHT))
+        nextEventType = EventList::DROUGHT;
+    else if (randomSeed == static_cast<int>(EventList::EARTHQUAKE))
+        nextEventType = EventList::EARTHQUAKE;
+    else if (randomSeed == static_cast<int>(EventList::FIRE))
+        nextEventType = EventList::FIRE;
+    else
+        nextEventType = EventList::NONE1;
 }
 
 void EventManager::RandomEvent()
@@ -110,10 +126,27 @@ void EventManager::EventCycle(double dt)
         return false;
     });
 
-    if(duration > maxTime && activeEvents.empty())
+    double effectiveMax = GetEffectiveMaxTime();
+
+    // Observatory early warning: 10s before disaster
+    if (observatoryCount >= 1 && !warningFired && activeEvents.empty())
     {
+        if (duration > effectiveMax - 10.0)
+        {
+            warningFired  = true;
+            warningActive = true;
+            if (nextEventType == EventList::NONE1)
+                PrerollNextEvent();
+        }
+    }
+
+    if(duration > effectiveMax && activeEvents.empty())
+    {
+        warningActive = false;
+        warningFired  = false;
         RandomEvent();
         duration = 0;
+        PrerollNextEvent(); // pre-roll for the next cycle
     }
 }
 

@@ -33,17 +33,20 @@
     "WORKPLACE3": {
       "Money": 25
     },
-    "WORKPLACE4": {
-      "Money": 35
+    "DISASTER_OBSERVATORY": {
+      "Money": 70
     },
     "CASINO": {
       "Money": 40
     },
-    "EDU_BUILDING": {
-      "Money": 35
+    "PENTHOUSE": {
+      "Money": 1000
     },
     "PARK": {
       "Money": 15
+    },
+    "STREET_LIGHT": {
+      "Money": 5
     }
   }
 }

@@ -29,7 +29,7 @@ protected:
     static Dokev::Texture2D cafeTexture;
     static Dokev::Texture2D restaurant2Texture;
     static Dokev::Texture2D workplace3Texture;
-    static Dokev::Texture2D workplace4Texture;
+    static Dokev::Texture2D disasterObservatoryTexture;
     static Dokev::Texture2D casinoTexture;
     static Dokev::Texture2D eduBuildingTexture;
     static Dokev::Texture2D missingTexture;

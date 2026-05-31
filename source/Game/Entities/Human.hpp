@@ -30,6 +30,7 @@ enum class HumanState
     Working,            // work
     Resting,            // resting at home after fatigue
     Firefighting,       // dispatched to fight a fire
+    Evacuating,         // moving to fire station for safety
 };
 
 struct HumanStats
@@ -146,6 +147,11 @@ public:
     bool IsFirefighting()    const { return state == HumanState::Firefighting; }
     bool IsAtFireLocation()  const;
 
+    void DispatchToEvacuate(Math::fvec2 stationPos, GridMap* map);
+    void CancelEvacuation();
+    bool IsEvacuating()      const { return state == HumanState::Evacuating; }
+    bool IsEvacuated()       const { return state == HumanState::Evacuating && !isMoving; }
+
     int         GetAssignedJobId()       const { return ai.assignedJobId; }
     Math::fvec2 GetWorkplacePosition()   const { return ai.workplacePosition; }
     float       GetJobSearchRadius()     const { return ai.explorationRadius; }
@@ -215,6 +221,7 @@ private:
     void UpdateWorking(float deltaTime, int currentHour);
     void UpdateResting(float deltaTime);
     void UpdateFirefighting();
+    void UpdateEvacuating();
 
     // TERRAIN HELPERS
     std::string GetTerrainName(double height) const;
@@ -259,4 +266,7 @@ private:
     // Firefighting
     Math::fvec2 fireTargetPos    = { 0.0f, 0.0f };
     bool        firefightingDone = false;
+
+    // Evacuation
+    bool        evacuationDone   = false;
 };

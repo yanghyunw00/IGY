@@ -540,6 +540,13 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
         else
             UpdateFirefighting();
     }
+    else if (state == HumanState::Evacuating)
+    {
+        if (isMoving)
+            UpdateMovement(deltaTime, map);
+        else
+            UpdateEvacuating();
+    }
 }
 
 void Human::DispatchToFire(Math::fvec2 fireCenter, GridMap* map)
@@ -578,6 +585,38 @@ void Human::UpdateFirefighting()
     }
 }
 
+void Human::DispatchToEvacuate(Math::fvec2 stationPos, GridMap* map)
+{
+    if (state == HumanState::Evacuating) return;
+    if (HasWorkAssignment())
+        CancelWork();
+
+    ai.isHeadingHome = false;
+    ai.isSeekingCafe = false;
+    evacuationDone   = false;
+
+    std::vector<Math::fvec2> newPath = { stationPos };
+    FollowPath(newPath, CommandSource::PlayerOrdered);
+    ChangeState(HumanState::Evacuating);
+    (void)map;
+}
+
+void Human::CancelEvacuation()
+{
+    if (state != HumanState::Evacuating) return;
+    evacuationDone = true;
+}
+
+void Human::UpdateEvacuating()
+{
+    if (evacuationDone)
+    {
+        evacuationDone = false;
+        ChangeState(HumanState::FindingDestination);
+    }
+    // else: stay at station until CancelEvacuation() is called
+}
+
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
     Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
@@ -609,6 +648,13 @@ void Human::Draw(int viewIndex, const GridMap* map) const
         int cx = drawX + humanTexture.GetWidth() / 2;
         int cy = drawY - 6;
         Dokev::DrawCircle(cx, cy, 5.0f, 0x0080FFFF);
+    }
+    else if (state == HumanState::Evacuating)
+    {
+        humanTexture.Draw(drawX, drawY, CS200::WHITE, Dokev::RenderState::IMMEDIATE);
+        int cx = drawX + humanTexture.GetWidth() / 2;
+        int cy = drawY - 6;
+        Dokev::DrawCircle(cx, cy, 5.0f, 0xFF8800FF); // orange = evacuating
     }
     else
     {

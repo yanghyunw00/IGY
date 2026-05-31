@@ -19,11 +19,11 @@ enum class BuildingType
     GRANARY,
     FARM,
     WORKPLACE3, // Fire station
-    WORKPLACE4,
+    DISASTER_OBSERVATORY,
 
     // ENTERTAINMENT / SERVICE buildings
     CASINO,
-    EDU_BUILDING,
+    PENTHOUSE,
 
     // RESIDENT buildings
     HOME,

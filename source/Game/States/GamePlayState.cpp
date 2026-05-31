@@ -642,7 +642,68 @@ void GamePlayState::Update(double dt)
         }
     }
 
+    // Count built observatories and pass to event manager
+    {
+        auto* gom = GetGSComponent<Dokev::GameObjectManager>().get();
+        int obsCount = 0;
+        for (const auto& b : gom->GetBuildings())
+            if (b->GetBuildingType() == BuildingType::DISASTER_OBSERVATORY && b->GetIsBuilt())
+                ++obsCount;
+        eventManager.SetObservatoryCount(obsCount);
+    }
+
     eventManager.EventCycle(dt);
+
+    // Observatory warning: show evacuate button
+    if (eventManager.IsWarningActive() && !evacuateButtonVisible)
+    {
+        evacuateButtonVisible = true;
+        evacuateButtonTimer   = kEvacuateButtonDuration;
+
+        auto* gom   = GetGSComponent<Dokev::GameObjectManager>().get();
+        auto* map   = GetGSComponent<MapManager>()->GetMap();
+        int   obsCount = 0;
+        for (const auto& b : gom->GetBuildings())
+            if (b->GetBuildingType() == BuildingType::DISASTER_OBSERVATORY && b->GetIsBuilt())
+                ++obsCount;
+
+        std::string warningText;
+        if (obsCount >= 3)
+        {
+            EventList next = eventManager.GetNextEventType();
+            std::string disasterName = "Unknown Disaster";
+            if (next == EventList::FIRE)       disasterName = "Fire";
+            else if (next == EventList::EARTHQUAKE) disasterName = "Earthquake";
+            else if (next == EventList::DROUGHT)    disasterName = "Drought";
+            warningText = disasterName + " in 10s!";
+        }
+        else
+        {
+            warningText = "Disaster in 10s!";
+        }
+
+        auto  winSize = Engine::GetWindow().GetSize();
+        float cx      = static_cast<float>(winSize.x) * 0.5f;
+        float cy      = static_cast<float>(winSize.y) * 0.5f;
+        FloatingTextManager::Instance().Add(warningText, { cx, cy - 60.0f }, 0xFF4400FF, 4.0f);
+        (void)map;
+    }
+
+    if (evacuateButtonVisible)
+    {
+        evacuateButtonTimer -= static_cast<float>(dt);
+        if (evacuateButtonTimer <= 0.0f || !eventManager.IsWarningActive())
+            evacuateButtonVisible = false;
+    }
+
+    // When all disasters end, cancel any ongoing evacuations
+    if (evacuationOrdered && eventManager.GetEventCount() == 0 && !eventManager.IsWarningActive())
+    {
+        evacuationOrdered = false;
+        auto* gom = GetGSComponent<Dokev::GameObjectManager>().get();
+        for (auto& human : gom->GetHumans())
+            human->CancelEvacuation();
+    }
 
     if (worldEditor.IsSaveRequested())
     {
@@ -656,6 +717,85 @@ void GamePlayState::Update(double dt)
     }
 
     mouse.Update();
+
+    // Evacuate button hover + click flash
+    if (evacuateButtonVisible)
+    {
+        auto mousePos = mouse.GetPosition();
+        auto winSize  = Engine::GetWindow().GetSize();
+        constexpr int btnW = 180;
+        constexpr int btnH = 50;
+        int btnX = winSize.x / 2 - btnW / 2;
+        int btnY = winSize.y / 4 - btnH / 2;
+
+        evacuateButtonHovered = (mousePos.x >= btnX && mousePos.x <= btnX + btnW &&
+                                 mousePos.y >= btnY && mousePos.y <= btnY + btnH);
+        if (evacuateClickFlash > 0.0f)
+            evacuateClickFlash -= static_cast<float>(dt);
+    }
+    else
+    {
+        evacuateButtonHovered = false;
+    }
+
+    // Evacuate button click handling
+    if (evacuateButtonVisible && !evacuationOrdered)
+    {
+        if (mouse.MouseJustPressed(Dokev::Mouse::Button::Left))
+        {
+            auto mousePos = mouse.GetPosition();
+            auto winSize  = Engine::GetWindow().GetSize();
+            constexpr int btnW = 180;
+            constexpr int btnH = 50;
+            int btnX = winSize.x / 2 - btnW / 2;
+            int btnY = winSize.y / 4 - btnH / 2;
+
+            if (mousePos.x >= btnX && mousePos.x <= btnX + btnW &&
+                mousePos.y >= btnY && mousePos.y <= btnY + btnH)
+            {
+                evacuateClickFlash    = 0.3f;
+                evacuationOrdered     = true;
+                evacuateButtonVisible = false;
+
+                auto* gom = GetGSComponent<Dokev::GameObjectManager>().get();
+                auto* map = GetGSComponent<MapManager>()->GetMap();
+
+                // Collect all built fire stations
+                std::vector<Math::fvec2> stations;
+                for (const auto& b : gom->GetBuildings())
+                    if (b->GetBuildingType() == BuildingType::WORKPLACE3 && b->GetIsBuilt())
+                        stations.push_back(b->GetGrid());
+
+                if (!stations.empty())
+                {
+                    for (auto& human : gom->GetHumans())
+                    {
+                        if (human->IsEvacuating() || human->IsFirefighting()) continue;
+
+                        // Find nearest fire station
+                        Math::fvec2 hpos    = human->GetGridPosition();
+                        Math::fvec2 nearest = stations[0];
+                        float       minDist = 1e9f;
+                        for (const auto& s : stations)
+                        {
+                            float dx = s.x - hpos.x;
+                            float dy = s.y - hpos.y;
+                            float d  = dx * dx + dy * dy;
+                            if (d < minDist) { minDist = d; nearest = s; }
+                        }
+                        human->DispatchToEvacuate(nearest, map);
+                    }
+                    FloatingTextManager::Instance().Add("Evacuation ordered!", { static_cast<float>(winSize.x) * 0.5f, static_cast<float>(winSize.y) * 0.5f - 90.0f }, 0xFFAA00FF, 3.0f);
+                }
+                else
+                {
+                    FloatingTextManager::Instance().Add("No fire stations to evacuate to!", { static_cast<float>(winSize.x) * 0.5f, static_cast<float>(winSize.y) * 0.5f - 90.0f }, 0xFF4444FF, 3.0f);
+                    evacuationOrdered = false;
+                }
+            }
+        }
+    }
+
     bool ismouseheld = mouse.MouseDown(Dokev::Mouse::Button::Left);
     if (!ismouseheld)
     {
@@ -1065,12 +1205,12 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
-                        case BuildingType::WORKPLACE4:
+                        case BuildingType::DISASTER_OBSERVATORY:
                             {
-                                if (!consumeResources(BuildingType::WORKPLACE4))
+                                if (!consumeResources(BuildingType::DISASTER_OBSERVATORY))
                                     break;
 
-                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::WORKPLACE4);
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::DISASTER_OBSERVATORY);
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
@@ -1089,12 +1229,24 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
-                        case BuildingType::EDU_BUILDING:
+                        case BuildingType::PENTHOUSE:
                             {
-                                if (!consumeResources(BuildingType::EDU_BUILDING))
+                                int   population = static_cast<int>(gameObjMgr->GetHumans().size());
+                                float happiness  = cityMetrics ? cityMetrics->GetHappiness() : 0.0f;
+                                if (population < 30 || happiness < 80.0f)
+                                {
+                                    GridCell** viewArr2 = map->GetViewArray(0);
+                                    float      cellH2   = viewArr2 ? static_cast<float>(viewArr2[gridY * GRID_SIZE_X + gridX]->getHeight()) : 0.0f;
+                                    float      rawY2    = static_cast<float>(map->GetIsoOriginY() + (gridX + gridY) * TILE_HEIGHT_HALF);
+                                    float      fx       = static_cast<float>(map->GetIsoOriginX() + (gridX - gridY) * TILE_WIDTH_HALF);
+                                    float      fy       = cellH2 - rawY2 + TILE_HEIGHT_HALF * 3;
+                                    FloatingTextManager::Instance().Add("Need: Pop 30 / Happiness 80", {fx, fy}, 0xFF4444FF);
+                                    break;
+                                }
+                                if (!consumeResources(BuildingType::PENTHOUSE))
                                     break;
 
-                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::EDU_BUILDING);
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::PENTHOUSE);
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
@@ -1233,7 +1385,7 @@ void GamePlayState::Update(double dt)
                                 case BuildingType::STEEL_WORKSHOP:
                                 case BuildingType::GRANARY:
                                 case BuildingType::FARM:
-                                case BuildingType::WORKPLACE4:
+                                case BuildingType::DISASTER_OBSERVATORY:
                                     FloatingTextManager::Instance().Add("+Employment", {sx, sy}, 0x44FF44FF);
                                     break;
                                 case BuildingType::CAFE:
@@ -1246,7 +1398,7 @@ void GamePlayState::Update(double dt)
                                 case BuildingType::CASINO:
                                     FloatingTextManager::Instance().Add("+Entertainment", {sx, sy}, 0xFF44AAFF);
                                     break;
-                                case BuildingType::EDU_BUILDING:
+                                case BuildingType::PENTHOUSE:
                                     FloatingTextManager::Instance().Add("+Education", {sx, sy}, 0x44AAFFFF);
                                     break;
                                 case BuildingType::PARK:
@@ -1481,6 +1633,40 @@ void GamePlayState::Draw() const
     uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager), dayCycle.GetHour(), dayCycle.GetMinute());
     tutorialManager.Draw();
     achievementManager.Draw();
+
+    // Disaster Observatory: draw Evacuate button
+    if (evacuateButtonVisible)
+    {
+        auto winSize = Engine::GetWindow().GetSize();
+        constexpr int btnW = 180;
+        constexpr int btnH = 50;
+        int btnX = winSize.x / 2 - btnW / 2;
+        int btnY = winSize.y / 4 - btnH / 2; 
+
+        CS200::RGBA bgColor;
+        CS200::RGBA borderColor;
+        if (evacuateButtonHovered)
+        {
+            bgColor     = 0xFF6600FF; // orange
+            borderColor = 0xFFFF00FF; // yellow
+        }
+        else
+        {
+            bgColor     = 0xAA1100FF; // dark red
+            borderColor = 0xFF4444FF; // red
+        }
+
+        Dokev::DrawRectangle(btnX, btnY, btnW, btnH, bgColor);
+        Dokev::DrawRectangleLinesEx(btnX, btnY, btnW, btnH, 3.0f, borderColor);
+
+        CS200::RGBA textColor = evacuateButtonHovered ? 0xFFFF00FF : 0xFFFFFFFF;
+        CS230::FontManager::Instance().DrawText("MainFont", "!! EVACUATE !!", { static_cast<float>(btnX + btnW / 2), static_cast<float>(btnY + 18) }, CS230::TextAlign::Center, textColor, { 0.4, 0.4 });
+
+        // 타이머 바 (남은 시간)
+        int timerBarW = static_cast<int>(btnW * (evacuateButtonTimer / kEvacuateButtonDuration));
+        Dokev::DrawRectangle(btnX, btnY + btnH - 6, timerBarW, 6, 0xFFAA00FF);
+    }
+
     console.Draw(); // drawn last so it sits on top of everything
     renderer2d.EndScene();
     // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
