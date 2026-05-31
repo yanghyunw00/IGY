@@ -221,6 +221,7 @@ namespace Dokev
 
         if (font)
         {
+<<<<<<< HEAD
             const float scale       = 0.5f;
             const float lineHeight  = 32.0f;
             const float lineSpacing = 6.0f;
@@ -245,12 +246,34 @@ namespace Dokev
 
             for (size_t i = 0; i < lines.size(); ++i)
             {
+=======
+            // Split text by \n and render each line separately (TTF doesn't support newlines)
+            std::vector<std::string> lines;
+            std::istringstream       stream(currentStep.text);
+            std::string              line;
+            while (std::getline(stream, line))
+                lines.push_back(line);
+
+            const float scale       = 0.5f;
+            const float lineHeight  = 32.0f;
+            const float lineSpacing = 6.0f;
+
+            float totalHeight = static_cast<float>(lines.size()) * lineHeight + static_cast<float>(lines.size() - 1) * lineSpacing;
+            float startY      = bubbleY + (bubbleHeight - totalHeight) / 2.0f;
+
+            for (size_t i = 0; i < lines.size(); ++i)
+            {
+>>>>>>> origin/HUMAN
                 if (lines[i].empty())
                     continue;
                 if (auto textTexture = font->PrintToTexture(lines[i], ColorPalette::WHITE))
                 {
                     float lineY = startY + static_cast<float>(i) * (lineHeight + lineSpacing);
+<<<<<<< HEAD
                     textTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + 50.0f, lineY }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+=======
+                    textTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + 25.0f, lineY }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+>>>>>>> origin/HUMAN
                 }
             }
         }
