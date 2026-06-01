@@ -219,22 +219,28 @@ void MainMenu::Update(double dt)
         Math::fvec2 mp       = mouse.GetPositionFloat();
         Math::fvec2 renderMp { mp.x, static_cast<float>(winSz.y) - mp.y };
 
-        constexpr float hitW = 420.0f;
-        constexpr float hitH = 65.0f;
+        const bool mouseMoved = (mp.x != lastMousePos.x) || (mp.y != lastMousePos.y);
+        lastMousePos          = mp;
 
-        auto hoverCheck = [&](Math::vec2 pos, Main_Keys key)
+        if (mouseMoved)
         {
-            Math::fvec2 rectPos{ static_cast<float>(pos.x) - hitW * 0.5f,
-                                 static_cast<float>(pos.y) - hitH * 0.5f };
-            if (Dokev::PointInRect(renderMp, rectPos, { hitW, hitH }))
-                current = key;
-        };
-        
-        hoverCheck(Text_Position_GamePlayKey,  Main_Keys::GamePlayKey);
-        hoverCheck(Text_Position_MapSelectKey, Main_Keys::MapSelectKey);
-        hoverCheck(Text_Position_SettingKey,   Main_Keys::SettingKey);
-        hoverCheck(Text_Position_CreditKey,    Main_Keys::CreditKey);
-        hoverCheck(Text_Position_ExitKey,      Main_Keys::ExitKey);
+            constexpr float hitW = 420.0f;
+            constexpr float hitH = 65.0f;
+
+            auto hoverCheck = [&](Math::vec2 pos, Main_Keys key)
+            {
+                Math::fvec2 rectPos{ static_cast<float>(pos.x) - hitW * 0.5f,
+                                     static_cast<float>(pos.y) - hitH * 0.5f };
+                if (Dokev::PointInRect(renderMp, rectPos, { hitW, hitH }))
+                    current = key;
+            };
+
+            hoverCheck(Text_Position_GamePlayKey,  Main_Keys::GamePlayKey);
+            hoverCheck(Text_Position_MapSelectKey, Main_Keys::MapSelectKey);
+            hoverCheck(Text_Position_SettingKey,   Main_Keys::SettingKey);
+            hoverCheck(Text_Position_CreditKey,    Main_Keys::CreditKey);
+            hoverCheck(Text_Position_ExitKey,      Main_Keys::ExitKey);
+        }
     }
 
     if (mouseClickBlockFrames > 0)

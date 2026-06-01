@@ -181,4 +181,5 @@ private:
     GLuint                     bgBlitVBO = 0;
     Dokev::Mouse               mouse;
     int                        mouseClickBlockFrames = 0;
+    Math::fvec2                lastMousePos{ -1.0f, -1.0f };
 };
