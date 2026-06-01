@@ -141,14 +141,8 @@ private:
     //Event Manager
     EventManager eventManager;
 
-    // Disaster Observatory evacuation
-    bool  evacuateButtonVisible  = false;
-    float evacuateButtonTimer    = 0.0f;
-    bool  evacuationOrdered      = false;
-    bool  evacuateButtonHovered  = false;
-    bool  evacuateButtonClicked  = false;
-    float evacuateClickFlash     = 0.0f;
-    static constexpr float kEvacuateButtonDuration = 10.0f;
+    // Disaster Observatory early-warning floating text: shown once per warning cycle
+    bool disasterWarningShown = false;
 
     // In-game console (no ImGui)
     GameConsole console;
