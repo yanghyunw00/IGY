@@ -141,9 +141,7 @@ private:
     //Event Manager
     EventManager eventManager;
 
-    // Disaster Observatory early-warning floating text: shown once per warning cycle
     bool disasterWarningShown = false;
 
-    // In-game console (no ImGui)
     GameConsole console;
 };
