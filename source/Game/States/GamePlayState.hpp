@@ -141,6 +141,7 @@ private:
     //Event Manager
     EventManager eventManager;
 
-    // In-game console (no ImGui)
+    bool disasterWarningShown = false;
+
     GameConsole console;
 };

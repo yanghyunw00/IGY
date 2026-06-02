@@ -45,9 +45,9 @@ namespace Dokev
                    type == BuildingType::WOOD_WORKSHOP   ||
                    type == BuildingType::STEEL_WORKSHOP  ||
                    type == BuildingType::WORKPLACE3      ||
-                   type == BuildingType::WORKPLACE4      ||
+                   type == BuildingType::DISASTER_OBSERVATORY ||
                    type == BuildingType::CASINO          ||
-                   type == BuildingType::EDU_BUILDING;
+                   type == BuildingType::PENTHOUSE;
         }
 
         constexpr bool is_residential_type(BuildingType type)

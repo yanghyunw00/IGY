@@ -23,7 +23,7 @@ Dokev::Texture2D WorkBuilding::farmTexture;
 Dokev::Texture2D WorkBuilding::cafeTexture;
 Dokev::Texture2D WorkBuilding::restaurant2Texture;
 Dokev::Texture2D WorkBuilding::workplace3Texture;
-Dokev::Texture2D WorkBuilding::workplace4Texture;
+Dokev::Texture2D WorkBuilding::disasterObservatoryTexture;
 Dokev::Texture2D WorkBuilding::casinoTexture;
 Dokev::Texture2D WorkBuilding::eduBuildingTexture;
 
@@ -67,7 +67,7 @@ void WorkBuilding::LoadTextures()
         restaurant2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2_interaction.png").string());
 
         workplace3Texture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/workplace3.png").string());
-        workplace4Texture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/workplace4.png").string());
+        disasterObservatoryTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/disaster_observatory.png").string());
         casinoTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
         eduBuildingTexture  = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
 
@@ -86,7 +86,7 @@ void WorkBuilding::UnloadTextures()
     cafeTexture                   = Dokev::Texture2D{};
     restaurant2Texture            = Dokev::Texture2D{};
     workplace3Texture             = Dokev::Texture2D{};
-    workplace4Texture             = Dokev::Texture2D{};
+    disasterObservatoryTexture             = Dokev::Texture2D{};
     casinoTexture                 = Dokev::Texture2D{};
     eduBuildingTexture            = Dokev::Texture2D{};
     missingTexture                = Dokev::Texture2D{};
@@ -168,8 +168,8 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             maintenanceCost = 12;
             break;
 
-        case BuildingType::WORKPLACE4:
-            texture         = workplace4Texture;
+        case BuildingType::DISASTER_OBSERVATORY:
+            texture         = disasterObservatoryTexture;
             max_capacity    = 4;
             cost            = 0;
             maintenanceCost = 15;
@@ -182,7 +182,7 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             maintenanceCost = 18;
             break;
 
-        case BuildingType::EDU_BUILDING:
+        case BuildingType::PENTHOUSE:
             texture         = eduBuildingTexture;
             max_capacity    = 3;
             cost            = 0;

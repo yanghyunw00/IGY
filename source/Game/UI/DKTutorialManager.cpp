@@ -14,6 +14,7 @@
 #include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
 #include <cmath>
+#include <sstream>
 
 
 namespace Dokev
@@ -29,7 +30,7 @@ namespace Dokev
         isActive         = true;
         currentStepTime  = 0.0f;
 
-        font = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
+        font = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 56);
 
         CreateSteps();
     }
@@ -67,19 +68,21 @@ namespace Dokev
         step3.blockInput     = false;
         steps.push_back(step3);
 
+        float woodX = (static_cast<float>(windowSize.x) - 270.0f) / 2.0f + 280.0f;
+
         TutorialStep step4;
         step4.text           = "Now let's build a Wood Workshop to earn money!";
         step4.completionType = CompletionType::BUTTON_CLICKED;
         step4.highlightType  = HighlightType::RECTANGLE;
-        step4.highlightPos   = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 110.0f, 370.0f);
+        step4.highlightPos   = Math::fvec2(woodX, 370.0f);
         step4.highlightSize  = Math::fvec2(60.0f, 60.0f);
         step4.showArrow      = true;
-        step4.arrowPos       = Math::fvec2(static_cast<float>(windowSize.x) / 2.0f + 140.0f, 390.0f);
+        step4.arrowPos       = Math::fvec2(woodX + 30.0f, 340.0f);
         step4.blockInput     = false;
         steps.push_back(step4);
 
         TutorialStep step5;
-        step5.text           = "Click on the map to place your Wood Workshop!";
+        step5.text           = "Buildings can only be placed next to roads!\nClick on the map to place your Wood Workshop!";
         step5.completionType = CompletionType::BUILDING_PLACED;
         step5.highlightType  = HighlightType::FULL_SCREEN;
         step5.showArrow      = false;
@@ -103,7 +106,7 @@ namespace Dokev
         steps.push_back(step7);
 
         TutorialStep step8;
-        step8.text           = "Build houses and roads to attract citizens.\n Create your city!";
+        step8.text           = "Build houses and roads to attract citizens.\nCreate your city!";
         step8.completionType = CompletionType::CLICK_ANYWHERE;
         step8.highlightType  = HighlightType::NONE;
         step8.showArrow      = false;
@@ -208,19 +211,46 @@ namespace Dokev
         const auto& currentStep = steps[currentStepIndex];
 
         float bubbleWidth  = 900.0f;
-        float bubbleHeight = 120.0f;
+        float bubbleHeight = 160.0f;
         float bubbleX      = (windowSize.x - bubbleWidth) / 2.0f;
         float bubbleY      = windowSize.y - bubbleHeight - 50.0f;
 
-        DrawRectangle(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), ColorPalette::TOOLTIP_BACKGROUND);
+        DrawRectangle(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), ColorPalette::BLACK);
 
-        DrawRectangleLinesEx(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), 3.0f, ColorPalette::WHITE);
+        DrawRectangleLinesEx(static_cast<int>(bubbleX), static_cast<int>(bubbleY), static_cast<int>(bubbleWidth), static_cast<int>(bubbleHeight), 4.0f, ColorPalette::WHITE);
 
         if (font)
         {
-            if (auto textTexture = font->PrintToTexture(currentStep.text, ColorPalette::WHITE))
+            const float scale       = 0.5f;
+            const float lineHeight  = 32.0f;
+            const float lineSpacing = 6.0f;
+            const float cornerPad   = 10.0f;
+
+            // Corner star decorators
+            if (auto starTexture = font->PrintToTexture("*", ColorPalette::WHITE))
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + 20.0f, bubbleY + 40.0f }) * Math::ScaleMatrix(Math::vec2{ 0.5, 0.5 }), ColorPalette::WHITE);
+                starTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + cornerPad, bubbleY + cornerPad }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+                starTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + bubbleWidth - lineHeight - cornerPad, bubbleY + bubbleHeight - lineHeight - cornerPad }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+            }
+
+            std::vector<std::string> lines;
+            std::istringstream       stream(currentStep.text);
+            std::string              line;
+            while (std::getline(stream, line))
+                lines.push_back(line);
+
+            float totalHeight = static_cast<float>(lines.size()) * lineHeight + static_cast<float>(lines.size() - 1) * lineSpacing;
+            float startY      = bubbleY + (bubbleHeight - totalHeight) / 2.0f;
+
+            for (size_t i = 0; i < lines.size(); ++i)
+            {
+                if (lines[i].empty())
+                    continue;
+                if (auto textTexture = font->PrintToTexture(lines[i], ColorPalette::WHITE))
+                {
+                    float lineY = startY + static_cast<float>(i) * (lineHeight + lineSpacing);
+                    textTexture->Draw(Math::TranslationMatrix(Math::vec2{ bubbleX + 50.0f, lineY }) * Math::ScaleMatrix(Math::vec2{ scale, scale }), ColorPalette::WHITE);
+                }
             }
         }
     }

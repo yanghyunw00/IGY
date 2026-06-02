@@ -20,6 +20,8 @@
 #include "Dokev/Graphics/DKCamera.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
+#include "Dokev/Input/DKMouseInput.hpp"
+#include "Dokev/World/DKCollision.hpp"
 #include "Dokev/State/DKGameState.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Font.hpp"
@@ -177,4 +179,7 @@ private:
     OpenGL::CompiledShader     bgBlitShader;
     GLuint                     bgBlitVAO = 0;
     GLuint                     bgBlitVBO = 0;
+    Dokev::Mouse               mouse;
+    int                        mouseClickBlockFrames = 0;
+    Math::fvec2                lastMousePos{ -1.0f, -1.0f };
 };
