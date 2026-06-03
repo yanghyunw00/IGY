@@ -143,6 +143,13 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
             isMoving = false;
             path.clear();
 
+            // Reached the edge of the world while leaving — remove from the city.
+            if (isEmigrating)
+            {
+                Destroy();
+                return;
+            }
+
             // Arrived at Job
             if (HasWorkAssignment() &&
                 static_cast<int>(currentGridPos.x) == static_cast<int>(ai.workplacePosition.x) &&
@@ -226,8 +233,8 @@ void Human::UpdateWorking(float deltaTime, int currentHour)
     stats.money   += earned;
     shiftEarnings += earned;
 
-    // Knock off at 17:00 — collect tax then go home
-    if (currentHour >= 17)
+    // Knock off at 18:00 — collect tax then go home
+    if (currentHour >= 18)
     {
         float tax = shiftEarnings * stats.taxRate;
         if (resourceMgr && tax > 0.0f)
@@ -261,6 +268,35 @@ void Human::UpdateResting(float deltaTime)
 
 void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr)
 {
+    if (ai.isHomeless)
+    {
+        const float gameHoursPerSecond = 24.0f / DayCycleManager::kDayDuration;
+        stats.happiness = std::max(0.0f, stats.happiness - 4.0f * deltaTime * gameHoursPerSecond);
+
+        homelessTextTimer += deltaTime;
+        if (homelessTextTimer >= 10.0f)
+        {
+            homelessTextTimer = 0.0f;
+            SpawnFloatingStatus("Homeless", 0xFF5555FF, map);
+        }
+
+        if (gameObjMgr)
+        {
+            for (const auto& b : gameObjMgr->GetBuildings())
+            {
+                if (b->GetBuildingType() == BuildingType::HOME && b->GetIsBuilt() && !b->IsFull())
+                {
+                    ai.isHomeless    = false;
+                    ai.isHeadingHome = true;
+                    break;
+                }
+            }
+        }
+
+        if (ai.isHomeless)
+            return;
+    }
+
     stats.happiness = std::min(100.0f, stats.happiness + 1.0f * deltaTime);
 
     ai.idleTimer += deltaTime;
@@ -369,7 +405,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     if (!map)
         return;
 
-    bool outsideHours = (currentHour < 9 || currentHour >= 17);
+    bool outsideHours = (currentHour < 9 || currentHour >= 18);
 
     if (outsideHours)
     {
@@ -388,6 +424,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
         if (availableHomeExists)
         {
+            ai.isHomeless = false;
             bool onRoad = road && road->hasRoad(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y));
             if (onRoad)
             {
@@ -397,8 +434,16 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
             }
             ai.isHeadingHome = true;
         }
+        else if (currentHour >= 18)
+        {
+            ai.isHomeless    = true;
+            ai.isHeadingHome = false;
+            ChangeState(HumanState::Idle);
+            return;
+        }
         else
         {
+            ai.isHeadingHome = false;
             ChangeState(HumanState::Idle);
             return;
         }
@@ -488,6 +533,17 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
 void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr, int currentHour)
 {
+    // Emigration: citizens who are completely unhappy, or who remained homeless
+    // through the night until daytime, pack up and leave the city.
+    if (!isEmigrating)
+    {
+        const bool daytime = (currentHour >= 9 && currentHour < 18);
+        if (stats.happiness <= 0.0f || (ai.isHomeless && daytime))
+        {
+            StartEmigrating();
+        }
+    }
+
     if (state == HumanState::Walking)
     {
         if (!isMoving)
@@ -578,15 +634,65 @@ void Human::UpdateFirefighting()
     }
 }
 
+void Human::StartEmigrating()
+{
+    if (isEmigrating)
+        return;
+
+    // Release any city ties so jobs/home slots are freed for remaining citizens.
+    if (HasWorkAssignment())
+        CancelWork();
+    if (ai.assignedHome)
+    {
+        ai.assignedHome->OnWorkerLeft(this);
+        ai.assignedHome     = nullptr;
+        ai.assignedWorkType = WorkType::None;
+    }
+
+    ai.isHeadingHome = false;
+    ai.isSeekingCafe = false;
+    ai.isHomeless    = false;
+    isEmigrating     = true;
+
+    // Walk far off the map; UpdateMovement destroys us on arrival.
+    std::vector<Math::fvec2> exitPath;
+    exitPath.push_back(currentGridPos);
+    exitPath.push_back({ 2000.0f, 2000.0f });
+    FollowPath(exitPath);
+    ChangeState(HumanState::Walking);
+}
+
+void Human::SpawnFloatingStatus(const std::string& text, CS200::RGBA color, GridMap* map) const
+{
+    if (!map)
+        return;
+
+    int gx = std::clamp(static_cast<int>(actualPosition.x), 0, GRID_SIZE_X - 1);
+    int gy = std::clamp(static_cast<int>(actualPosition.y), 0, GRID_SIZE_Y - 1);
+
+    GridCell** va    = map->GetViewArray(0);
+    float      cellH = va ? static_cast<float>(va[gy * GRID_SIZE_X + gx]->getHeight()) : 0.0f;
+    float      rawY  = static_cast<float>(map->GetIsoOriginY() + (actualPosition.x + actualPosition.y) * TILE_HEIGHT_HALF);
+    float      sx    = static_cast<float>(map->GetIsoOriginX() + (actualPosition.x - actualPosition.y) * TILE_WIDTH_HALF);
+    float      sy    = cellH - rawY + TILE_HEIGHT_HALF * 3;
+
+    FloatingTextManager::Instance().Add(text, { sx, sy }, color);
+}
+
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
+    if (state == HumanState::Working)
+    {
+        return;
+    }
+    
     Math::fvec2 transformedPos = map->TransformPathPointForView(actualPosition, viewIndex);
 
     float gridX_float = transformedPos.x;
     float gridY_float = transformedPos.y;
 
-    int gridX_int = static_cast<int>(gridX_float);
-    int gridY_int = static_cast<int>(gridY_float);
+    int gridX_int = std::clamp(static_cast<int>(gridX_float), 0, GRID_SIZE_X - 1);
+    int gridY_int = std::clamp(static_cast<int>(gridY_float), 0, GRID_SIZE_Y - 1);
 
     // Get the view array
     GridCell** viewArray = map->GetViewArray(viewIndex);

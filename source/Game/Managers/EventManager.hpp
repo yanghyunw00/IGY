@@ -21,7 +21,7 @@ class EventManager
 {
 private:
     double duration = 0;
-    double maxTime  = 15.0;
+    double maxTime  = 35.0;
 
     Dokev::CityMetrics*       cityMetrics       = nullptr;
     Dokev::GameObjectManager* gameObjectManager = nullptr;
@@ -69,9 +69,10 @@ public:
 
     void Draw(int index) const
     {
+        const bool showDisasterLocation = debugDrawRadius || observatoryCount >= 5;
         for (const auto& e : activeEvents)
         {
-            e->SetDebugDraw(debugDrawRadius);
+            e->SetDebugDraw(showDisasterLocation);
             e->Draw(index);
         }
     }

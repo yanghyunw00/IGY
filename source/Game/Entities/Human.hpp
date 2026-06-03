@@ -85,6 +85,8 @@ struct HumanAI
     Math::fvec2 targetCafePosition = { -1.0f, -1.0f };
     bool  isSeekingCafe         = false;
 
+    bool  isHomeless            = false; // Evening with no available home to return to
+
     // Road following
     bool                 preferRoads           = true;  // Should try to use roads when pathfinding
     bool                 isFollowingRoad       = true;  // Currently following a road
@@ -168,6 +170,16 @@ public:
         return state;
     }
 
+    bool IsHomeless() const
+    {
+        return ai.isHomeless;
+    }
+
+    bool IsEmigrating() const
+    {
+        return isEmigrating;
+    }
+
     const HumanStats& GetStats() const
     {
         return stats;
@@ -216,6 +228,9 @@ private:
     void UpdateResting(float deltaTime);
     void UpdateFirefighting();
 
+    void StartEmigrating();
+    void SpawnFloatingStatus(const std::string& text, CS200::RGBA color, GridMap* map) const;
+
     // TERRAIN HELPERS
     std::string GetTerrainName(double height) const;
 
@@ -259,4 +274,8 @@ private:
     // Firefighting
     Math::fvec2 fireTargetPos    = { 0.0f, 0.0f };
     bool        firefightingDone = false;
+
+    // Homelessness / emigration
+    float homelessTextTimer = 0.0f; // Accumulator for the periodic "Homeless" label
+    bool  isEmigrating      = false; // Walking off the map to leave the city
 };

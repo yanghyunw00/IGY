@@ -38,6 +38,10 @@ Dokev::Texture2D WorkBuilding::restaurant2InteractionTexture;
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool             WorkBuilding::texturesLoaded = false;
 
+Dokev::AnimatedSprite WorkBuilding::woodWorkshopAnim;
+Dokev::AnimatedSprite WorkBuilding::rockWorkshopAnim;
+Dokev::AnimatedSprite WorkBuilding::steelWorkshopAnim;
+
 namespace
 {
     CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
@@ -72,6 +76,11 @@ void WorkBuilding::LoadTextures()
         eduBuildingTexture  = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
 
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+
+        woodWorkshopAnim  = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/LoggingCamp_Human_Interaction_Line.spt"));
+        rockWorkshopAnim  = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/Quarry_Human_Interaction_Line.spt"));
+        steelWorkshopAnim = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/IronWork_Human_Interaction_Line.spt"));
+
         texturesLoaded = true;
     }
 }
@@ -97,7 +106,28 @@ void WorkBuilding::UnloadTextures()
     farmInteractionTexture        = Dokev::Texture2D{};
     cafeInteractionTexture        = Dokev::Texture2D{};
     restaurant2InteractionTexture = Dokev::Texture2D{};
+    woodWorkshopAnim              = Dokev::AnimatedSprite{};
+    rockWorkshopAnim              = Dokev::AnimatedSprite{};
+    steelWorkshopAnim             = Dokev::AnimatedSprite{};
     texturesLoaded                = false;
+}
+
+void WorkBuilding::UpdateAnimations(double dt)
+{
+    woodWorkshopAnim.Update(dt);
+    rockWorkshopAnim.Update(dt);
+    steelWorkshopAnim.Update(dt);
+}
+
+Dokev::AnimatedSprite* WorkBuilding::GetWorkerAnimation() const
+{
+    switch (buildingType)
+    {
+        case BuildingType::WOOD_WORKSHOP: return &woodWorkshopAnim;
+        case BuildingType::ROCK_WORKSHOP: return &rockWorkshopAnim;
+        case BuildingType::STEEL_WORKSHOP: return &steelWorkshopAnim;
+        default: return nullptr;
+    }
 }
 
 WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt) : Building(pos, w, h,hp), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
@@ -333,7 +363,16 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int 
     }
 
     Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
-    texture.Draw(drawPos.x, drawPos.y, tint);
+
+    Dokev::AnimatedSprite* workerAnim = GetWorkerAnimation();
+    if (isBuilt && HasWorker() && workerAnim != nullptr && workerAnim->GetSpriteSheet().IsValid())
+    {
+        workerAnim->DrawAtPosition(drawPos.x, drawPos.y);
+    }
+    else
+    {
+        texture.Draw(drawPos.x, drawPos.y, tint);
+    }
 
     if (!isBuilt)
     {

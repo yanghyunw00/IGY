@@ -770,6 +770,8 @@ void GamePlayState::Update(double dt)
 
     auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
 
+    WorkBuilding::UpdateAnimations(simulationDt);
+
     if (!buildings.empty())
     {
         for (auto& building : buildings)
