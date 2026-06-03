@@ -19,6 +19,7 @@ protected:
     int                    resourceProduce;
     Dokev::Timer           productionTimer;
     class ResourceManager* resourceManager;
+    bool                   serviceOperating;
 
     // Static texture cache to prevent memory leaks
     static Dokev::Texture2D loggingCampTexture;
@@ -74,4 +75,5 @@ public:
     void SetProductionRate(float rate);
     bool  IsFull() const;
     bool  HasWorker() const;
+    bool  IsServiceOperating() const;
 };

@@ -40,6 +40,19 @@ public:
         return true;
     }
 
+    bool TrySpendFood(int amount)
+    {
+        assert(amount >= 0 && "Food spend amount cannot be negative");
+
+        if (totalFood < amount)
+        {
+            return false;
+        }
+
+        totalFood -= amount;
+        return true;
+    }
+
     void SetMoney(int money)
     {
         assert(money >= 0 && "Money cannot be negative");

@@ -21,6 +21,11 @@
 #include <string>
 
 
+namespace
+{
+    constexpr int kGranaryWarningThresholdPercent = 90;
+}
+
 namespace Dokev
 {
 
@@ -696,7 +701,9 @@ namespace Dokev
         // Draw food count
         if (outlined)
         {
-            std::string foodText = "Food: " + std::to_string(resourceMgr->GetFood()) + "/" + std::to_string(resourceMgr->GetFoodCapacity());
+            const int   foodAmount   = resourceMgr->GetFood();
+            const int   foodCapacity = resourceMgr->GetFoodCapacity();
+            std::string foodText     = "Food: " + std::to_string(foodAmount) + "/" + std::to_string(foodCapacity);
             if (auto textTexture = outlined->PrintToTexture(foodText, Dokev::ColorPalette::WHITE))
             {
                 textTexture->Draw(
@@ -704,6 +711,30 @@ namespace Dokev
                     Dokev::ColorPalette::WHITE);
             }
             currentY -= height + 5.0f;
+
+            std::string granaryHint;
+            CS200::RGBA hintColor = Dokev::ColorPalette::YELLOW;
+
+            if (foodCapacity <= 0)
+            {
+                granaryHint = "Build Granary to store Food";
+                hintColor   = Dokev::ColorPalette::ORANGE;
+            }
+            else if (foodAmount * 100 >= foodCapacity * kGranaryWarningThresholdPercent)
+            {
+                granaryHint = "Food storage almost full";
+            }
+
+            if (!granaryHint.empty())
+            {
+                if (auto textTexture = outlined->PrintToTexture(granaryHint, hintColor))
+                {
+                    textTexture->Draw(
+                        Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
+                        hintColor);
+                }
+                currentY -= 22.0f;
+            }
         }
 
         if (humanIcon.IsValid())

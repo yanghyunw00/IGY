@@ -9,6 +9,7 @@
 
 #include "Human.hpp"
 #include "Building.hpp"
+#include "WorkBuilding.hpp"
 #include "../Managers/NPCNameManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "../World/GridMap.hpp"
@@ -94,7 +95,7 @@ void Human::FollowPath(const std::vector<Math::fvec2>& newPath, CommandSource so
     moveTimer        = 0.0f;
 }
 
-void Human::UpdateMovement(float deltaTime, GridMap* map)
+void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr)
 {
     if (!isMoving)
         return;
@@ -171,8 +172,24 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
                      static_cast<int>(currentGridPos.y) == static_cast<int>(ai.targetCafePosition.y))
             {
                 ai.isSeekingCafe = false;
-                stats.energy    = std::min(100.0f, stats.energy    + 50.0f);
-                stats.happiness = std::min(100.0f, stats.happiness + 10.0f);
+                bool cafeIsOperating = false;
+                if (gameObjMgr)
+                {
+                    for (const auto& building : gameObjMgr->GetBuildings())
+                    {
+                        if (building->GetBuildingType() == BuildingType::CAFE && building->GetIsBuilt() &&
+                            static_cast<int>(building->GetGrid().x) == static_cast<int>(ai.targetCafePosition.x) &&
+                            static_cast<int>(building->GetGrid().y) == static_cast<int>(ai.targetCafePosition.y))
+                        {
+                            if (auto* cafe = dynamic_cast<WorkBuilding*>(building.get()))
+                            {
+                                cafeIsOperating = cafe->IsServiceOperating();
+                            }
+                            break;
+                        }
+                    }
+                }
+
                 if (map)
                 {
                     int   gx     = static_cast<int>(actualPosition.x);
@@ -182,7 +199,19 @@ void Human::UpdateMovement(float deltaTime, GridMap* map)
                     float rawY   = static_cast<float>(map->GetIsoOriginY() + (actualPosition.x + actualPosition.y) * TILE_HEIGHT_HALF);
                     float sx     = static_cast<float>(map->GetIsoOriginX() + (actualPosition.x - actualPosition.y) * TILE_WIDTH_HALF);
                     float sy     = cellH - rawY + TILE_HEIGHT_HALF * 3;
-                    FloatingTextManager::Instance().Add("+10 Happiness (Cafe)", {sx, sy}, 0xFFDD44FF);
+                    if (cafeIsOperating)
+                    {
+                        FloatingTextManager::Instance().Add("+10 Happiness (Cafe)", { sx, sy }, 0xFFDD44FF);
+                    }
+                    else
+                    {
+                        FloatingTextManager::Instance().Add("Cafe closed: need food", { sx, sy }, 0xFF8080FF);
+                    }
+                }
+                if (cafeIsOperating)
+                {
+                    stats.energy    = std::min(100.0f, stats.energy + 50.0f);
+                    stats.happiness = std::min(100.0f, stats.happiness + 10.0f);
                 }
                 ChangeState(HumanState::Idle);
             }
@@ -276,7 +305,8 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
             {
                 for (const auto& building : gameObjMgr->GetBuildings())
                 {
-                    if (building->GetBuildingType() == BuildingType::CAFE && building->GetIsBuilt())
+                    auto* cafe = dynamic_cast<WorkBuilding*>(building.get());
+                    if (building->GetBuildingType() == BuildingType::CAFE && building->GetIsBuilt() && cafe && cafe->IsServiceOperating())
                     {
                         cafePos = building->GetGrid();
                         break;
@@ -506,7 +536,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
 
         if (isMoving)
         {
-            UpdateMovement(deltaTime, map);
+            UpdateMovement(deltaTime, map, gameObjMgr);
 
             if (!isMoving)
             {

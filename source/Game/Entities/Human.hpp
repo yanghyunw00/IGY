@@ -207,7 +207,7 @@ public:
 private:
 
     // INTERNAL UPDATE FUNCTIONS
-    void UpdateMovement(float deltaTime, GridMap* map);
+    void UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr = nullptr);
     void UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr);
     void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr);
     void ChangeState(HumanState newState);

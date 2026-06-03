@@ -40,9 +40,20 @@ bool             WorkBuilding::texturesLoaded = false;
 
 namespace
 {
+    constexpr int kGranaryFoodCapacity      = 200;
+    constexpr int kCafeFoodPerTick          = 1;
+    constexpr int kRestaurantFoodPerTick    = 2;
+    constexpr int kCafeIncomePerTick        = 3;
+    constexpr int kRestaurantIncomePerTick  = 7;
+
     CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
     {
         return (color & 0xFFFFFF00u) | alpha;
+    }
+
+    bool IsFoodService(BuildingType buildingType)
+    {
+        return buildingType == BuildingType::CAFE || buildingType == BuildingType::RESTAURANT2;
     }
 }
 
@@ -100,7 +111,8 @@ void WorkBuilding::UnloadTextures()
     texturesLoaded                = false;
 }
 
-WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt) : Building(pos, w, h,hp), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
+WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt) :
+    Building(pos, w, h, hp), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr), serviceOperating(true)
 {
     LoadTextures();
 
@@ -201,7 +213,7 @@ WorkBuilding::~WorkBuilding()
 {
     WorkManager::GetInstance().RemoveAllJobsForBuilding(this);
     if (buildingType == BuildingType::GRANARY && resourceManager != nullptr)
-        resourceManager->RemoveFoodCapacity(200);
+        resourceManager->RemoveFoodCapacity(kGranaryFoodCapacity);
 }
 
 void WorkBuilding::OnConstructed()
@@ -213,7 +225,7 @@ void WorkBuilding::OnConstructed()
         WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
 
     if (buildingType == BuildingType::GRANARY && resourceManager != nullptr)
-        resourceManager->AddFoodCapacity(200);
+        resourceManager->AddFoodCapacity(kGranaryFoodCapacity);
 }
 
 void WorkBuilding::OnWorkerArrived(Human* human)
@@ -253,8 +265,35 @@ void WorkBuilding::Update(float dt)
                 if (resourceManager->GetFoodCapacity() > 0)
                     resourceManager->AddFood(amountToProduce);
                 break;
+            case BuildingType::CAFE:
+                if (resourceManager->TrySpendFood(kCafeFoodPerTick))
+                {
+                    serviceOperating = true;
+                    resourceManager->AddResource(ResourceType::Wood, kCafeIncomePerTick);
+                }
+                else
+                {
+                    serviceOperating = false;
+                }
+                break;
+            case BuildingType::RESTAURANT2:
+                if (resourceManager->TrySpendFood(kRestaurantFoodPerTick))
+                {
+                    serviceOperating = true;
+                    resourceManager->AddResource(ResourceType::Wood, kRestaurantIncomePerTick);
+                }
+                else
+                {
+                    serviceOperating = false;
+                }
+                break;
             default: break;
         }
+    }
+
+    if (!HasWorker() && IsFoodService(buildingType))
+    {
+        serviceOperating = true;
     }
 
     if (HasWorker())
@@ -277,10 +316,10 @@ void WorkBuilding::Update(float dt)
             texture = farmInteractionTexture;
             break;
         case BuildingType::CAFE:
-            texture = cafeInteractionTexture;
+            texture = serviceOperating ? cafeInteractionTexture : cafeTexture;
             break;
         case BuildingType::RESTAURANT2:
-            texture = restaurant2InteractionTexture;
+            texture = serviceOperating ? restaurant2InteractionTexture : restaurant2Texture;
             break;
         default:
             break;
@@ -330,6 +369,10 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int 
     {
         const auto alpha = static_cast<uint8_t>(128 + static_cast<int>(progress * 127.0f));
         tint             = ApplyAlpha(tint, alpha);
+    }
+    else if (IsFoodService(buildingType) && HasWorker() && !serviceOperating)
+    {
+        tint = 0xFF8080FF;
     }
 
     Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
@@ -385,6 +428,16 @@ bool WorkBuilding::IsFull() const
 bool WorkBuilding::HasWorker() const
 {
     return current_capacity > 0;
+}
+
+bool WorkBuilding::IsServiceOperating() const
+{
+    if (!IsFoodService(buildingType))
+    {
+        return true;
+    }
+
+    return HasWorker() && serviceOperating;
 }
 
 void WorkBuilding::SetResourceManager(ResourceManager* rm)
