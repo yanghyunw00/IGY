@@ -111,7 +111,7 @@ namespace Dokev
         void        UpdateCategoryMenu(Math::fvec2 mousePos, bool mouseClicked);
         void        UpdateBuildingMenu(Math::fvec2 mousePos, bool mouseClicked);
         void        DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
-        void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time) const;
+        void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time, CityMetrics* cm = nullptr, int humanCount = 0) const;
         void        DrawResources(ResourceManager* resourceMgr, int humanCount, int hour, int minute) const;
         void        DrawHappiness(CityMetrics* cm) const;
         void        CloseButtonMenus();

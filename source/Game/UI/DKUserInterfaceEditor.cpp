@@ -396,7 +396,7 @@ void UserInterfaceEditor::DrawNPCInfoPanel()
         return;
 
     const float    panelW  = 260.0f;
-    const float    panelH  = 160.0f;
+    const float    panelH  = 185.0f;
     const float    padding = 12.0f;
 
     ImGuiViewport* vp      = ImGui::GetMainViewport();
@@ -424,13 +424,25 @@ void UserInterfaceEditor::DrawNPCInfoPanel()
 
     // State
     const char* stateStr = "Unknown";
-    switch (selectedHuman->GetState())
+    if (selectedHuman->IsEmigrating())
     {
-        case HumanState::Idle:               stateStr = "Idle";              break;
-        case HumanState::Walking:            stateStr = "Walking";           break;
-        case HumanState::FindingDestination: stateStr = "Looking around";    break;
-        case HumanState::Working:            stateStr = "Working";           break;
-        case HumanState::Resting:            stateStr = "Resting";           break;
+        stateStr = "Leaving city";
+    }
+    else if (selectedHuman->IsHomeless())
+    {
+        stateStr = "Homeless";
+    }
+    else
+    {
+        switch (selectedHuman->GetState())
+        {
+            case HumanState::Idle:               stateStr = "Idle";           break;
+            case HumanState::Walking:            stateStr = "Walking";        break;
+            case HumanState::FindingDestination: stateStr = "Looking around"; break;
+            case HumanState::Working:            stateStr = "Working";        break;
+            case HumanState::Resting:            stateStr = "Resting";        break;
+            case HumanState::Firefighting:       stateStr = "Firefighting";   break;
+        }
     }
     ImGui::Text("State:     %s", stateStr);
 
@@ -439,11 +451,15 @@ void UserInterfaceEditor::DrawNPCInfoPanel()
     ImGui::Text("Happiness: ");
     ImGui::SameLine();
     ImVec4 happyColor;
-    if (happiness >= 70.0f)      happyColor = { 0.0f, 1.0f, 0.0f, 1.0f };
-    else if (happiness >= 40.0f) happyColor = { 1.0f, 1.0f, 0.0f, 1.0f };
-    else                         happyColor = { 1.0f, 0.2f, 0.2f, 1.0f };
+    if (happiness >= 80.0f)      happyColor = { 0.0f, 1.0f, 0.0f, 1.0f };  // green
+    else if (happiness >= 40.0f) happyColor = { 1.0f, 0.55f, 0.0f, 1.0f }; // orange
+    else                         happyColor = { 1.0f, 0.2f, 0.2f, 1.0f };  // red
     ImGui::TextColored(happyColor, "%.0f%%", happiness);
     ImGui::ProgressBar(happiness / 100.0f, ImVec2(-1, 6));
+
+    // Money
+    float money = selectedHuman->GetMoney();
+    ImGui::Text("Money:     $%.0f", money);
 
     // Position
     Math::fvec2 pos = selectedHuman->GetGridPosition();

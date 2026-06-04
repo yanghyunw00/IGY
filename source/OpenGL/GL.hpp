@@ -83,7 +83,6 @@ namespace GL
     void           GetShaderSource(GLuint shader, GLsizei bufSize, GLsizei* length, GLchar* source SOURCE_LOCATION);
     void           GetTexParameterfv(GLenum target, GLenum pname, GLfloat* params SOURCE_LOCATION);
     void           GetTexParameteriv(GLenum target, GLenum pname, GLint* params SOURCE_LOCATION);
-    void           GetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* params SOURCE_LOCATION);
     void           GetUniformfv(GLuint program, GLint location, GLfloat* params SOURCE_LOCATION);
     void           GetUniformiv(GLuint program, GLint location, GLint* params SOURCE_LOCATION);
     void           GetUniformuiv(GLuint program, GLint location, GLuint* params SOURCE_LOCATION);

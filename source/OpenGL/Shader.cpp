@@ -86,10 +86,41 @@ namespace
         Engine::GetLogger().LogVerbose(sout.str());
     }
 
+#if defined(__EMSCRIPTEN__)
+
+    std::string translate_to_glsl_es(std::string_view glsl_text)
+    {
+        std::string       text(glsl_text);
+        const std::size_t version_pos = text.find("#version");
+        if (version_pos != std::string::npos)
+        {
+            const std::size_t line_end = text.find('\n', version_pos);
+            const std::size_t end      = (line_end == std::string::npos) ? text.size() : line_end;
+            text.replace(version_pos, end - version_pos, "#version 300 es");
+        }
+        else
+        {
+            text.insert(0, "#version 300 es\n");
+        }
+        const std::size_t newline_after_version = text.find('\n');
+        const std::string precision             = "precision highp float;\nprecision highp int;\n";
+        if (newline_after_version != std::string::npos)
+            text.insert(newline_after_version + 1, precision);
+        else
+            text += "\n" + precision;
+        return text;
+    }
+#endif
+
     OpenGL::Handle compile_shader_source(GLenum type, std::string_view glsl_text)
     {
         OpenGL::Handle shader = GL::CreateShader(type);
-        GLchar const*  source[]{ glsl_text.data() };
+#if defined(__EMSCRIPTEN__)
+        const std::string es_text = translate_to_glsl_es(glsl_text);
+        GLchar const*     source[]{ es_text.c_str() };
+#else
+        GLchar const* source[]{ glsl_text.data() };
+#endif
         GL::ShaderSource(shader, 1, source, nullptr);
         GL::CompileShader(shader);
         GLint is_compiled = 0;

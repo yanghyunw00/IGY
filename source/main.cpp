@@ -1,26 +1,26 @@
 /*
-           _____                    _____                _____          
-         /\    \                  /\    \              |\    \         
-        /::\    \                /::\    \             |:\____\        
-        \:::\    \              /::::\    \            |::|   |        
-         \:::\    \            /::::::\    \           |::|   |        
-          \:::\    \          /:::/\:::\    \          |::|   |        
-           \:::\    \        /:::/  \:::\    \         |::|   |        
-           /::::\    \      /:::/    \:::\    \        |::|   |        
-  ____    /::::::\    \    /:::/    / \:::\    \       |::|___|______  
- /\   \  /:::/\:::\    \  /:::/    /   \:::\ ___\      /::::::::\    \ 
+           _____                    _____                _____
+         /\    \                  /\    \              |\    \
+        /::\    \                /::\    \             |:\____\
+        \:::\    \              /::::\    \            |::|   |
+         \:::\    \            /::::::\    \           |::|   |
+          \:::\    \          /:::/\:::\    \          |::|   |
+           \:::\    \        /:::/  \:::\    \         |::|   |
+           /::::\    \      /:::/    \:::\    \        |::|   |
+  ____    /::::::\    \    /:::/    / \:::\    \       |::|___|______
+ /\   \  /:::/\:::\    \  /:::/    /   \:::\ ___\      /::::::::\    \
 /::\   \/:::/  \:::\____\/:::/____/  ___\:::|    |    /::::::::::\____\
-\:::\  /:::/    \::/    /\:::\    \ /\  /:::|____|   /:::/~~~~/~~      
- \:::\/:::/    / \/____/  \:::\    /::\ \::/    /   /:::/    /         
-  \::::::/    /            \:::\   \:::\ \/____/   /:::/    /          
-   \::::/____/              \:::\   \:::\____\    /:::/    /           
-    \:::\    \               \:::\  /:::/    /    \::/    /            
-     \:::\    \               \:::\/:::/    /      \/____/             
-      \:::\    \               \::::::/    /                           
-       \:::\____\               \::::/    /                            
-        \::/    /                \::/____/                             
-         \/____/                                                       
-       
+\:::\  /:::/    \::/    /\:::\    \ /\  /:::|____|   /:::/~~~~/~~
+ \:::\/:::/    / \/____/  \:::\    /::\ \::/    /   /:::/    /
+  \::::::/    /            \:::\   \:::\ \/____/   /:::/    /
+   \::::/____/              \:::\   \:::\____\    /:::/    /
+    \:::\    \               \:::\  /:::/    /    \::/    /
+     \:::\    \               \:::\/:::/    /      \/____/
+      \:::\    \               \::::::/    /
+       \:::\____\               \::::/    /
+        \::/    /                \::/____/
+         \/____/
+
 */
 
 // Visual Leak Detector (VLD)
@@ -39,10 +39,11 @@
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Window.hpp"
 
-#include "Game/States/GamePlayState.hpp"
 #include "Game/States/DEMO.hpp"
+#include "Game/States/GamePlayState.hpp"
 #include "Game/States/MainMenu.hpp"
 #include "Game/States/Splash.hpp"
+
 namespace
 {
     [[maybe_unused]] int  gWindowWidth  = 1200;
@@ -65,6 +66,7 @@ void main_loop()
     }
 
     engine.Update();
+
 
     if (engine.HasGameEnded())
     {
@@ -94,13 +96,12 @@ EMSCRIPTEN_BINDINGS(main_window)
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
 {
-
-// #if defined(_WIN32) && defined(_DEBUG)
-//     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-//     //_CrtSetBreakAlloc(156);
-//     // Optionally set a breakpoint on a specific allocation number
-//     _CrtSetBreakAlloc(4148); // Set breakpoint on allocation #140484
-// #endif
+    // #if defined(_WIN32) && defined(_DEBUG)
+    //     _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+    //     //_CrtSetBreakAlloc(156);
+    //     // Optionally set a breakpoint on a specific allocation number
+    //     _CrtSetBreakAlloc(4148); // Set breakpoint on allocation #140484
+    // #endif
 
     Engine& engine = Engine::Instance();
     engine.Start("Futsal manager 2025");
@@ -119,11 +120,10 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char* argv[])
     emscripten_set_main_loop(main_loop, match_browser_framerate, simulate_infinite_loop);
 #endif
 
-// Dump memory leaks at program exit 
-// #if defined(_WIN32) && defined(_DEBUG)
-//     _CrtDumpMemoryLeaks();
-// #endif
+    // Dump memory leaks at program exit
+    // #if defined(_WIN32) && defined(_DEBUG)
+    //     _CrtDumpMemoryLeaks();
+    // #endif
 
     return 0;
 }
- 

@@ -160,15 +160,11 @@ void GridMap::EnsureMouseAtlasInitialized() const
     if (mouseAtlasFBO != 0 && mouseAtlasTex != 0)
     {
         // Resize texture if window size changed
-        GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
-        int currentW = 0, currentH = 0;
-        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &currentW);
-        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &currentH);
-        if (currentW == targetWidth && currentH == targetHeight)
+        if (mouseAtlasW == targetWidth && mouseAtlasH == targetHeight)
         {
-            GL::BindTexture(GL_TEXTURE_2D, 0);
             return;
         }
+        GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
     }
 
     if (mouseAtlasFBO == 0)
@@ -184,6 +180,8 @@ void GridMap::EnsureMouseAtlasInitialized() const
     GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
 
     GL::TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, targetWidth, targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    mouseAtlasW = targetWidth;
+    mouseAtlasH = targetHeight;
 
     GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -200,6 +198,8 @@ void GridMap::EnsureMouseAtlasInitialized() const
         {
             GL::DeleteTextures(1, &mouseAtlasTex);
             mouseAtlasTex = 0;
+            mouseAtlasW   = 0;
+            mouseAtlasH   = 0;
         }
         if (mouseAtlasFBO != 0)
         {
@@ -323,10 +323,10 @@ static int maskToTileIndex(int mask)
     switch (mask)
     {
         case 0:  return 8;
-        case 1:  return 7;   // N only
-        case 2:  return 3;   // E only → E-W straight (no tile 5 exists)
-        case 4:  return 7;   // S only
-        case 8:  return 3;   // W only → E-W straight (no tile 5 exists)
+        case 1:  return 2;   // N only → N-S style (consistent with N+S straight)
+        case 2:  return 3;   // E only → E-W style (consistent with E+W straight)
+        case 4:  return 2;   // S only → N-S style (consistent with N+S straight)
+        case 8:  return 3;   // W only → E-W style (consistent with E+W straight)
         case 5:  return 2;   // N+S straight
         case 10: return 3;   // E+W straight
         case 9:  return 9;   // N+W corner

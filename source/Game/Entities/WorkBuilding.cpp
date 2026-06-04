@@ -23,7 +23,7 @@ Dokev::Texture2D WorkBuilding::farmTexture;
 Dokev::Texture2D WorkBuilding::cafeTexture;
 Dokev::Texture2D WorkBuilding::restaurant2Texture;
 Dokev::Texture2D WorkBuilding::workplace3Texture;
-Dokev::Texture2D WorkBuilding::workplace4Texture;
+Dokev::Texture2D WorkBuilding::disasterObservatoryTexture;
 Dokev::Texture2D WorkBuilding::casinoTexture;
 Dokev::Texture2D WorkBuilding::eduBuildingTexture;
 
@@ -37,6 +37,10 @@ Dokev::Texture2D WorkBuilding::restaurant2InteractionTexture;
 
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool             WorkBuilding::texturesLoaded = false;
+
+Dokev::AnimatedSprite WorkBuilding::woodWorkshopAnim;
+Dokev::AnimatedSprite WorkBuilding::rockWorkshopAnim;
+Dokev::AnimatedSprite WorkBuilding::steelWorkshopAnim;
 
 namespace
 {
@@ -78,11 +82,16 @@ void WorkBuilding::LoadTextures()
         restaurant2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2_interaction.png").string());
 
         workplace3Texture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/workplace3.png").string());
-        workplace4Texture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/workplace4.png").string());
+        disasterObservatoryTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/disaster_observatory.png").string());
         casinoTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
         eduBuildingTexture  = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
 
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+
+        woodWorkshopAnim  = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/LoggingCamp_Human_Interaction_Line.spt"));
+        rockWorkshopAnim  = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/Quarry_Human_Interaction_Line.spt"));
+        steelWorkshopAnim = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/IronWork_Human_Interaction_Line.spt"));
+
         texturesLoaded = true;
     }
 }
@@ -97,7 +106,7 @@ void WorkBuilding::UnloadTextures()
     cafeTexture                   = Dokev::Texture2D{};
     restaurant2Texture            = Dokev::Texture2D{};
     workplace3Texture             = Dokev::Texture2D{};
-    workplace4Texture             = Dokev::Texture2D{};
+    disasterObservatoryTexture             = Dokev::Texture2D{};
     casinoTexture                 = Dokev::Texture2D{};
     eduBuildingTexture            = Dokev::Texture2D{};
     missingTexture                = Dokev::Texture2D{};
@@ -108,11 +117,31 @@ void WorkBuilding::UnloadTextures()
     farmInteractionTexture        = Dokev::Texture2D{};
     cafeInteractionTexture        = Dokev::Texture2D{};
     restaurant2InteractionTexture = Dokev::Texture2D{};
+    woodWorkshopAnim              = Dokev::AnimatedSprite{};
+    rockWorkshopAnim              = Dokev::AnimatedSprite{};
+    steelWorkshopAnim             = Dokev::AnimatedSprite{};
     texturesLoaded                = false;
 }
 
-WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt) :
-    Building(pos, w, h, hp), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr), serviceOperating(true)
+void WorkBuilding::UpdateAnimations(double dt)
+{
+    woodWorkshopAnim.Update(dt);
+    rockWorkshopAnim.Update(dt);
+    steelWorkshopAnim.Update(dt);
+}
+
+Dokev::AnimatedSprite* WorkBuilding::GetWorkerAnimation() const
+{
+    switch (buildingType)
+    {
+        case BuildingType::WOOD_WORKSHOP: return &woodWorkshopAnim;
+        case BuildingType::ROCK_WORKSHOP: return &rockWorkshopAnim;
+        case BuildingType::STEEL_WORKSHOP: return &steelWorkshopAnim;
+        default: return nullptr;
+    }
+}
+
+WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt) : Building(pos, w, h,hp), productionRate(1.0f), resourceProduce(10), productionTimer(1.0f), resourceManager(nullptr)
 {
     LoadTextures();
 
@@ -180,8 +209,8 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             maintenanceCost = 12;
             break;
 
-        case BuildingType::WORKPLACE4:
-            texture         = workplace4Texture;
+        case BuildingType::DISASTER_OBSERVATORY:
+            texture         = disasterObservatoryTexture;
             max_capacity    = 4;
             cost            = 0;
             maintenanceCost = 15;
@@ -194,7 +223,7 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             maintenanceCost = 18;
             break;
 
-        case BuildingType::EDU_BUILDING:
+        case BuildingType::PENTHOUSE:
             texture         = eduBuildingTexture;
             max_capacity    = 3;
             cost            = 0;
@@ -376,7 +405,16 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int 
     }
 
     Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
-    texture.Draw(drawPos.x, drawPos.y, tint);
+
+    Dokev::AnimatedSprite* workerAnim = GetWorkerAnimation();
+    if (isBuilt && HasWorker() && workerAnim != nullptr && workerAnim->GetSpriteSheet().IsValid())
+    {
+        workerAnim->DrawAtPosition(drawPos.x, drawPos.y);
+    }
+    else
+    {
+        texture.Draw(drawPos.x, drawPos.y, tint);
+    }
 
     if (!isBuilt)
     {

@@ -12,6 +12,9 @@
 
 namespace Dokev
 {
+    GameObjectManager::GameObjectManager()  = default;
+    GameObjectManager::~GameObjectManager() = default;
+
     void GameObjectManager::AddHuman(Human* human)
     {
         m_humans.push_back(std::unique_ptr<Human>(human));

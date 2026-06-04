@@ -18,8 +18,11 @@ void EventManager::ForceEvent()
 {
     for (auto& e : activeEvents) e->OnEnd();
     activeEvents.clear();
-    duration = 0;
+    duration      = 0;
+    warningActive = false;
+    warningFired  = false;
     RandomEvent();
+    PrerollNextEvent();
 }
 
 void EventManager::ForceEventByType(EventList type)
@@ -47,39 +50,30 @@ void EventManager::ForceEventByType(EventList type)
     }
 }
 
+void EventManager::PrerollNextEvent()
+{
+    // Always pre-roll a real disaster so a natural event is guaranteed to occur
+    // and the early-warning prediction matches what actually spawns.
+    switch (Dokev::GetRandomInt(0, 2))
+    {
+        case static_cast<int>(EventList::DROUGHT):    nextEventType = EventList::DROUGHT;    break;
+        case static_cast<int>(EventList::EARTHQUAKE): nextEventType = EventList::EARTHQUAKE; break;
+        default:                                      nextEventType = EventList::FIRE;       break;
+    }
+}
+
 void EventManager::RandomEvent()
 {
-    int randomSeed = Dokev::GetRandomInt(0,4);
+    // Spawn the pre-rolled disaster so the natural event always matches the
+    // early-warning prediction. Fall back to a fresh roll if none was prepared.
+    if (nextEventType == EventList::NONE1)
+        PrerollNextEvent();
 
-    // if(randomSeed == static_cast<int>(EventList::FIRE))
-    // {
-    //     activeEvents.push_back(std::make_unique<Fire>(gameObjectManager, gridMap));
-    //     activeEvents.back()->OnStart();
-    // }
-
-    if(randomSeed == static_cast<int>(EventList::DROUGHT))
-    {
-        activeEvents.push_back(std::make_unique<Drought>(cityMetrics, gameObjectManager));
-        activeEvents.back()->OnStart();
-    }
-    else if(randomSeed == static_cast<int>(EventList::EARTHQUAKE))
-    {
-        activeEvents.push_back(std::make_unique<Earthquake>(cityMetrics, gameObjectManager, gridMap));
-        activeEvents.back()->OnStart();
-        if (earthquakeFunction) earthquakeFunction();
-    }
-    else if(randomSeed == static_cast<int>(EventList::FIRE))
-    {
-        activeEvents.push_back(std::make_unique<Fire>(gameObjectManager, gridMap, fireRadius));
-        activeEvents.back()->OnStart();
-        DispatchFirefighters();
-    }
+    ForceEventByType(nextEventType);
 }
 
 void EventManager::EventCycle(double dt)
 {
-    duration += dt;
-
     for(auto& e : activeEvents) e->OnTick(dt);
 
     bool hasFire = false;
@@ -110,10 +104,37 @@ void EventManager::EventCycle(double dt)
         return false;
     });
 
-    if(duration > maxTime && activeEvents.empty())
+    // While any disaster is active, freeze the next-disaster timer at 0.
+    if (!activeEvents.empty())
     {
+        duration = 0;
+        return;
+    }
+
+    // Advance the next-disaster countdown only when no event is active.
+    duration += dt;
+
+    double effectiveMax = GetEffectiveMaxTime();
+
+    // Observatory early warning: 10s before disaster
+    if (observatoryCount >= 1 && !warningFired && activeEvents.empty())
+    {
+        if (duration > effectiveMax - 10.0)
+        {
+            warningFired  = true;
+            warningActive = true;
+            if (nextEventType == EventList::NONE1)
+                PrerollNextEvent();
+        }
+    }
+
+    if(duration > effectiveMax && activeEvents.empty())
+    {
+        warningActive = false;
+        warningFired  = false;
         RandomEvent();
         duration = 0;
+        PrerollNextEvent(); // pre-roll for the next cycle
     }
 }
 

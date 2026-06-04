@@ -37,7 +37,7 @@ namespace Dokev
     {
         CreateMainButtons();
         happyIcon = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
-        humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/human.png").string());
+        humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
         outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
     }
 
@@ -85,11 +85,11 @@ namespace Dokev
                     buildingButtons.push_back(casinoButton);
 
                     BuildingButton eduButton;
-                    eduButton.type     = BuildingType::EDU_BUILDING;
+                    eduButton.type     = BuildingType::PENTHOUSE;
                     eduButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
                     eduButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
                     eduButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    eduButton.name     = "School";
+                    eduButton.name     = "Penthouse";
                     eduButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(eduButton);
                     break;
@@ -185,11 +185,11 @@ namespace Dokev
                     buildingButtons.push_back(wp3Button);
 
                     BuildingButton wp4Button;
-                    wp4Button.type     = BuildingType::WORKPLACE4;
-                    wp4Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/workplace4.png").string());
+                    wp4Button.type     = BuildingType::DISASTER_OBSERVATORY;
+                    wp4Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/disaster_observatory.png").string());
                     wp4Button.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 4);
                     wp4Button.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    wp4Button.name     = "Workplace 4";
+                    wp4Button.name     = "Disaster Observatory";
                     wp4Button.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(wp4Button);
                     break;
@@ -637,33 +637,33 @@ namespace Dokev
             case MenuState::MAIN:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 break;
 
             case MenuState::CATEGORY:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 for (const auto& button : categoryButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 break;
 
             case MenuState::BUILDING:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 for (const auto& button : categoryButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 for (const auto& button : buildingButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 break;
         }
@@ -792,7 +792,7 @@ namespace Dokev
         DrawRectangle(static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(size.x), static_cast<int>(size.y), color);
     }
 
-    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time) const
+    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time, CityMetrics* cm, int humanCount) const
     {
         // Compute scaled box from center 
         float scale   = button.hoverScale;
@@ -849,7 +849,8 @@ namespace Dokev
             int textureWidth  = button.texture.GetWidth();
             int textureHeight = button.texture.GetHeight();
 
-            float iconScale    = static_cast<float>(ICON_SCALE) * scale;
+            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY) ? 0.75f : 1.0f;
+            float iconScale    = static_cast<float>(ICON_SCALE) * scale * iconScaleMult;
             float scaledWidth  = textureWidth * iconScale;
             float scaledHeight = textureHeight * iconScale;
 
@@ -865,66 +866,91 @@ namespace Dokev
                                  button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::FARM ||
                                  button.type == BuildingType::HOME || button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2 ||
                                  button.type == BuildingType::MISSING_TEXTURE || button.type == BuildingType::STREET_LIGHT ||
-                                 button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::WORKPLACE4 ||
-                                 button.type == BuildingType::CASINO || button.type == BuildingType::EDU_BUILDING ||
+                                 button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY ||
+                                 button.type == BuildingType::CASINO || button.type == BuildingType::PENTHOUSE ||
                                  button.type == BuildingType::PARK))
         {
-            float tooltipWidth  = 180.0f;
-            float tooltipHeight = 60.0f;
+            bool  isPenthouse   = (button.type == BuildingType::PENTHOUSE);
+            float tooltipWidth  = isPenthouse ? 260.0f : 220.0f;
+            float tooltipHeight = isPenthouse ? 110.0f : 80.0f;
 
             // Add space for hotkey display
             std::string hotkey = GetHotkeyForButton(button);
-            if (!hotkey.empty())
+            if (!hotkey.empty() && !isPenthouse)
             {
-                tooltipHeight += 15.0f;
+                tooltipHeight += 20.0f;
             }
 
             Math::fvec2 tooltipPos = Math::fvec2(button.position.x - tooltipWidth - 10.0f, button.position.y);
 
-            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::TOOLTIP_BACKGROUND);
+            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::BLACK);
 
-            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 2.0f, Dokev::ColorPalette::LIGHTGRAY);
+            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 3.0f, Dokev::ColorPalette::WHITE);
 
             if (outlined && resourceMgr && costMgr)
             {
-                // Get cost from JSON
-                BuildingCost cost = costMgr->GetCost(button.type);
+                BuildingCost cost      = costMgr->GetCost(button.type);
+                float        lineScale = 0.40f;
 
                 if (auto nameTexture = outlined->PrintToTexture(button.name, Dokev::ColorPalette::WHITE))
                 {
+                    float nameScale = 0.48f;
+                    float centeredX = tooltipPos.x + (tooltipWidth - nameTexture->GetSize().x * nameScale) / 2.0f;
                     nameTexture->Draw(
-                        Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 12.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
+                        Math::TranslationMatrix(Math::vec2{ centeredX, tooltipPos.y + 12.0f }) * Math::ScaleMatrix(Math::vec2{ nameScale, nameScale }),
                         Dokev::ColorPalette::WHITE);
                 }
 
-                if (cost.money > 0)
+                if (isPenthouse)
                 {
-                    std::string moneyText = "Money: " + std::to_string(resourceMgr->totalMoney) + " / " + std::to_string(cost.money);
-                    if (auto textTexture = outlined->PrintToTexture(moneyText, Dokev::ColorPalette::WHITE))
+                    float happiness     = cm ? cm->GetHappiness() : 0.0f;
+                    auto  moneyColor    = (resourceMgr->totalMoney >= 1000) ? Dokev::ColorPalette::GREEN : Dokev::ColorPalette::RED;
+                    auto  popColor      = (humanCount >= 30) ? Dokev::ColorPalette::GREEN : Dokev::ColorPalette::RED;
+                    auto  happyColor    = (happiness >= 80.0f) ? Dokev::ColorPalette::GREEN : Dokev::ColorPalette::RED;
+
+                    auto drawCond = [&](const std::string& text, CS200::RGBA color, float y)
                     {
-                        textTexture->Draw(
-                            Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 30.0f }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }),
-                            Dokev::ColorPalette::WHITE);
-                    }
+                        if (auto tex = outlined->PrintToTexture(text, color))
+                        {
+                            float cx = tooltipPos.x + (tooltipWidth - tex->GetSize().x * lineScale) / 2.0f;
+                            tex->Draw(Math::TranslationMatrix(Math::vec2{ cx, y }) * Math::ScaleMatrix(Math::vec2{ lineScale, lineScale }), color);
+                        }
+                    };
+
+                    drawCond("Money: " + std::to_string(resourceMgr->totalMoney) + " / 1000", moneyColor, tooltipPos.y + 42.0f);
+                    drawCond("Pop: " + std::to_string(humanCount) + " / 30",                  popColor,   tooltipPos.y + 64.0f);
+                    drawCond("Happiness: " + std::to_string(static_cast<int>(happiness)) + " / 80", happyColor, tooltipPos.y + 86.0f);
                 }
-
-                // Draw hotkey at the bottom
-                if (!hotkey.empty())
+                else
                 {
-                    float hotkeyY = tooltipPos.y + tooltipHeight - 15.0f;
-                    float hotkeyX = tooltipPos.x + 10.0f;
-
-                    // Draw Hotkey:  in white
-                    if (auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE))
+                    if (cost.money > 0)
                     {
-                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::WHITE);
-                        hotkeyX += labelTexture->GetSize().x * 0.25f;
+                        std::string moneyText = "Money: " + std::to_string(resourceMgr->totalMoney) + " / " + std::to_string(cost.money);
+                        if (auto textTexture = outlined->PrintToTexture(moneyText, Dokev::ColorPalette::WHITE))
+                        {
+                            float centeredX = tooltipPos.x + (tooltipWidth - textTexture->GetSize().x * lineScale) / 2.0f;
+                            textTexture->Draw(
+                                Math::TranslationMatrix(Math::vec2{ centeredX, tooltipPos.y + 42.0f }) * Math::ScaleMatrix(Math::vec2{ lineScale, lineScale }),
+                                Dokev::ColorPalette::WHITE);
+                        }
                     }
 
-                    // Draw key in green
-                    if (auto keyTexture = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN))
+                    if (!hotkey.empty())
                     {
-                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::GREEN);
+                        float hotkeyScale = 0.35f;
+                        float hotkeyY     = tooltipPos.y + tooltipHeight - 22.0f;
+
+                        auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE);
+                        auto keyTexture   = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN);
+
+                        if (labelTexture && keyTexture)
+                        {
+                            float totalW  = (labelTexture->GetSize().x + keyTexture->GetSize().x) * hotkeyScale;
+                            float hotkeyX = tooltipPos.x + (tooltipWidth - totalW) / 2.0f;
+                            labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::WHITE);
+                            hotkeyX += labelTexture->GetSize().x * hotkeyScale;
+                            keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::GREEN);
+                        }
                     }
                 }
             }
@@ -932,51 +958,52 @@ namespace Dokev
         else if (button.isHovered && !button.name.empty())
         {
             std::string tooltipText   = button.name;
-            float       textWidth     = static_cast<float>(tooltipText.length()) * 8.0f;
+            float       textWidth     = static_cast<float>(tooltipText.length()) * 9.0f;
             float       tooltipWidth  = textWidth + 20.0f;
-            float       tooltipHeight = 40.0f;
+            float       tooltipHeight = 38.0f;
 
             // Add space for hotkey display
             std::string hotkey = GetHotkeyForButton(button);
             if (!hotkey.empty())
             {
-                tooltipHeight += 15.0f;
+                tooltipHeight += 18.0f;
             }
 
-            if (tooltipWidth < 140.0f)
+            if (tooltipWidth < 130.0f)
             {
-                tooltipWidth = 140.0f;
+                tooltipWidth = 130.0f;
             }
 
             Math::fvec2 tooltipPos = Math::fvec2(button.position.x - tooltipWidth - 10.0f, button.position.y);
 
-            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::TOOLTIP_BACKGROUND);
-            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 2.0f, Dokev::ColorPalette::LIGHTGRAY);
+            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::BLACK);
+            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 3.0f, Dokev::ColorPalette::WHITE);
 
             if (outlined)
             {
                 if (auto nameTexture = outlined->PrintToTexture(tooltipText, Dokev::ColorPalette::WHITE))
                 {
-                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 15.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }), Dokev::ColorPalette::WHITE);
+                    float nameScale = 0.48f;
+                    float centeredX = tooltipPos.x + (tooltipWidth - nameTexture->GetSize().x * nameScale) / 2.0f;
+                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ centeredX, tooltipPos.y + 8.0f }) * Math::ScaleMatrix(Math::vec2{ nameScale, nameScale }), Dokev::ColorPalette::WHITE);
                 }
 
-                // Draw hotkey at the bottom
+                // Draw hotkey at the bottom (centered)
                 if (!hotkey.empty())
                 {
-                    float hotkeyY = tooltipPos.y + tooltipHeight - 15.0f;
-                    float hotkeyX = tooltipPos.x + 10.0f;
+                    float hotkeyScale = 0.35f;
+                    float hotkeyY     = tooltipPos.y + tooltipHeight - 20.0f;
 
-                    // Draw Hotkey:  in white
-                    if (auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE))
-                    {
-                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::WHITE);
-                        hotkeyX += labelTexture->GetSize().x * 0.25f;
-                    }
+                    auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE);
+                    auto keyTexture   = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN);
 
-                    // Draw key in green
-                    if (auto keyTexture = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN))
+                    if (labelTexture && keyTexture)
                     {
-                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::GREEN);
+                        float totalW  = (labelTexture->GetSize().x + keyTexture->GetSize().x) * hotkeyScale;
+                        float hotkeyX = tooltipPos.x + (tooltipWidth - totalW) / 2.0f;
+                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::WHITE);
+                        hotkeyX += labelTexture->GetSize().x * hotkeyScale;
+                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::GREEN);
                     }
                 }
             }

@@ -10,6 +10,7 @@
 #pragma once
 
 #include "Building.hpp"
+#include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Managers/DKTimeManager.hpp"
 
 class WorkBuilding : public Building
@@ -30,7 +31,7 @@ protected:
     static Dokev::Texture2D cafeTexture;
     static Dokev::Texture2D restaurant2Texture;
     static Dokev::Texture2D workplace3Texture;
-    static Dokev::Texture2D workplace4Texture;
+    static Dokev::Texture2D disasterObservatoryTexture;
     static Dokev::Texture2D casinoTexture;
     static Dokev::Texture2D eduBuildingTexture;
     static Dokev::Texture2D missingTexture;
@@ -45,10 +46,17 @@ protected:
 
     static bool             texturesLoaded;
 
+    static Dokev::AnimatedSprite woodWorkshopAnim;  // LoggingCamp
+    static Dokev::AnimatedSprite rockWorkshopAnim;   // Quarry
+    static Dokev::AnimatedSprite steelWorkshopAnim;  // IronWork
+
     static void LoadTextures();
+
+    Dokev::AnimatedSprite* GetWorkerAnimation() const;
 
 public:
     static void UnloadTextures();
+    static void UpdateAnimations(double dt);
     WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt);
     ~WorkBuilding() override;
 

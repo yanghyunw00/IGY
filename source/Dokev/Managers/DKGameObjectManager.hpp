@@ -21,6 +21,9 @@ namespace Dokev
     class GameObjectManager : public IComponent
     {
     public:
+        GameObjectManager();
+        ~GameObjectManager();
+
         void AddHuman(Human* human);
         void AddBuilding(Building* building);
         void RemoveBuilding(int gridX, int gridY);

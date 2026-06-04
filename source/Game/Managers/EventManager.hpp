@@ -21,7 +21,7 @@ class EventManager
 {
 private:
     double duration = 0;
-    double maxTime  = 45.0;
+    double maxTime  = 35.0;
 
     Dokev::CityMetrics*       cityMetrics       = nullptr;
     Dokev::GameObjectManager* gameObjectManager = nullptr;
@@ -35,6 +35,12 @@ private:
     double redispatchTimer    = 0.0;
     static constexpr double redispatchInterval = 2.0;
 
+    // Observatory system
+    int        observatoryCount  = 0;
+    bool       warningFired      = false;
+    bool       warningActive     = false;
+    EventList  nextEventType     = EventList::NONE1;
+
 public:
     void Initialize(Dokev::CityMetrics* metrics, Dokev::GameObjectManager* gom, GridMap* map);
     void SetEarthquakeCallback(std::function<void()> callback) { earthquakeFunction = std::move(callback); }
@@ -44,17 +50,29 @@ public:
     float GetFireRadius()       const { return fireRadius; }
     float GetEarthquakeRadius() const { return earthquakeRadius; }
 
+    void PrerollNextEvent();
     void RandomEvent();
     void EventCycle(double dt);
     void ForceEvent();
     void ForceEventByType(EventList type);
     void DispatchFirefighters();
 
+    void SetObservatoryCount(int count) { observatoryCount = count; }
+    bool      IsWarningActive()   const { return warningActive; }
+    EventList GetNextEventType()  const { return nextEventType; }
+    double    GetEffectiveMaxTime() const
+    {
+        if (observatoryCount >= 5)
+            return 60.0 + (observatoryCount - 5);
+        return maxTime;
+    }
+
     void Draw(int index) const
     {
+        const bool showDisasterLocation = debugDrawRadius || observatoryCount >= 5;
         for (const auto& e : activeEvents)
         {
-            e->SetDebugDraw(debugDrawRadius);
+            e->SetDebugDraw(showDisasterLocation);
             e->Draw(index);
         }
     }

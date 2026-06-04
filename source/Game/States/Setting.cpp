@@ -6,10 +6,9 @@
 #include "GamePlayState.hpp"
 #include "MainMenu.hpp"
 
-
 void Setting::Load()
 {
-    CS200::RenderingAPI::SetClearColor(0x0d0e20FF);
+    CS200::RenderingAPI::SetClearColor(CS200::WHITE);
     volume = CS230::AudioManager::Instance().GetVolumeLevel();
 
     try
@@ -34,49 +33,72 @@ void Setting::Load()
 void Setting::Update(double dt)
 {
     (void)dt;
+    mouse.Update();
 
+    // Highlight selected item
+    TextColor_Volume = (current == Setting_Keys::Volume) ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
+    TextColor_Back   = (current == Setting_Keys::Back) ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
 
-    switch (current)
-    {
-        case Setting_Keys::Volume:
-            TextColor_Volume = Dokev::ColorPalette::HOTPINK;
-            TextColor_Back   = Dokev::ColorPalette::WHITE;
-
-            break;
-        case Setting_Keys::Back:
-            TextColor_Volume = Dokev::ColorPalette::WHITE;
-            TextColor_Back   = Dokev::ColorPalette::HOTPINK;
-
-            break;
-        default: break;
-    }
     const auto& input = Engine::GetInput();
 
     if (input.KeyJustPressed(CS230::Input::Keys::Down) || input.KeyJustPressed(CS230::Input::Keys::S))
     {
         int nextstate = static_cast<int>(current) + 1;
-
         if (nextstate >= static_cast<int>(Setting_Keys::Count))
-        {
             nextstate = 0;
-        }
-
         current = static_cast<Setting_Keys>(nextstate);
     }
 
-    if (input.KeyJustPressed(CS230::Input::Keys::Up))
+    if (input.KeyJustPressed(CS230::Input::Keys::Up) || input.KeyJustPressed(CS230::Input::Keys::W))
     {
         int prestate = static_cast<int>(current) - 1;
-
-        if (prestate < static_cast<int>(Setting_Keys::Volume))
-        {
+        if (prestate < 0)
             prestate = static_cast<int>(Setting_Keys::Count) - 1;
-        }
-
         current = static_cast<Setting_Keys>(prestate);
     }
 
-    if (input.KeyJustPressed(CS230::Input::Keys::Enter))
+    if (input.KeyJustPressed(CS230::Input::Keys::A) || input.KeyJustPressed(CS230::Input::Keys::Left))
+    {
+        if (current == Setting_Keys::Volume)
+        {
+            int v = volume - 1;
+            SetVolume(v < volume_min ? volume_max : v);
+            return;
+        }
+    }
+
+    if (input.KeyJustPressed(CS230::Input::Keys::D) || input.KeyJustPressed(CS230::Input::Keys::Right))
+    {
+        if (current == Setting_Keys::Volume)
+        {
+            int v = volume + 1;
+            SetVolume(v > volume_max ? volume_min : v);
+            return;
+        }
+    }
+
+    // Mouse hover
+    {
+        auto        winSz = Engine::GetWindow().GetSize();
+        Math::fvec2 mp    = mouse.GetPositionFloat();
+        Math::fvec2 renderMp{ mp.x, static_cast<float>(winSz.y) - mp.y };
+
+        constexpr float hitW = 320.0f;
+        constexpr float hitH = 65.0f;
+
+        auto hoverCheck = [&](Math::vec2 pos, Setting_Keys key)
+        {
+            Math::fvec2 rectPos{ static_cast<float>(pos.x) - hitW * 0.5f, static_cast<float>(pos.y) - hitH * 0.5f };
+            if (Dokev::PointInRect(renderMp, rectPos, { hitW, hitH }))
+                current = key;
+        };
+        hoverCheck(Text_Position_Volume, Setting_Keys::Volume);
+        hoverCheck(Text_Position_Center_Bottom, Setting_Keys::Back);
+    }
+
+    bool confirmed = input.KeyJustPressed(CS230::Input::Keys::Enter) || mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+
+    if (confirmed)
     {
         switch (current)
         {
@@ -84,51 +106,11 @@ void Setting::Update(double dt)
                 Engine::GetGameStateManager().PopState();
                 Engine::GetGameStateManager().PushState<MainMenu>();
                 return;
-                break;
-
-            default: break;
-        }
-    }
-
-    if (input.KeyJustPressed(CS230::Input::Keys::A) || input.KeyJustPressed(CS230::Input::Keys::Left))
-    {
-        switch (current)
-        {
             case Setting_Keys::Volume:
                 {
-                    int Temp_volume = volume;
-                    Temp_volume -= 1;
-
-                    if (Temp_volume < volume_min)
-                    {
-                        Temp_volume = volume_max;
-                    }
-
-                    SetVolume(Temp_volume);
+                    int v = volume + 1;
+                    SetVolume(v > volume_max ? volume_min : v);
                     return;
-                    break;
-                }
-            default: break;
-        }
-    }
-
-    if (input.KeyJustPressed(CS230::Input::Keys::D) || input.KeyJustPressed(CS230::Input::Keys::Right))
-    {
-        switch (current)
-        {
-            case Setting_Keys::Volume:
-                {
-                    int Temp_volume = volume;
-                    Temp_volume += 1;
-
-                    if (Temp_volume > volume_max)
-                    {
-                        Temp_volume = volume_min;
-                    }
-
-                    SetVolume(Temp_volume);
-                    return;
-                    break;
                 }
             default: break;
         }
