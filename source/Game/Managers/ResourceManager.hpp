@@ -7,7 +7,6 @@
  */
 
 #pragma once
-#include "../Resources/Resource.hpp"
 #include "Dokev/GameObject/DKComponent.hpp"
 #include <cassert>
 
@@ -19,10 +18,9 @@ public:
     int totalFood = 0;
     int foodCapacity = 0;
 
-    void AddResource(ResourceType type, int amount)
+    void AddMoney(int amount)
     {
-        (void)type;
-        assert(amount >= 0 && "Resource amount cannot be negative");
+        assert(amount >= 0 && "Money amount cannot be negative");
         totalMoney += amount;
         assert(totalMoney >= 0 && "Money cannot be negative");
     }

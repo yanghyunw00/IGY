@@ -730,10 +730,10 @@ namespace Dokev
                 if (auto textTexture = outlined->PrintToTexture(granaryHint, hintColor))
                 {
                     textTexture->Draw(
-                        Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
+                        Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }),
                         hintColor);
                 }
-                currentY -= 22.0f;
+                currentY -= height + 5.0f;
             }
         }
 

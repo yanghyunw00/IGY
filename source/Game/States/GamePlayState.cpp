@@ -44,10 +44,6 @@
 #include "../Managers/FloatingTextManager.hpp"
 #include "../Managers/ResourceManager.hpp"
 #include "../Managers/WorkManager.hpp"
-#include "../Resources/Resource.hpp"
-#include "../Resources/Steel.hpp"
-#include "../Resources/Stone.hpp"
-#include "../Resources/Wood.hpp"
 #include "MainMenu.hpp"
 
 
@@ -179,13 +175,6 @@ namespace
     Math::ivec2 lastPlacedFlattenPos           = { -1, -1 };
     bool        blockRoadPlacementUntilRelease = false; // avoid placing road with the same click used to select it
 }
-
-NLOHMANN_JSON_SERIALIZE_ENUM(
-    ResourceType, {
-                      {  ResourceType::Wood,  "Wood" },
-                      { ResourceType::Stone, "Stone" },
-                      { ResourceType::Steel, "Steel" }
-})
 
 void GamePlayState::Load()
 {
@@ -1389,13 +1378,6 @@ void GamePlayState::Draw() const
 
     FloatingTextManager::Instance().Draw(false);
 
-    const auto& resources = mapMgr->GetResources();
-
-    // resource
-    for (const auto& resource : resources)
-    {
-        resource->Draw(index, mapMgr->GetMap());
-    }
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
     // Draw all humans
@@ -1676,19 +1658,6 @@ void GamePlayState::SaveGame(const std::string& filename)
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)
     {
-        //  Save Map Resources
-        json& j_map_resources = j["MapResources"];
-        for (const auto& res : mapMgr->GetResources())
-        {
-            j_map_resources.push_back(
-                {
-                    {          "Type",          res->GetType() },
-                    {             "X",         res->GetGridX() },
-                    {             "Y",         res->GetGridY() },
-                    { "CurrentAmount", res->GetCurrentAmount() }
-            });
-        }
-
         //  Save Road Info (based on TileManager)
         json& j_roads = j["Roads"];
         auto  tileMgr = mapMgr->GetMap()->GetTileManager();
@@ -1782,7 +1751,6 @@ void GamePlayState::LoadGame(const std::string& filename)
     if (mapMgr)
     {
         // Clear existing map-bound entities
-        mapMgr->GetResources().clear();
         mapMgr->GetRoad()->removeAllRoad(*mapMgr->GetMap());
     }
     else
@@ -1805,26 +1773,6 @@ void GamePlayState::LoadGame(const std::string& filename)
             resourceMgr->SetResources(playerResources.value("Wood", 0), playerResources.value("Stone", 0), playerResources.value("Steel", 0));
         }
         // Food is restored after buildings (so foodCapacity is set first)
-    }
-
-    //  Load Map Resources
-    if (j.contains("MapResources"))
-    {
-        auto& resources = mapMgr->GetResources();
-        for (const auto& resData : j["MapResources"])
-        {
-            ResourceType type   = resData.at("Type").get<ResourceType>();
-            int          x      = resData.at("X").get<int>();
-            int          y      = resData.at("Y").get<int>();
-            int          amount = resData.at("CurrentAmount").get<int>();
-
-            if (type == ResourceType::Wood)
-                resources.push_back(std::make_unique<Wood>(x, y, amount));
-            else if (type == ResourceType::Stone)
-                resources.push_back(std::make_unique<Stone>(x, y, amount));
-            else if (type == ResourceType::Steel)
-                resources.push_back(std::make_unique<Steel>(x, y, amount));
-        }
     }
 
     //  Load Road Info

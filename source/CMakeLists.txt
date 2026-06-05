@@ -115,12 +115,6 @@ set(SOURCE_CODE
     Game/Entities/WorkBuilding.hpp Game/Entities/WorkBuilding.cpp
     Game/Entities/Road.hpp Game/Entities/Road.cpp
 
-    # Game - Resources
-    Game/Resources/Resource.hpp Game/Resources/Resource.cpp
-    Game/Resources/Wood.hpp Game/Resources/Wood.cpp
-    Game/Resources/Stone.hpp Game/Resources/Stone.cpp
-    Game/Resources/Steel.hpp Game/Resources/Steel.cpp
-
     # Game - Managers
     Game/Managers/AchievementManager.hpp Game/Managers/AchievementManager.cpp
     Game/Managers/DayCycleManager.hpp Game/Managers/DayCycleManager.cpp

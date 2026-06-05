@@ -176,7 +176,7 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
 
         case BuildingType::GRANARY:
             texture         = granaryTexture;
-            max_capacity    = 2;
+            max_capacity    = 0; 
             cost            = 0;
             maintenanceCost = 5;
             break;
@@ -247,14 +247,19 @@ WorkBuilding::~WorkBuilding()
 
 void WorkBuilding::OnConstructed()
 {
+    // Granary is pure storage, not a workplace: only expand food capacity, no jobs.
+    if (buildingType == BuildingType::GRANARY)
+    {
+        if (resourceManager != nullptr)
+            resourceManager->AddFoodCapacity(kGranaryFoodCapacity);
+        return;
+    }
+
     if (buildingType == BuildingType::WORKPLACE3)
         return;
 
     for (unsigned int i = 0; i < max_capacity; ++i)
         WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
-
-    if (buildingType == BuildingType::GRANARY && resourceManager != nullptr)
-        resourceManager->AddFoodCapacity(kGranaryFoodCapacity);
 }
 
 void WorkBuilding::OnWorkerArrived(Human* human)
@@ -286,9 +291,9 @@ void WorkBuilding::Update(float dt)
 
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP: resourceManager->AddResource(ResourceType::Wood, amountToProduce); break;
-            case BuildingType::ROCK_WORKSHOP: resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
-            case BuildingType::STEEL_WORKSHOP: resourceManager->AddResource(ResourceType::Steel, amountToProduce); break;
+            case BuildingType::WOOD_WORKSHOP: resourceManager->AddMoney(amountToProduce); break;
+            case BuildingType::ROCK_WORKSHOP: resourceManager->AddMoney(amountToProduce); break;
+            case BuildingType::STEEL_WORKSHOP: resourceManager->AddMoney(amountToProduce); break;
             case BuildingType::GRANARY: break;
             case BuildingType::FARM:
                 if (resourceManager->GetFoodCapacity() > 0)
@@ -298,7 +303,7 @@ void WorkBuilding::Update(float dt)
                 if (resourceManager->TrySpendFood(kCafeFoodPerTick))
                 {
                     serviceOperating = true;
-                    resourceManager->AddResource(ResourceType::Wood, kCafeIncomePerTick);
+                    resourceManager->AddMoney(kCafeIncomePerTick);
                 }
                 else
                 {
@@ -309,7 +314,7 @@ void WorkBuilding::Update(float dt)
                 if (resourceManager->TrySpendFood(kRestaurantFoodPerTick))
                 {
                     serviceOperating = true;
-                    resourceManager->AddResource(ResourceType::Wood, kRestaurantIncomePerTick);
+                    resourceManager->AddMoney(kRestaurantIncomePerTick);
                 }
                 else
                 {
