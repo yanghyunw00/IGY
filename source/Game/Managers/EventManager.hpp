@@ -81,4 +81,6 @@ public:
     double GetDuration()  const { return duration; }
     double GetMaxTime()   const { return maxTime; }
     int    GetEventCount() const { return static_cast<int>(activeEvents.size()); }
+
+    //지진나서 건물 다 없어지자마자 dangling ptr 에러뜬듯.
 };
