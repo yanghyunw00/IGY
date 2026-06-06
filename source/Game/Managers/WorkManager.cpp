@@ -37,9 +37,7 @@ void WorkManager::RemoveAllJobsForBuilding(Building* building)
             workersToCancel.push_back(job.assignedWorker);
     }
 
-    for (Human* worker : workersToCancel)
-        worker->CancelWork();
-
+    // Erase jobs first so CancelWork can't call back into the dying building
     for (int i = (int)jobList.size() - 1; i >= 0; --i)
     {
         if (jobList[i].targetBuilding == building)
@@ -48,4 +46,7 @@ void WorkManager::RemoveAllJobsForBuilding(Building* building)
             jobList.pop_back();
         }
     }
+
+    for (Human* worker : workersToCancel)
+        worker->CancelWork();
 }

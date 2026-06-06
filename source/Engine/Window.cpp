@@ -152,6 +152,7 @@ namespace CS230
     void Window::Update()
     {
         SDL_GL_SwapWindow(sdl_window);
+        SDL_GL_GetDrawableSize(sdl_window, &size.x, &size.y);
 
         // Reset mouse state at the beginning of the frame (before processing new events)
         mouse.Update();

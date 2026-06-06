@@ -8,10 +8,8 @@
 #pragma once
 #include "Dokev/GameObject/DKComponent.hpp"
 #include "Game/Entities/Road.hpp"
-#include "Game/Resources/Resource.hpp"
 #include "Game/World/GridMap.hpp"
 #include <memory>
-#include <vector>
 
 
 class MapManager : public IComponent
@@ -23,10 +21,12 @@ public:
     void              Initialize();
     static void       SetNextMapVariant(MapVariant variant);
     static MapVariant GetNextMapVariant();
+    static void       SetPrebuiltMap(std::unique_ptr<GridMap> prebuilt);
+    static void       SetPrebuiltRoad(std::unique_ptr<Road> prebuilt);
 
     GridMap* GetMap()
     {
-        return &map;
+        return map.get();
     }
 
     Road* GetRoad()
@@ -36,7 +36,7 @@ public:
 
     const GridMap* GetMap() const
     {
-        return &map;
+        return map.get();
     }
 
     const Road* GetRoad() const
@@ -44,23 +44,11 @@ public:
         return road.get();
     }
 
-    const std::vector<std::unique_ptr<Resource>>& GetResources() const
-    {
-        return m_resources;
-    }
-
-    std::vector<std::unique_ptr<Resource>>& GetResources()
-    {
-        return m_resources;
-    }
-
 private:
-    void SpawnResources();
+    std::unique_ptr<GridMap> map;
+    std::unique_ptr<Road>    road;
 
-    GridMap               map;
-    std::unique_ptr<Road> road;
-
-    std::vector<std::unique_ptr<Resource>> m_resources;
-
-    static MapVariant s_nextVariant;
+    static MapVariant                s_nextVariant;
+    static std::unique_ptr<GridMap>  s_prebuiltMap;
+    static std::unique_ptr<Road>     s_prebuiltRoad;
 };

@@ -122,6 +122,7 @@ private:
     // Weather cycle
     WeatherCycleManager    weatherCycle;
     OpenGL::CompiledShader rainShader;
+    OpenGL::CompiledShader pointLightShader;
     GLuint                 rainVAO = 0;
     GLuint                 rainVBO = 0;
     float                  rainTime = 0.f;
@@ -132,7 +133,7 @@ private:
     float cloudVisOverride = -1.f;  // -1 = weather-driven
 
     bool        simulationPaused    = false;
-    std::size_t simulationSpeedPresetIndex = 1;
+    std::size_t simulationSpeedPresetIndex = 0;
 
     // Selected NPC (clicked by player)
     Human* selectedNPC = nullptr;
@@ -140,6 +141,7 @@ private:
     //Event Manager
     EventManager eventManager;
 
-    // In-game console (no ImGui)
+    bool disasterWarningShown = false;
+
     GameConsole console;
 };

@@ -19,13 +19,34 @@
       "Money": 30
     },
     "GRANARY": {
-      "Money": 0
+      "Money": 30
+    },
+    "FARM": {
+      "Money": 20
     },
     "CAFE": {
       "Money": 20
     },
     "RESTAURANT2": {
       "Money": 25
+    },
+    "WORKPLACE3": {
+      "Money": 25
+    },
+    "DISASTER_OBSERVATORY": {
+      "Money": 70
+    },
+    "CASINO": {
+      "Money": 40
+    },
+    "PENTHOUSE": {
+      "Money": 1000
+    },
+    "PARK": {
+      "Money": 15
+    },
+    "STREET_LIGHT": {
+      "Money": 5
     }
   }
 }

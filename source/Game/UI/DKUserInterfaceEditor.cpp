@@ -14,12 +14,15 @@
 #include "../Managers/DKImmigrationManager.hpp"
 #include "../Managers/EventManager.hpp"
 #include "../Managers/HappinessManager.hpp"
+#include "../Managers/ResourceManager.hpp"
 #include "Dokev/Core/DKMetaProgramming.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
+#include "Engine/Engine.hpp"
+#include "Engine/Window.hpp"
 #include <imgui.h>
 
 
-void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute, EventManager* eventManager, SimulationControls* simControls)
+void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute, int currentDay, EventManager* eventManager, SimulationControls* simControls, ResourceManager* resourceManager)
 {
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
@@ -63,7 +66,7 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
         ImGui::Separator();
     }
 
-    ImGui::Text("Time: %02d:%02d  (%s)", hour, minute, hour >= 9 && hour < 17 ? "Working" : "Off");
+    DrawTimeSection(hour, minute, currentDay);
     ImGui::Separator();
 
     if (ImGui::TreeNode("CITY HAPPINESS"))
@@ -113,6 +116,84 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     DrawNPCInfoPanel();
 }
 
+void UserInterfaceEditor::DrawTimeSection(int hour, int minute, int currentDay)
+{
+    const char* phaseName;
+    ImVec4      phaseColor;
+    ImVec4      barColor;
+    const char* phaseIcon;
+
+    if (hour >= 4 && hour < 6)
+    {
+        phaseName  = "Dawn";
+        phaseColor = { 1.0f, 0.6f, 0.2f, 1.0f };
+        barColor   = { 1.0f, 0.55f, 0.1f, 1.0f };
+        phaseIcon  = "~";
+    }
+    else if (hour >= 6 && hour < 12)
+    {
+        phaseName  = "Morning";
+        phaseColor = { 1.0f, 0.95f, 0.3f, 1.0f };
+        barColor   = { 1.0f, 0.88f, 0.15f, 1.0f };
+        phaseIcon  = "*";
+    }
+    else if (hour >= 12 && hour < 18)
+    {
+        phaseName  = "Afternoon";
+        phaseColor = { 1.0f, 0.85f, 0.1f, 1.0f };
+        barColor   = { 1.0f, 0.82f, 0.0f, 1.0f };
+        phaseIcon  = "*";
+    }
+    else if (hour >= 18 && hour < 20)
+    {
+        phaseName  = "Evening";
+        phaseColor = { 1.0f, 0.5f, 0.1f, 1.0f };
+        barColor   = { 1.0f, 0.45f, 0.05f, 1.0f };
+        phaseIcon  = "~";
+    }
+    else if (hour >= 20 && hour < 22)
+    {
+        phaseName  = "Dusk";
+        phaseColor = { 0.8f, 0.35f, 0.15f, 1.0f };
+        barColor   = { 0.5f, 0.3f, 0.5f, 1.0f };
+        phaseIcon  = "o";
+    }
+    else
+    {
+        phaseName  = "Night";
+        phaseColor = { 0.55f, 0.55f, 0.95f, 1.0f };
+        barColor   = { 0.25f, 0.25f, 0.65f, 1.0f };
+        phaseIcon  = "o";
+    }
+
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Day %d", currentDay);
+    ImGui::SameLine();
+    ImGui::TextColored(phaseColor, "  [%s] %s", phaseIcon, phaseName);
+
+    ImGui::Text("%02d:%02d", hour, minute);
+    ImGui::SameLine();
+    bool isWorking = (hour >= 9 && hour < 17);
+    ImGui::TextColored(
+        isWorking ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f) : ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+        " %s", isWorking ? "(Working)" : "(Off)");
+
+    float progress = static_cast<float>(hour * 60 + minute) / 1440.0f;
+    ImGui::PushStyleColor(ImGuiCol_PlotHistogram, barColor);
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.12f, 0.12f, 0.28f, 0.85f));
+    ImGui::ProgressBar(progress, ImVec2(-1.0f, 10.0f), "");
+    ImGui::PopStyleColor(2);
+
+    int totalMinutes = hour * 60 + minute;
+    int remainMinutes;
+    const char* nextPhase;
+    if (totalMinutes < 6 * 60)          { remainMinutes = 6 * 60 - totalMinutes;  nextPhase = "Sunrise"; }
+    else if (totalMinutes < 20 * 60)    { remainMinutes = 20 * 60 - totalMinutes; nextPhase = "Sunset"; }
+    else                                { remainMinutes = (24 * 60 - totalMinutes) + 6 * 60; nextPhase = "Sunrise"; }
+
+    ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s in %dh %02dm",
+        nextPhase, remainMinutes / 60, remainMinutes % 60);
+}
+
 void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManager)
 {
     float totalHappiness = happinessManager->CalculateTotalHappiness();
@@ -123,21 +204,18 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
 
     ImVec4 color;
     if (totalHappiness >= 80.0f)
-        color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Green
+        color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
     else if (totalHappiness >= 60.0f)
-        color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+        color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
     else if (totalHappiness >= 40.0f)
-        color = ImVec4(1.0f, 0.5f, 0.0f, 1.0f); // Orange
+        color = ImVec4(1.0f, 0.5f, 0.0f, 1.0f);
     else
-        color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // Red
+        color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
 
     ImGui::TextColored(color, "%.0f%%", totalHappiness);
-
     ImGui::Spacing();
-
     ImGui::Text("Factors:");
 
-    // Housing
     ImGui::Text("  Housing:    ");
     ImGui::SameLine();
     if (factors.housingScore >= 80.0f)
@@ -147,7 +225,6 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.housingScore);
 
-    // Employment
     ImGui::Text("  Employment: ");
     ImGui::SameLine();
     if (factors.employmentScore >= 80.0f)
@@ -157,6 +234,14 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.employmentScore);
 
+    ImGui::Text("  Night Safety:");
+    ImGui::SameLine();
+    if (factors.nightSafetyScore >= 80.0f)
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "%.0f%%", factors.nightSafetyScore);
+    else if (factors.nightSafetyScore >= 50.0f)
+        ImGui::TextColored(ImVec4(1, 1, 0, 1), "%.0f%%", factors.nightSafetyScore);
+    else
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.nightSafetyScore);
 }
 
 void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager, int availableHomes, int totalResources, int humanCount)
@@ -164,14 +249,12 @@ void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immi
     float timeLeft = immigrationManager->GetNextImmigrationTime();
     ImGui::Text("Next check: %.1f sec", timeLeft);
 
-    //  Current chance
     float happiness = happinessManager->CalculateTotalHappiness();
     float chance    = immigrationManager->CalculateImmigrationChance(availableHomes, happiness, humanCount, totalResources);
 
     ImGui::Text("Chance:");
     ImGui::SameLine();
 
-    // Color code the chance
     if (chance >= 0.6f)
         ImGui::TextColored(ImVec4(0, 1, 0, 1), "%.0f%%", chance * 100.0f);
     else if (chance >= 0.3f)
@@ -179,15 +262,10 @@ void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immi
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", chance * 100.0f);
 
-    // Progress bar
     ImGui::ProgressBar(chance, ImVec2(-1, 0));
-
     ImGui::Spacing();
-
-    //  Requirements
     ImGui::Text("Requirements:");
 
-    // Housing check
     ImGui::Text("  Housing:");
     ImGui::SameLine();
     if (availableHomes > 0)
@@ -195,7 +273,6 @@ void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immi
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "Full!");
 
-    // Happiness check
     ImGui::Text("  Happiness:");
     ImGui::SameLine();
     if (happiness >= 60.0f)
@@ -212,7 +289,6 @@ void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameOb
 
     ImGui::Text("Citizens: %d", humanCount);
 
-    //  Housing
     ImGui::Text("Housing:");
     ImGui::SameLine();
     if (homeCapacity >= humanCount)
@@ -220,7 +296,6 @@ void UserInterfaceEditor::DrawPopulationSection(Dokev::GameObjectManager* gameOb
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%d / %d", humanCount, homeCapacity);
 
-    //  Buildings
     ImGui::Text("Homes: %d", totalHouses);
     ImGui::Text("Workplaces: %d", workplaceCount);
 }
@@ -233,7 +308,6 @@ void UserInterfaceEditor::DrawWinConditionSection(Dokev::CityMetrics* cityMetric
     int  winPopulation = cityMetrics->GetWinConditionPopulation();
     bool isWinning     = cityMetrics->IsWinConditionMet(humanCount);
 
-    //  Progress
     ImGui::Text("Goal: Reach %d citizens", winPopulation);
     ImGui::Text("Progress:");
     ImGui::SameLine();
@@ -251,7 +325,6 @@ void UserInterfaceEditor::DrawWinConditionSection(Dokev::CityMetrics* cityMetric
             ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "%d / %d", humanCount, winPopulation);
     }
 
-    //  Progress Bar
     float progressRatio = static_cast<float>(humanCount) / static_cast<float>(winPopulation);
     ImGui::ProgressBar(progressRatio, ImVec2(-1, 0));
 }
@@ -307,7 +380,7 @@ void UserInterfaceEditor::DrawNPCInfoPanel()
         return;
 
     const float    panelW  = 260.0f;
-    const float    panelH  = 160.0f;
+    const float    panelH  = 185.0f;
     const float    padding = 12.0f;
 
     ImGuiViewport* vp      = ImGui::GetMainViewport();
@@ -328,35 +401,41 @@ void UserInterfaceEditor::DrawNPCInfoPanel()
         return;
     }
 
-    // Name
     ImGui::TextColored(ImVec4(1.0f, 0.85f, 0.3f, 1.0f), "%s", selectedHuman->GetName().c_str());
-
     ImGui::Separator();
 
-    // State
     const char* stateStr = "Unknown";
-    switch (selectedHuman->GetState())
+    if (selectedHuman->IsEmigrating())
+        stateStr = "Leaving city";
+    else if (selectedHuman->IsHomeless())
+        stateStr = "Homeless";
+    else
     {
-        case HumanState::Idle:               stateStr = "Idle";              break;
-        case HumanState::Walking:            stateStr = "Walking";           break;
-        case HumanState::FindingDestination: stateStr = "Looking around";    break;
-        case HumanState::Working:            stateStr = "Working";           break;
-        case HumanState::Resting:            stateStr = "Resting";           break;
+        switch (selectedHuman->GetState())
+        {
+            case HumanState::Idle:               stateStr = "Idle";           break;
+            case HumanState::Walking:            stateStr = "Walking";        break;
+            case HumanState::FindingDestination: stateStr = "Looking around"; break;
+            case HumanState::Working:            stateStr = "Working";        break;
+            case HumanState::Resting:            stateStr = "Resting";        break;
+            case HumanState::Firefighting:       stateStr = "Firefighting";   break;
+        }
     }
     ImGui::Text("State:     %s", stateStr);
 
-    // Happiness
     float happiness = selectedHuman->GetStats().happiness;
     ImGui::Text("Happiness: ");
     ImGui::SameLine();
     ImVec4 happyColor;
-    if (happiness >= 70.0f)      happyColor = { 0.0f, 1.0f, 0.0f, 1.0f };
-    else if (happiness >= 40.0f) happyColor = { 1.0f, 1.0f, 0.0f, 1.0f };
+    if (happiness >= 80.0f)      happyColor = { 0.0f, 1.0f, 0.0f, 1.0f };
+    else if (happiness >= 40.0f) happyColor = { 1.0f, 0.55f, 0.0f, 1.0f };
     else                         happyColor = { 1.0f, 0.2f, 0.2f, 1.0f };
     ImGui::TextColored(happyColor, "%.0f%%", happiness);
     ImGui::ProgressBar(happiness / 100.0f, ImVec2(-1, 6));
 
-    // Position
+    float money = selectedHuman->GetMoney();
+    ImGui::Text("Money:     $%.0f", money);
+
     Math::fvec2 pos = selectedHuman->GetGridPosition();
     ImGui::Text("Pos:       (%.0f, %.0f)", pos.x, pos.y);
 

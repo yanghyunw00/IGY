@@ -93,11 +93,25 @@ BuildingType BuildingCostManager::StringToBuildingType(const std::string& str) c
         return BuildingType::STEEL_WORKSHOP;
     if (str == "GRANARY")
         return BuildingType::GRANARY;
+    if (str == "FARM")
+        return BuildingType::FARM;
     if (str == "CAFE")
         return BuildingType::CAFE;
     if (str == "RESTAURANT2")
         return BuildingType::RESTAURANT2;
     if (str == "FLATTEN")
         return BuildingType::FLATTEN;
+    if (str == "WORKPLACE3")
+        return BuildingType::WORKPLACE3;
+    if (str == "DISASTER_OBSERVATORY")
+        return BuildingType::DISASTER_OBSERVATORY;
+    if (str == "CASINO")
+        return BuildingType::CASINO;
+    if (str == "PENTHOUSE")
+        return BuildingType::PENTHOUSE;
+    if (str == "STREET_LIGHT")
+        return BuildingType::STREET_LIGHT;
+    if (str == "PARK")
+        return BuildingType::PARK;
     return BuildingType::NONE;
 }

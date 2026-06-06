@@ -78,7 +78,8 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     MountainTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
     SnowTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPeak.png").string());
 
-    Max_Height    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
+    Max_Height       = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
+    Max_Height_Water = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height_Water.png").string());
     IsoMouseAtlas = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
     static const int roadTileNums[] = {1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14};
@@ -160,15 +161,11 @@ void GridMap::EnsureMouseAtlasInitialized() const
     if (mouseAtlasFBO != 0 && mouseAtlasTex != 0)
     {
         // Resize texture if window size changed
-        GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
-        int currentW = 0, currentH = 0;
-        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &currentW);
-        GL::GetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &currentH);
-        if (currentW == targetWidth && currentH == targetHeight)
+        if (mouseAtlasW == targetWidth && mouseAtlasH == targetHeight)
         {
-            GL::BindTexture(GL_TEXTURE_2D, 0);
             return;
         }
+        GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
     }
 
     if (mouseAtlasFBO == 0)
@@ -184,6 +181,8 @@ void GridMap::EnsureMouseAtlasInitialized() const
     GL::BindTexture(GL_TEXTURE_2D, mouseAtlasTex);
 
     GL::TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, targetWidth, targetHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    mouseAtlasW = targetWidth;
+    mouseAtlasH = targetHeight;
 
     GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     GL::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -200,6 +199,8 @@ void GridMap::EnsureMouseAtlasInitialized() const
         {
             GL::DeleteTextures(1, &mouseAtlasTex);
             mouseAtlasTex = 0;
+            mouseAtlasW   = 0;
+            mouseAtlasH   = 0;
         }
         if (mouseAtlasFBO != 0)
         {
@@ -323,10 +324,10 @@ static int maskToTileIndex(int mask)
     switch (mask)
     {
         case 0:  return 8;
-        case 1:  return 7;   // N only
-        case 2:  return 8;   // E only
-        case 4:  return 7;   // S only
-        case 8:  return 8;   // W only
+        case 1:  return 2;   // N only → N-S style (consistent with N+S straight)
+        case 2:  return 3;   // E only → E-W style (consistent with E+W straight)
+        case 4:  return 2;   // S only → N-S style (consistent with N+S straight)
+        case 8:  return 3;   // W only → E-W style (consistent with E+W straight)
         case 5:  return 2;   // N+S straight
         case 10: return 3;   // E+W straight
         case 9:  return 9;   // N+W corner
@@ -339,6 +340,48 @@ static int maskToTileIndex(int mask)
         case 14: return 11;  // T: E+S+W (no N)
         case 15: return 12;  // 4-way
         default: return 2;
+    }
+}
+
+namespace
+{
+    struct BuildingDrawTrigger
+    {
+        int  originalX = 0;
+        int  originalY = 0;
+        int  viewX     = 0;
+        int  viewY     = 0;
+        int  order     = 0;
+        bool valid     = false;
+    };
+
+    BuildingDrawTrigger SelectBuildingDrawTrigger(const Building& building, const GridMap& map, int viewIndex)
+    {
+        BuildingDrawTrigger result;
+
+        const int baseX = static_cast<int>(std::round(building.GetGrid().x));
+        const int baseY = static_cast<int>(std::round(building.GetGrid().y));
+
+        for (int y = 0; y < building.GetHeight(); ++y)
+        {
+            for (int x = 0; x < building.GetWidth(); ++x)
+            {
+                const int originalX = baseX + x;
+                const int originalY = baseY + y;
+
+                Math::fvec2 transformed = map.TransformPathPointForView({ static_cast<float>(originalX), static_cast<float>(originalY) }, viewIndex);
+                const int   viewX       = std::clamp(static_cast<int>(std::round(transformed.x)), 0, GRID_SIZE_X - 1);
+                const int   viewY       = std::clamp(static_cast<int>(std::round(transformed.y)), 0, GRID_SIZE_Y - 1);
+                const int   order       = viewX + viewY;
+
+                if (!result.valid || order > result.order || (order == result.order && viewX > result.viewX))
+                {
+                    result = { originalX, originalY, viewX, viewY, order, true };
+                }
+            }
+        }
+
+        return result;
     }
 }
 
@@ -429,7 +472,10 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                     {
                         Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                     }
-                    Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    if (current_texture == 0)
+                        Dokev::DrawTexture(Max_Height_Water, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    else
+                        Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
 
                     if (gameObjMgr)
                     {
@@ -437,10 +483,8 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
 
                         for (const auto& building : buildings)
                         {
-                            int bX = static_cast<int>(building->GetGrid().x);
-                            int bY = static_cast<int>(building->GetGrid().y);
-
-                            if (bX == originalX && bY == originalY)
+                            BuildingDrawTrigger trigger = SelectBuildingDrawTrigger(*building, *this, currentView);
+                            if (trigger.valid && trigger.originalX == originalX && trigger.originalY == originalY)
                             {
                                 building->Draw(index, this, screenX, topY + 64);
                             }
@@ -769,24 +813,50 @@ Math::fvec2 GridMap::TransformPathPointForView(Math::fvec2 point, int viewIndex)
     }
 }
 
-bool GridMap::FlattenTile(int x, int y)
+bool GridMap::CanFlattenTile(int x, int y) const
 {
     if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
         return false;
 
-    GridCell& cell = m_gridCells[y][x];
+    const GridCell& cell = m_gridCells[y][x];
 
-    // water cannot change
     if (cell.getWater())
         return false;
 
+    if (cell.getFlattenStage() >= 3)
+        return false;
+
     double targetHeight = mapProfile.thresholds.waterMax;
+    return std::abs(cell.getHeight() - targetHeight) > 1e-9;
+}
 
-    cell.ApplyTerrain(targetHeight, mapProfile.thresholds);
+bool GridMap::FlattenTile(int x, int y)
+{
+    if (!CanFlattenTile(x, y))
+        return false;
 
-    // Update pathfinding cost
-    SetPathCost(x, y, 1.0f);
-    SetWalkable(x, y, true);
+    GridCell& cell        = m_gridCells[y][x];
+    double    targetHeight = mapProfile.thresholds.waterMax;
+
+    int stage = cell.getFlattenStage();
+
+    if (stage == 0)
+        cell.setFlattenBaseHeight(cell.getHeight());
+
+    stage++;
+    cell.setFlattenStage(stage);
+
+    double baseH     = cell.getFlattenBaseHeight();
+    double newHeight = (stage >= 3) ? targetHeight
+                                    : baseH + (targetHeight - baseH) * (stage / 3.0);
+
+    cell.ApplyTerrain(newHeight, mapProfile.thresholds);
+
+    if (stage >= 3)
+    {
+        SetPathCost(x, y, 1.0f);
+        SetWalkable(x, y, true);
+    }
 
     return true;
 }

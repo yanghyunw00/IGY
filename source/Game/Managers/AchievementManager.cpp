@@ -84,6 +84,7 @@ void AchievementManager::SpawnConfetti()
     auto windowSize = Engine::GetWindow().GetSize();
 
     confetti.clear();
+    
     confetti.reserve(confettiCount);
 
     for (int i = 0; i < confettiCount; ++i)

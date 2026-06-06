@@ -23,6 +23,7 @@ struct FloatingText
     float       life;
     float       duration;
     CS200::RGBA color;
+    bool        screenSpace;
 };
 
 class FloatingTextManager
@@ -34,11 +35,17 @@ public:
         return instance;
     }
 
-    void Add(std::string text, Math::fvec2 pos, CS200::RGBA color = 0xFFFFFFFF, float duration = 1.5f);
+    // screenSpace == false : pos is a world coordinate (drawn with the camera transform).
+    // screenSpace == true  : pos is a screen-pixel coordinate, fixed on screen like UI
+    //                        (origin bottom-left, +y up). Drawn in the UI pass.
+    void Add(std::string text, Math::fvec2 pos, CS200::RGBA color = 0xFFFFFFFF, float duration = 1.5f, bool screenSpace = false);
 
     void Update(float dt);
 
-    void Draw([[maybe_unused]] const Math::TransformationMatrix& viewMatrix);
+    // Draw only the texts matching the requested space. Call once inside the
+    // world-space scene (screenSpace == false) and once inside the UI scene
+    // (screenSpace == true).
+    void Draw(bool screenSpace = false);
 
 private:
     std::vector<FloatingText> texts;

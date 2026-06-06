@@ -12,6 +12,7 @@
 #include "../Entities/ResidentBuilding.hpp"
 #include "../Entities/WorkBuilding.hpp"
 #include "../Managers/DKCityMetrics.hpp"
+#include "../World/Fire.hpp"
 #include "../World/GridMap.hpp"
 #include "CS200/IRenderer2D.hpp"
 #include "CS200/NDC.hpp"
@@ -34,6 +35,7 @@
 #include "Engine/Logger.hpp"
 #include "Engine/Matrix.hpp"
 #include "Engine/Path.hpp"
+#include "Engine/Random.hpp"
 #include "Engine/Window.hpp"
 
 
@@ -41,10 +43,7 @@
 #include "../Managers/AchievementManager.hpp"
 #include "../Managers/FloatingTextManager.hpp"
 #include "../Managers/ResourceManager.hpp"
-#include "../Resources/Resource.hpp"
-#include "../Resources/Steel.hpp"
-#include "../Resources/Stone.hpp"
-#include "../Resources/Wood.hpp"
+#include "../Managers/WorkManager.hpp"
 #include "MainMenu.hpp"
 
 
@@ -67,8 +66,8 @@ using json = nlohmann::json;
 
 namespace
 {
-    constexpr std::array<double, 4>      kSimulationSpeedPresets = { 0.5, 1.0, 2.0, 4.0 };
-    constexpr std::array<const char*, 4> kSimulationSpeedLabels  = { "0.5x", "1.0x", "2.0x", "4.0x" };
+    constexpr std::array<double, 4>      kSimulationSpeedPresets = { 1.0, 2.0, 5.0, 10.0 };
+    constexpr std::array<const char*, 4> kSimulationSpeedLabels  = { "1x", "2x", "5x", "10x" };
 
     Math::fvec2 ConvertViewTileToGrid(Math::fvec2 tileCoord, int rotationIndex, const GridMap* map)
     {
@@ -89,7 +88,7 @@ namespace
 
     Math::ivec2 GetBuildingFootprint(BuildingType type)
     {
-        if (type == BuildingType::GRANARY)
+        if (type == BuildingType::GRANARY || type == BuildingType::FARM)
         {
             return { 2, 2 };
         }
@@ -173,15 +172,9 @@ namespace
     }
 
     Math::ivec2 lastPlacedRoadPos              = { -1, -1 };
+    Math::ivec2 lastPlacedFlattenPos           = { -1, -1 };
     bool        blockRoadPlacementUntilRelease = false; // avoid placing road with the same click used to select it
 }
-
-NLOHMANN_JSON_SERIALIZE_ENUM(
-    ResourceType, {
-                      {  ResourceType::Wood,  "Wood" },
-                      { ResourceType::Stone, "Stone" },
-                      { ResourceType::Steel, "Steel" }
-})
 
 void GamePlayState::Load()
 {
@@ -211,14 +204,14 @@ void GamePlayState::Load()
     {
         const Road*    road    = GetGSComponent<MapManager>()->GetRoad();
         const GridMap* gridMap = GetGSComponent<MapManager>()->GetMap();
-        Human h1 = Human::CreateImmigrant(road, gridMap);
-        Human h2 = Human::CreateImmigrant(road, gridMap);
+        Human          h1      = Human::CreateImmigrant(road, gridMap);
+        Human          h2      = Human::CreateImmigrant(road, gridMap);
         GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(h1));
         GetGSComponent<Dokev::GameObjectManager>()->AddHuman(new Human(h2));
     }
 
 
-    camera.SetZoom(0.3f);
+    camera.SetZoom(0.8f);
 
     // Center camera on the middle of the map
     {
@@ -244,7 +237,7 @@ void GamePlayState::Load()
     // smokeSprite = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/Smoke.spt"));
 
     eventManager.Initialize(GetGSComponent<CityMetrics>().get(), GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<MapManager>()->GetMap());
-    eventManager.SetMeteorCallback([this]() { camera.StartShake(0.005f, 5.0f); });
+    eventManager.SetEarthquakeCallback([this]() { camera.StartShake(0.005f, 5.0f); });
 
     worldEditor.Initialize(
         GetGSComponent<MapManager>().get(), &camera, &index, &immigrationTimer, &immigrationInterval, GetGSComponent<Dokev::GameObjectManager>().get(), GetGSComponent<ResourceManager>().get(),
@@ -269,7 +262,8 @@ void GamePlayState::Load()
 
     // Rain overlay shader
     {
-        rainShader = OpenGL::CreateShader(assets::locate_asset("Assets/shaders/simple.vert"), assets::locate_asset("Assets/shaders/rain.frag"));
+        rainShader       = OpenGL::CreateShader(assets::locate_asset("Assets/shaders/simple.vert"), assets::locate_asset("Assets/shaders/rain.frag"));
+        pointLightShader = OpenGL::CreateShader(assets::locate_asset("Assets/shaders/simple.vert"), assets::locate_asset("Assets/shaders/pointlight.frag"));
 
         struct Vert
         {
@@ -306,7 +300,7 @@ void GamePlayState::Load()
         clouds.reserve(COUNT);
         auto rnd = [](float lo, float hi)
         {
-            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+            return static_cast<float>(util::random(static_cast<double>(lo), static_cast<double>(hi)));
         };
         for (int i = 0; i < COUNT; ++i)
         {
@@ -447,12 +441,73 @@ void GamePlayState::Load()
             }
             return "Money: " + std::to_string(rm->totalMoney);
         });
+
+    console.RegisterCommand(
+        "event", "event [fire|drought|earthquake|random]  trigger a disaster event",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.empty())
+                return "Usage: event [fire|drought|earthquake|random]";
+            const std::string& arg = args[0];
+            if (arg == "fire")
+            {
+                eventManager.ForceEventByType(EventList::FIRE);
+                return "Fire started";
+            }
+            else if (arg == "drought")
+            {
+                eventManager.ForceEventByType(EventList::DROUGHT);
+                return "Drought started";
+            }
+            else if (arg == "earthquake")
+            {
+                eventManager.ForceEventByType(EventList::EARTHQUAKE);
+                return "Earthquake started";
+            }
+            else if (arg == "random")
+            {
+                eventManager.ForceEvent();
+                return "Random event triggered";
+            }
+            return "Usage: event [fire|drought|earthquake|random]";
+        });
+    console.RegisterCommand(
+        "time", "time set HH:MM  set in-game time (24h)",
+        [this](const std::vector<std::string>& args) -> std::string
+        {
+            if (args.size() == 2 && args[0] == "set")
+            {
+                const std::string& hhmm  = args[1];
+                auto               colon = hhmm.find(':');
+                if (colon == std::string::npos)
+                    return "Usage: time set HH:MM";
+                try
+                {
+                    int h = std::stoi(hhmm.substr(0, colon));
+                    int m = std::stoi(hhmm.substr(colon + 1));
+                    if (h < 0 || h > 23 || m < 0 || m > 59)
+                        return "Invalid time. Use 0-23 for hours, 0-59 for minutes.";
+                    dayCycle.SetTime(h, m);
+                    return "Time set to " + std::to_string(h) + ":" + (m < 10 ? "0" : "") + std::to_string(m);
+                }
+                catch (...)
+                {
+                    return "Usage: time set HH:MM";
+                }
+            }
+            return "Day " + std::to_string(dayCycle.GetCurrentDay()) + "  " + std::to_string(dayCycle.GetHour()) + ":" + (dayCycle.GetMinute() < 10 ? "0" : "") + std::to_string(dayCycle.GetMinute()) +
+                   "  (" + dayCycle.GetPhaseName() + ")";
+        });
 }
 
 void GamePlayState::UpdateTimeControls()
 {
     if (console.IsOpen())
         return; // don't steal keys while console is open
+
+    // Block all keyboard/scroll input during early tutorial steps (before "build wood workshop")
+    if (tutorialManager.IsActive() && tutorialManager.GetCurrentStep() < 3)
+        return;
 
     const auto& input = Engine::GetInput();
 
@@ -461,11 +516,11 @@ void GamePlayState::UpdateTimeControls()
         simulationPaused = !simulationPaused;
     }
 
-    //shake test
-    // if (input.KeyJustPressed(CS230::Input::Keys::T))
-    // {
-    //     camera.StartShake(0.009f, 2.0f);
-    // }
+    // shake test
+    //  if (input.KeyJustPressed(CS230::Input::Keys::T))
+    //  {
+    //      camera.StartShake(0.009f, 2.0f);
+    //  }
 
     if (input.KeyJustPressed(CS230::Input::Keys::Left) && simulationSpeedPresetIndex > 0)
     {
@@ -475,6 +530,17 @@ void GamePlayState::UpdateTimeControls()
     if (input.KeyJustPressed(CS230::Input::Keys::Right) && simulationSpeedPresetIndex + 1 < kSimulationSpeedPresets.size())
     {
         ++simulationSpeedPresetIndex;
+    }
+
+    // Mouse wheel zoom — finer-grained than Q/E
+    int scroll = Engine::GetWindow().GetScrollDelta();
+    if (scroll != 0)
+    {
+        constexpr float kWheelFactor = 1.05f;
+        float           factor       = (scroll > 0) ? kWheelFactor : (1.0f / kWheelFactor);
+        int             steps        = std::abs(scroll);
+        for (int i = 0; i < steps; ++i)
+            camera.AdjustTargetZoom(factor, 0.05f, 2.5f);
     }
 }
 
@@ -503,9 +569,12 @@ void GamePlayState::Update(double dt)
 
     const double simulationDt = GetSimulationDeltaTime(dt);
 
-    weatherCycle.Update(static_cast<float>(simulationDt));
-    dayCycle.Update(static_cast<float>(simulationDt));
-    rainTime += static_cast<float>(simulationDt);
+    if (!tutorialManager.IsActive())
+    {
+        weatherCycle.Update(static_cast<float>(simulationDt));
+        dayCycle.Update(static_cast<float>(simulationDt));
+        rainTime += static_cast<float>(simulationDt);
+    }
 
     // Collect maintenance costs on each new day
     if (dayCycle.GetCurrentDay() != previousDay)
@@ -515,18 +584,53 @@ void GamePlayState::Update(double dt)
         auto* resMgr    = GetGSComponent<ResourceManager>().get();
         auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
 
+        auto buildingName = [](BuildingType t) -> const char*
+        {
+            switch (t)
+            {
+                case BuildingType::HOME:                 return "Home";
+                case BuildingType::WOOD_WORKSHOP:        return "Wood Workshop";
+                case BuildingType::ROCK_WORKSHOP:        return "Rock Workshop";
+                case BuildingType::STEEL_WORKSHOP:       return "Steel Workshop";
+                case BuildingType::GRANARY:              return "Granary";
+                case BuildingType::FARM:                 return "Farm";
+                case BuildingType::CAFE:                 return "Cafe";
+                case BuildingType::RESTAURANT2:          return "Restaurant";
+                case BuildingType::CASINO:               return "Casino";
+                case BuildingType::PENTHOUSE:            return "Penthouse";
+                case BuildingType::WORKPLACE3:           return "Fire Station";
+                case BuildingType::DISASTER_OBSERVATORY: return "Observatory";
+                case BuildingType::PARK:                 return "Park";
+                case BuildingType::STREET_LIGHT:         return "Street Light";
+                case BuildingType::ROAD:                 return "Road";
+                default:                                 return "Other";
+            }
+        };
+
         int totalMaintenance = 0;
         for (const auto& b : buildings)
         {
             if (b->GetIsBuilt())
-                totalMaintenance += b->GetMaintenanceCost();
+            {
+                int cost = b->GetMaintenanceCost();
+                if (cost > 0)
+                {
+                    totalMaintenance += cost;
+                    resMgr->AddNamedUpkeep(buildingName(b->GetBuildingType()), cost);
+                }
+            }
         }
+
+        resMgr->RecordDayEnd();
 
         if (totalMaintenance > 0)
         {
             resMgr->TrySpend(totalMaintenance);
-            FloatingTextManager::Instance().Add(
-                "-" + std::to_string(totalMaintenance) + " maintenance", { static_cast<float>(GRID_SIZE_X_HALF) * TILE_WIDTH, static_cast<float>(GRID_SIZE_Y_HALF) * TILE_HEIGHT }, 0xFF4444FF);
+            auto  winSz   = Engine::GetWindow().GetSize();
+            auto  camPos  = camera.GetPosition();
+            float worldCX = static_cast<float>((1.0 - camPos.x) * winSz.x * 0.5);
+            float worldCY = static_cast<float>((1.0 - camPos.y) * winSz.y * 0.5);
+            FloatingTextManager::Instance().Add("-" + std::to_string(totalMaintenance) + " maintenance", { worldCX, worldCY }, 0xFF4444FF);
         }
     }
 
@@ -541,7 +645,7 @@ void GamePlayState::Update(double dt)
         const float dt_f      = static_cast<float>(simulationDt);
         auto        rnd       = [](float lo, float hi)
         {
-            return lo + (static_cast<float>(std::rand()) / RAND_MAX) * (hi - lo);
+            return static_cast<float>(util::random(static_cast<double>(lo), static_cast<double>(hi)));
         };
         for (auto& c : clouds)
         {
@@ -561,7 +665,61 @@ void GamePlayState::Update(double dt)
         }
     }
 
-    eventManager.EventCycle(dt);
+    // Count built observatories and pass to event manager
+    {
+        auto* gom      = GetGSComponent<Dokev::GameObjectManager>().get();
+        int   obsCount = 0;
+        for (const auto& b : gom->GetBuildings())
+            if (b->GetBuildingType() == BuildingType::DISASTER_OBSERVATORY && b->GetIsBuilt())
+                ++obsCount;
+        eventManager.SetObservatoryCount(obsCount);
+    }
+
+    if (!tutorialManager.IsActive())
+        eventManager.EventCycle(dt);
+
+    // Disaster Observatory early warning: just announce the incoming disaster
+    // with a floating text. (No evacuation.)
+    if (eventManager.IsWarningActive())
+    {
+        if (!disasterWarningShown)
+        {
+            disasterWarningShown = true;
+
+            auto* gom      = GetGSComponent<Dokev::GameObjectManager>().get();
+            int   obsCount = 0;
+            for (const auto& b : gom->GetBuildings())
+                if (b->GetBuildingType() == BuildingType::DISASTER_OBSERVATORY && b->GetIsBuilt())
+                    ++obsCount;
+
+            std::string warningText;
+            if (obsCount >= 3)
+            {
+                EventList   next         = eventManager.GetNextEventType();
+                std::string disasterName = "Unknown Disaster";
+                if (next == EventList::FIRE)
+                    disasterName = "Fire";
+                else if (next == EventList::EARTHQUAKE)
+                    disasterName = "Earthquake";
+                else if (next == EventList::DROUGHT)
+                    disasterName = "Drought";
+                warningText = disasterName + " in 10s!";
+            }
+            else
+            {
+                warningText = "Disaster in 10s!";
+            }
+
+            auto  winSize = Engine::GetWindow().GetSize();
+            float cx      = static_cast<float>(winSize.x) * 0.5f;
+            float cy      = static_cast<float>(winSize.y) * 0.5f;
+            FloatingTextManager::Instance().Add(warningText, { cx, cy - 60.0f }, 0xFF4400FF, 4.0f, true);
+        }
+    }
+    else
+    {
+        disasterWarningShown = false; // re-arm for the next warning cycle
+    }
 
     if (worldEditor.IsSaveRequested())
     {
@@ -575,11 +733,52 @@ void GamePlayState::Update(double dt)
     }
 
     mouse.Update();
+
     bool ismouseheld = mouse.MouseDown(Dokev::Mouse::Button::Left);
     if (!ismouseheld)
     {
         blockRoadPlacementUntilRelease = false;
         lastPlacedRoadPos              = { -1, -1 };
+        lastPlacedFlattenPos           = { -1, -1 };
+    }
+
+    auto previousUISelection = uiManager.GetSelectedBuilding();
+
+    // UI must update even when paused (so time-icon click can unpause)
+    {
+        auto        windowSize     = Engine::GetWindow().GetSize();
+        Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
+        mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
+        bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+
+        uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt));
+
+        if (uiManager.IsTimeClicked())
+        {
+            if (simulationPaused)
+            {
+                simulationPaused           = false;
+                simulationSpeedPresetIndex = 0;
+            }
+            else if (simulationSpeedPresetIndex + 1 < kSimulationSpeedPresets.size())
+            {
+                ++simulationSpeedPresetIndex;
+            }
+            else
+            {
+                simulationPaused = true;
+            }
+        }
+    }
+
+    // Camera always updates with real dt (works even when paused)
+    camera.UpdateZoomInterpolation(dt);
+    camera.UpdateShake(dt);
+
+    {
+        const bool tutorialBlockingKeyboard = tutorialManager.IsActive() && tutorialManager.GetCurrentStep() < 3;
+        if (!uiManager.IsMenuActive() && !console.IsOpen() && !tutorialBlockingKeyboard)
+            worldEditor.UpdateInput(dt);  // real dt so WASD speed is unaffected by simulation speed
     }
 
     if (simulationPaused)
@@ -590,19 +789,8 @@ void GamePlayState::Update(double dt)
         return;
     }
 
-    camera.UpdateZoomInterpolation(simulationDt);
-    camera.UpdateShake(simulationDt);
 
-    // Only process game input if UI menu is not active and console is closed
-    if (!uiManager.IsMenuActive() && !console.IsOpen())
-    {
-        worldEditor.UpdateInput(simulationDt);
-        // Engine::GetLogger().LogEvent("GamePlayState::Update after worldEditor");
-    }
-
-    
     UpdateGSComponents(simulationDt);
-    // Engine::GetLogger().LogEvent("GamePlayState::Update after UpdateGSComponents");
 
     auto cityMetrics = GetGSComponent<CityMetrics>();
     if (cityMetrics)
@@ -641,6 +829,8 @@ void GamePlayState::Update(double dt)
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 
     auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+
+    WorkBuilding::UpdateAnimations(simulationDt);
 
     if (!buildings.empty())
     {
@@ -701,16 +891,13 @@ void GamePlayState::Update(double dt)
         achievementManager.Update(static_cast<float>(dt), currentPopulation, buildingCount, cityMetrics->GetHappiness(), maxSingleResource);
     }
 
-    // mouse hovering & building instructure
+    // mouse hovering & building interactions
     auto        windowSize     = Engine::GetWindow().GetSize();
     Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
     mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
     bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
 
-    auto previousUISelection = uiManager.GetSelectedBuilding();
-    uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt));
-
-    // Check if button was clicked
+    // Check if button was clicked (previousUISelection captured before uiManager.Update())
     auto currentSelection = uiManager.GetSelectedBuilding();
     bool selectionChanged = previousUISelection != currentSelection;
     bool buttonClicked    = selectionChanged && (currentSelection != BuildingType::NONE);
@@ -734,9 +921,10 @@ void GamePlayState::Update(double dt)
     // Update mouse picking for isometric, building placement//
     ///////////////////////////////////////////////////////////
 
-    auto selectBuildingType  = uiManager.GetSelectedBuilding();
-    bool uiConsumedClick     = uiManager.IsAnyButtonHovered();
-    bool shouldplace         = (!uiConsumedClick && mouseClicked) || (ismouseheld && (selectBuildingType == BuildingType::ROAD || selectBuildingType == BuildingType::FLATTEN) && !blockRoadPlacementUntilRelease);
+    auto selectBuildingType = uiManager.GetSelectedBuilding();
+    bool uiConsumedClick    = uiManager.IsAnyButtonHovered();
+    bool shouldplace =
+        (!uiConsumedClick && mouseClicked) || (ismouseheld && (selectBuildingType == BuildingType::ROAD || selectBuildingType == BuildingType::FLATTEN) && !blockRoadPlacementUntilRelease);
 
     if (shouldplace)
     {
@@ -769,10 +957,10 @@ void GamePlayState::Update(double dt)
 
             Math::fvec2 gridCoord = ConvertViewTileToGrid({ tileX, tileY }, index, mapMgr->GetMap());
 
-            mouseSelection.Update(gridCoord.x, gridCoord.y);
-            mouseSelection.SetHasValidPosition(true);
-
             auto selectedBuild = uiManager.GetSelectedBuilding();
+
+            mouseSelection.Update(gridCoord.x, gridCoord.y);
+            mouseSelection.SetHasValidPosition(selectedBuild != BuildingType::NONE);
 
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
             {
@@ -865,6 +1053,7 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::ROAD))
                                     break;
                                 road->addRoad(gridX, gridY, *map);
+                                road->refreshAllConnections(*map);
                                 placed            = true;
                                 lastPlacedRoadPos = { gridX, gridY };
                                 break;
@@ -931,6 +1120,21 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
+                        case BuildingType::FARM:
+                            {
+                                if (!consumeResources(BuildingType::FARM))
+                                    break;
+
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* farm = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 10, BuildingType::FARM);
+                                farm->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(farm);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
                         case BuildingType::CAFE:
                             {
                                 if (!consumeResources(BuildingType::CAFE))
@@ -952,6 +1156,97 @@ void GamePlayState::Update(double dt)
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::WORKPLACE3:
+                            {
+                                if (!consumeResources(BuildingType::WORKPLACE3))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 999, BuildingType::WORKPLACE3);
+                                building->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::DISASTER_OBSERVATORY:
+                            {
+                                if (!consumeResources(BuildingType::DISASTER_OBSERVATORY))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::DISASTER_OBSERVATORY);
+                                building->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::CASINO:
+                            {
+                                if (!consumeResources(BuildingType::CASINO))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::CASINO);
+                                building->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::PENTHOUSE:
+                            {
+                                int   population = static_cast<int>(gameObjMgr->GetHumans().size());
+                                float happiness  = cityMetrics ? cityMetrics->GetHappiness() : 0.0f;
+                                if (population < 30 || happiness < 80.0f)
+                                {
+                                    GridCell** viewArr2 = map->GetViewArray(0);
+                                    float      cellH2   = viewArr2 ? static_cast<float>(viewArr2[gridY * GRID_SIZE_X + gridX]->getHeight()) : 0.0f;
+                                    float      rawY2    = static_cast<float>(map->GetIsoOriginY() + (gridX + gridY) * TILE_HEIGHT_HALF);
+                                    float      fx       = static_cast<float>(map->GetIsoOriginX() + (gridX - gridY) * TILE_WIDTH_HALF);
+                                    float      fy       = cellH2 - rawY2 + TILE_HEIGHT_HALF * 3;
+                                    FloatingTextManager::Instance().Add("Need: Pop 30 / Happiness 80", { fx, fy }, 0xFF4444FF);
+                                    break;
+                                }
+                                if (!consumeResources(BuildingType::PENTHOUSE))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::PENTHOUSE);
+                                building->SetResourceManager(resourceMgr.get());
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::PARK:
+                            {
+                                if (!consumeResources(BuildingType::PARK))
+                                    break;
+
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::PARK);
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::MISSING_TEXTURE:
+                            {
+                                if (!consumeResources(BuildingType::MISSING_TEXTURE))
+                                    break;
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::MISSING_TEXTURE);
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                                placed = true;
+                                break;
+                            }
+                        case BuildingType::STREET_LIGHT:
+                            {
+                                if (!consumeResources(BuildingType::STREET_LIGHT))
+                                    break;
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::STREET_LIGHT);
+                                gameObjMgr->AddBuilding(building);
+                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
                                 placed = true;
                                 break;
                             }
@@ -986,11 +1281,16 @@ void GamePlayState::Update(double dt)
                         case BuildingType::FLATTEN:
                             {
                                 mouseSelection.SetHasValidPosition(true);
+                                if (lastPlacedFlattenPos.x == gridX && lastPlacedFlattenPos.y == gridY)
+                                    break;
+                                if (!map->CanFlattenTile(gridX, gridY))
+                                    break;
                                 if (!consumeResources(BuildingType::FLATTEN))
                                     break;
                                 if (map->FlattenTile(gridX, gridY))
                                 {
-                                    placed = true;
+                                    placed               = true;
+                                    lastPlacedFlattenPos = { gridX, gridY };
                                     break;
                                 }
                                 resourceMgr->SetMoney(resourceMgr->GetTotalResources() + buildingCostManager.GetCost(BuildingType::FLATTEN).money);
@@ -1035,6 +1335,32 @@ void GamePlayState::Update(double dt)
                     {
                         mouseSelection.SetHasValidPosition(false);
 
+                        {
+                            GridCell**  viewArr = map->GetViewArray(0);
+                            float       cellH   = viewArr ? static_cast<float>(viewArr[gridY * GRID_SIZE_X + gridX]->getHeight()) : 0.0f;
+                            float       rawY    = static_cast<float>(map->GetIsoOriginY() + (gridX + gridY) * TILE_HEIGHT_HALF);
+                            const float sx      = static_cast<float>(map->GetIsoOriginX() + (gridX - gridY) * TILE_WIDTH_HALF);
+                            const float sy      = cellH - rawY + TILE_HEIGHT_HALF * 3;
+                            switch (selectedBuild)
+                            {
+                                case BuildingType::HOME: FloatingTextManager::Instance().Add("+Housing", { sx, sy }, 0x44AAFFFF); break;
+                                case BuildingType::WOOD_WORKSHOP:
+                                case BuildingType::ROCK_WORKSHOP:
+                                case BuildingType::STEEL_WORKSHOP:
+                                case BuildingType::GRANARY:
+                                case BuildingType::FARM:
+                                case BuildingType::DISASTER_OBSERVATORY: FloatingTextManager::Instance().Add("+Employment", { sx, sy }, 0x44FF44FF); break;
+                                case BuildingType::CAFE:
+                                case BuildingType::RESTAURANT2: FloatingTextManager::Instance().Add("+Rest Spot", { sx, sy }, 0xFFDD44FF); break;
+                                case BuildingType::WORKPLACE3: FloatingTextManager::Instance().Add("+Fire Station", { sx, sy }, 0xFF8844FF); break;
+                                case BuildingType::CASINO: FloatingTextManager::Instance().Add("+Entertainment", { sx, sy }, 0xFF44AAFF); break;
+                                case BuildingType::PENTHOUSE: FloatingTextManager::Instance().Add("+Education", { sx, sy }, 0x44AAFFFF); break;
+                                case BuildingType::PARK: FloatingTextManager::Instance().Add("+Green Space", { sx, sy }, 0x44FF88FF); break;
+                                case BuildingType::STREET_LIGHT: FloatingTextManager::Instance().Add("+Night Safety", { sx, sy }, 0xFFDD44FF); break;
+                                default: break;
+                            }
+                        }
+
                         if (selectedBuild == BuildingType::ROAD)
                         {
                             roadBuildSoundCount++;
@@ -1043,10 +1369,6 @@ void GamePlayState::Update(double dt)
                                 CS230::AudioManager::Instance().PlaySFX("Assets/sounds/road.mp3");
                             }
                         }
-                        else if (selectedBuild != BuildingType::DELETE && selectedBuild != BuildingType::FLATTEN)
-                        {
-                        }
-
                         if (input.KeyJustPressed(CS230::Input::Keys::Escape))
                         {
                             uiManager.SetSelectedBuilding(BuildingType::NONE);
@@ -1111,7 +1433,7 @@ void GamePlayState::Draw() const
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // BackGround Color
-    DrawRectangle(-5000, -5000, 10000, 10000, Dokev::ColorPalette::SKYBLUE);
+    DrawRectangle(-50000, -50000, 100000, 100000, Dokev::ColorPalette::SKYBLUE);
 
     auto mapMgr = GetGSComponent<MapManager>();
     mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection, GetGSComponent<Dokev::GameObjectManager>().get());
@@ -1122,15 +1444,8 @@ void GamePlayState::Draw() const
     //     building->Draw(index, mapMgr->GetMap());
     // }
 
-    FloatingTextManager::Instance().Draw(cameraTransform);
+    FloatingTextManager::Instance().Draw(false);
 
-    const auto& resources = mapMgr->GetResources();
-
-    // resource
-    for (const auto& resource : resources)
-    {
-        resource->Draw(index, mapMgr->GetMap());
-    }
     testTexture.DrawEx(0, 0, 90.0f, 1.0f);
 
     // Draw all humans
@@ -1140,9 +1455,10 @@ void GamePlayState::Draw() const
         human->Draw(index, mapMgr->GetMap());
     }
 
-    eventManager.Draw();
+    eventManager.Draw(index);
 
     // Cloud patches drawn in world space (same camera transform as the map)
+    if (!tutorialManager.IsActive())
     {
         float vis = (cloudVisOverride >= 0.f) ? cloudVisOverride : weatherCycle.GetCloudShadowOpacity();
         if (vis > 0.f)
@@ -1159,6 +1475,7 @@ void GamePlayState::Draw() const
     renderer2d_IMMEDIATE.EndScene();
 
     // Rain overlay
+    if (!tutorialManager.IsActive())
     {
         float intensity = weatherCycle.GetRainIntensity();
         if (intensity > 0.f && rainShader.Shader != 0)
@@ -1182,25 +1499,152 @@ void GamePlayState::Draw() const
     }
 
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
-    renderer2d.BeginScene(ndcMatrixUI);
 
-    // Day/night overlay
-    CS200::RGBA dayOverlay = dayCycle.GetOverlayColor();
+    renderer2d.BeginScene(ndcMatrixUI);
+    CS200::RGBA dayOverlay     = tutorialManager.IsActive() ? CS200::CLEAR : dayCycle.GetOverlayColor();
+    CS200::RGBA weatherOverlay = tutorialManager.IsActive() ? CS200::CLEAR : weatherCycle.GetOverlayColor();
     if (dayOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, dayOverlay);
-
-    // Weather overlay (tint + thunder flash)
-    CS200::RGBA weatherOverlay = weatherCycle.GetOverlayColor();
     if (weatherOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, weatherOverlay);
 
-    int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
-    uiManager.Draw(GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager));
+    // Screen-space floating texts (disaster warnings, etc.) drawn in the UI pass
+    // so they stay fixed on screen like UI regardless of camera zoom/pan.
+    FloatingTextManager::Instance().Draw(true);
 
+    renderer2d.EndScene();
+
+    // Point light pass: built buildings glow at night
+    {
+        float nightIntensity = static_cast<float>(dayOverlay & 0xFF) / 255.0f;
+        if (nightIntensity > 0.01f && pointLightShader.Shader != 0)
+        {
+            auto* map       = GetGSComponent<MapManager>()->GetMap();
+            auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+
+            constexpr int kMaxLights = 64;
+            float         lightPos[kMaxLights * 2];
+            float         lightRadius[kMaxLights];
+            int           lightCount = 0;
+
+            const float W    = static_cast<float>(windowSize.x);
+            const float H    = static_cast<float>(windowSize.y);
+            const float zoom = camera.GetZoom();
+            const auto  cp   = camera.GetPosition();
+            const float cpx  = static_cast<float>(cp.x);
+            const float cpy  = static_cast<float>(cp.y);
+
+            for (const auto& building : buildings)
+            {
+                if (lightCount >= kMaxLights)
+                    break;
+                bool isStreetLight = building->GetBuildingType() == BuildingType::STREET_LIGHT && building->GetIsBuilt();
+                if (!building->HasLightOn() && !isStreetLight)
+                    continue;
+                auto  lp                     = building->GetLightPos(index, map);
+                float nx                     = lp.x * 2.0f / W - 1.0f;
+                float ny                     = lp.y * 2.0f / H - 1.0f;
+                lightPos[lightCount * 2]     = (zoom * (nx + cpx) + 1.0f) * W * 0.5f;
+                lightPos[lightCount * 2 + 1] = (zoom * (ny + cpy) + 1.0f) * H * 0.5f;
+                lightRadius[lightCount]      = isStreetLight ? 80.0f : 90.0f;
+                ++lightCount;
+            }
+
+            if (lightCount > 0)
+            {
+                const auto& locs   = pointLightShader.UniformLocations;
+                auto        it_cnt = locs.find("uLightCount");
+                auto        it_pos = locs.find("uLightPos[0]");
+                auto        it_rad = locs.find("uLightRadius[0]");
+                auto        it_ngt = locs.find("uNightIntensity");
+
+                if (it_cnt != locs.end() && it_pos != locs.end() && it_rad != locs.end() && it_ngt != locs.end())
+                {
+                    GL::Enable(GL_BLEND);
+                    GL::BlendFunc(GL_ONE, GL_ONE);
+                    GL::UseProgram(pointLightShader.Shader);
+                    GL::Uniform1i(it_cnt->second, lightCount);
+                    GL::Uniform2fv(it_pos->second, lightCount, lightPos);
+                    GL::Uniform1fv(it_rad->second, lightCount, lightRadius);
+                    GL::Uniform1f(it_ngt->second, nightIntensity);
+                    GL::BindVertexArray(rainVAO);
+                    GL::DrawArrays(GL_TRIANGLES, 0, 3);
+                    GL::BindVertexArray(0);
+                    GL::UseProgram(0);
+                    GL::BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                }
+            }
+        }
+    }
+
+    renderer2d.BeginScene(ndcMatrixUI);
+    auto& uiHumans    = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
+    auto& uiBuildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+    int   humanCount  = static_cast<int>(uiHumans.size());
+
+    Dokev::PopulationStats popStats;
+    popStats.total = humanCount;
+    {
+        float totalHappy = 0.0f, totalEnergy = 0.0f;
+        for (const auto& h : uiHumans)
+        {
+            if (h->IsHomeless()) ++popStats.homeless;
+            else                 ++popStats.housed;
+            if (h->HasWorkAssignment()) ++popStats.employed;
+            else                        ++popStats.unemployed;
+            totalHappy  += h->GetHappiness();
+            totalEnergy += h->GetStats().energy;
+        }
+        if (humanCount > 0)
+        {
+            popStats.avgHappiness = totalHappy  / static_cast<float>(humanCount);
+            popStats.avgEnergy    = totalEnergy / static_cast<float>(humanCount);
+        }
+        for (const auto& b : uiBuildings)
+        {
+            if (b->GetIsBuilt())
+            {
+                auto bt = b->GetBuildingType();
+                if (bt == BuildingType::HOME || bt == BuildingType::CASINO || bt == BuildingType::PENTHOUSE)
+                    popStats.housingCap += static_cast<int>(b->GetMaxCapacity());
+            }
+        }
+    }
+
+    uiManager.Draw(
+        GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(),
+        humanCount, popStats,
+        const_cast<BuildingCostManager*>(&buildingCostManager),
+        dayCycle.GetHour(), dayCycle.GetMinute(),
+        dayCycle.GetCurrentDay(), static_cast<int>(simulationSpeedPresetIndex), simulationPaused);
     tutorialManager.Draw();
     achievementManager.Draw();
-    console.Draw(); // drawn last so it sits on top of everything
 
+    // Disaster banner: while any disaster is active, announce it in red at top-center
+    if (eventManager.GetEventCount() > 0)
+    {
+        std::string banner       = "DISASTER: ";
+        const auto& activeEvents = eventManager.GetActiveEvents();
+        for (std::size_t i = 0; i < activeEvents.size(); ++i)
+        {
+            if (i > 0) banner += " + ";
+            banner += activeEvents[i]->GetName();
+        }
+
+        auto winSz   = Engine::GetWindow().GetSize();
+        int  cx      = winSz.x / 2;
+        int  bannerW = 460;
+        int  bannerH = 48;
+        int  bx      = cx - bannerW / 2;
+        int  by      = winSz.y - bannerH - 68;   // below top bar (bar=50px + 18px gap)
+        Dokev::DrawRectangle(bx, by, bannerW, bannerH, 0x660000D0);                  // translucent dark red
+        Dokev::DrawRectangleLinesEx(bx, by, bannerW, bannerH, 3.0f, 0xFF3030FF);     // red border
+        CS230::FontManager::Instance().DrawText(
+            "MainFont", banner, { static_cast<float>(cx), static_cast<float>(by + 14) },
+            CS230::TextAlign::Center, 0xFF3030FF, { 0.45, 0.45 });
+    }
+
+    console.Draw(); // drawn last so it sits on top of everything
     renderer2d.EndScene();
     // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
 
@@ -1216,7 +1660,7 @@ void GamePlayState::Draw() const
 void GamePlayState::DrawImGui()
 {
     // Developer UI
-    //worldEditor.DrawImGui();
+    worldEditor.DrawImGui();
 
     // Player UI
     auto cityMetrics = GetGSComponent<CityMetrics>();
@@ -1244,12 +1688,14 @@ void GamePlayState::DrawImGui()
         }
 
         SimulationControls simControls;
-        simControls.paused     = simulationPaused;
-        simControls.speedIndex = simulationSpeedPresetIndex;
+        simControls.paused      = simulationPaused;
+        simControls.speedIndex  = simulationSpeedPresetIndex;
         simControls.speedLabels = kSimulationSpeedLabels.data();
         simControls.speedCount  = kSimulationSpeedLabels.size();
 
-        playerUI.DrawUI(cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get(), dayCycle.GetHour(), dayCycle.GetMinute(), &eventManager, &simControls);
+        playerUI.DrawUI(
+            cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get(), dayCycle.GetHour(), dayCycle.GetMinute(), dayCycle.GetCurrentDay(),
+            &eventManager, &simControls, GetGSComponent<ResourceManager>().get());
 
         if (simControls.pauseClicked)
             simulationPaused = !simulationPaused;
@@ -1269,7 +1715,13 @@ void GamePlayState::DrawImGui()
 
 void GamePlayState::Unload()
 {
+    WorkManager::GetInstance().ClearAllJobs();
+    selectedNPC = nullptr;
+    if (auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>())
+        gameObjMgr->Unload();
+
     OpenGL::DestroyShader(rainShader);
+    OpenGL::DestroyShader(pointLightShader);
     if (rainVAO != 0)
     {
         GL::DeleteVertexArrays(1, &rainVAO);
@@ -1280,6 +1732,10 @@ void GamePlayState::Unload()
         GL::DeleteBuffers(1, &rainVBO);
         rainVBO = 0;
     }
+
+    WorkBuilding::UnloadTextures();
+    ResidentBuilding::UnloadTextures();
+    Fire::UnloadTexture();
 
     Engine::GetLogger().LogEvent("GamePlayState: Unloaded");
 }
@@ -1299,25 +1755,15 @@ void GamePlayState::SaveGame(const std::string& filename)
     if (resourceMgr)
     {
         j["PlayerResources"] = {
-            { "Money", resourceMgr->totalMoney }
+            {        "Money",        resourceMgr->totalMoney },
+            {         "Food",         resourceMgr->GetFood() },
+            { "FoodCapacity", resourceMgr->GetFoodCapacity() }
         };
     }
 
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)
     {
-        //  Save Map Resources
-        json& j_map_resources = j["MapResources"];
-        for (const auto& res : mapMgr->GetResources())
-        {
-            j_map_resources.push_back({
-                {          "Type",          res->GetType() },
-                {             "X",         res->GetGridX() },
-                {             "Y",         res->GetGridY() },
-                { "CurrentAmount", res->GetCurrentAmount() }
-            });
-        }
-
         //  Save Road Info (based on TileManager)
         json& j_roads = j["Roads"];
         auto  tileMgr = mapMgr->GetMap()->GetTileManager();
@@ -1331,17 +1777,35 @@ void GamePlayState::SaveGame(const std::string& filename)
         }
     }
 
-    //  Save Human Info
+    //  Save Buildings
     auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
     if (gameObjMgr)
     {
+        json& j_buildings = j["Buildings"];
+        for (const auto& building : gameObjMgr->GetBuildings())
+        {
+            j_buildings.push_back(
+                {
+                    {           "Type", static_cast<int>(building->GetBuildingType()) },
+                    {              "X",                         building->GetGrid().x },
+                    {              "Y",                         building->GetGrid().y },
+                    {          "Width",                          building->GetWidth() },
+                    {         "Height",                         building->GetHeight() },
+                    {        "IsBuilt",                        building->GetIsBuilt() },
+                    {       "Progress",                       building->GetProgress() },
+                    { "CurrentWorkers",           (int)building->GetCurrentCapacity() }
+            });
+        }
+
+        //  Save Human Info
         json& j_humans = j["Humans"];
         for (const auto& human : gameObjMgr->GetHumans())
         {
-            j_humans.push_back({
-                {  "Position", { human->GetGridPosition().x, human->GetGridPosition().y } },
-                {     "State",                                          human->GetState() },
-                { "Happiness",                                      human->GetHappiness() }
+            j_humans.push_back(
+                {
+                    {  "Position", { human->GetGridPosition().x, human->GetGridPosition().y } },
+                    {     "State",                                          human->GetState() },
+                    { "Happiness",                                      human->GetHappiness() }
             });
         }
     }
@@ -1393,7 +1857,6 @@ void GamePlayState::LoadGame(const std::string& filename)
     if (mapMgr)
     {
         // Clear existing map-bound entities
-        mapMgr->GetResources().clear();
         mapMgr->GetRoad()->removeAllRoad(*mapMgr->GetMap());
     }
     else
@@ -1415,26 +1878,7 @@ void GamePlayState::LoadGame(const std::string& filename)
         {
             resourceMgr->SetResources(playerResources.value("Wood", 0), playerResources.value("Stone", 0), playerResources.value("Steel", 0));
         }
-    }
-
-    //  Load Map Resources
-    if (j.contains("MapResources"))
-    {
-        auto& resources = mapMgr->GetResources();
-        for (const auto& resData : j["MapResources"])
-        {
-            ResourceType type   = resData.at("Type").get<ResourceType>();
-            int          x      = resData.at("X").get<int>();
-            int          y      = resData.at("Y").get<int>();
-            int          amount = resData.at("CurrentAmount").get<int>();
-
-            if (type == ResourceType::Wood)
-                resources.push_back(std::make_unique<Wood>(x, y, amount));
-            else if (type == ResourceType::Stone)
-                resources.push_back(std::make_unique<Stone>(x, y, amount));
-            else if (type == ResourceType::Steel)
-                resources.push_back(std::make_unique<Steel>(x, y, amount));
-        }
+        // Food is restored after buildings (so foodCapacity is set first)
     }
 
     //  Load Road Info
@@ -1448,8 +1892,71 @@ void GamePlayState::LoadGame(const std::string& filename)
         }
     }
 
-    //  Load Human Info
+    //  Load Buildings
     auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>();
+    if (gameObjMgr && j.contains("Buildings") && mapMgr)
+    {
+        auto tileMgr2 = mapMgr->GetMap()->GetTileManager();
+
+        auto isWorkBuilding = [](BuildingType bt)
+        {
+            return bt != BuildingType::HOME && bt != BuildingType::MISSING_TEXTURE && bt != BuildingType::STREET_LIGHT && bt != BuildingType::PARK;
+        };
+
+        auto getTileType = [](BuildingType bt)
+        {
+            if (bt == BuildingType::HOME || bt == BuildingType::MISSING_TEXTURE || bt == BuildingType::STREET_LIGHT || bt == BuildingType::PARK)
+                return Dokev::TileType::RESIDENTIAL;
+            return Dokev::TileType::INDUSTRIAL;
+        };
+
+        for (const auto& bData : j["Buildings"])
+        {
+            BuildingType bt    = static_cast<BuildingType>(bData.value("Type", 0));
+            float        bx    = bData.value("X", 0.0f);
+            float        by    = bData.value("Y", 0.0f);
+            int          bw    = bData.value("Width", 1);
+            int          bh    = bData.value("Height", 1);
+            bool         built = bData.value("IsBuilt", false);
+
+            Building* building = nullptr;
+            if (isWorkBuilding(bt))
+            {
+                auto* wb = new WorkBuilding(Math::fvec2(bx, by), bw, bh, 10, bt);
+                wb->SetResourceManager(resourceMgr.get());
+                building = wb;
+            }
+            else
+            {
+                building = new ResidentBuilding(Math::fvec2(bx, by), bw, bh, 10, bt);
+            }
+
+            if (built)
+                building->ForceComplete();
+
+            gameObjMgr->AddBuilding(building);
+
+            if (tileMgr2)
+            {
+                int ix = static_cast<int>(bx);
+                int iy = static_cast<int>(by);
+                if (bw == 1 && bh == 1)
+                    tileMgr2->AllocateTile(ix, iy, getTileType(bt));
+                else
+                    tileMgr2->AllocateArea(ix, iy, bw, bh, getTileType(bt));
+            }
+        }
+    }
+
+    // Restore food after buildings (foodCapacity is now set by Granary ForceComplete)
+    if (resourceMgr && j.contains("PlayerResources"))
+    {
+        const auto& pr = j["PlayerResources"];
+        if (pr.contains("Food"))
+            resourceMgr->SetFood(pr.value("Food", 0));
+    }
+
+    //  Load Human Info
     if (gameObjMgr && j.contains("Humans"))
     {
         for (const auto& humanData : j["Humans"])

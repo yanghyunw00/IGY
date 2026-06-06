@@ -114,6 +114,7 @@ public:
     
 
     //Flatten
+    bool CanFlattenTile(int x, int y) const;
     bool FlattenTile(int x, int y);
     bool LevelAreaToAverage(int startX, int startY, int width, int height);
 
@@ -173,6 +174,7 @@ private:
     Dokev::Texture2D MountainTexture;
     Dokev::Texture2D SnowTexture;
     Dokev::Texture2D Max_Height;
+    Dokev::Texture2D Max_Height_Water;
 
     Dokev::Texture2D IsoMouseAtlas;
 
@@ -212,7 +214,15 @@ public:
             roadConnectionMask[y][x] = -1;
     }
 
+    double GetCellHeight(int x, int y) const
+    {
+        if (x < 0 || x >= GRID_SIZE_X || y < 0 || y >= GRID_SIZE_Y)
+            return -1.0;
+        return m_gridCells[y][x].getHeight();
+    }
 
     mutable GLuint mouseAtlasFBO = 0;
     mutable GLuint mouseAtlasTex = 0;
+    mutable int    mouseAtlasW   = 0;
+    mutable int    mouseAtlasH   = 0;
 };

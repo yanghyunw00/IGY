@@ -6,8 +6,11 @@
 #include "CS200/RenderingAPI.hpp"
 #include "Dokev/Core/DKColor.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
+#include "Dokev/Input/DKMouseInput.hpp"
 #include "Dokev/State/DKGameState.hpp"
+#include "Dokev/World/DKCollision.hpp"
 #include "Engine/Engine.hpp"
+#include "Engine/Font.hpp"
 #include "Engine/Input.hpp"
 #include "Engine/Matrix.hpp"
 #include "Engine/Texture.hpp"
@@ -17,7 +20,6 @@
 class Setting : public Dokev::GameState
 {
 public:
-    // Setting();
     void                  Load() override;
     void                  Update(double dt) override;
     void                  Unload() override;
@@ -51,9 +53,9 @@ private:
     ////////////////////
     //   Text Color   //
     ////////////////////
-    CS200::RGBA TextColor_Volume     = Dokev::ColorPalette::WHITE;
-    CS200::RGBA TextColor_volume_num = Dokev::ColorPalette::WHITE;
-    CS200::RGBA TextColor_Back       = Dokev::ColorPalette::WHITE;
+    CS200::RGBA TextColor_Volume     = Dokev::ColorPalette::BLACK;
+    CS200::RGBA TextColor_volume_num = Dokev::ColorPalette::BLACK;
+    CS200::RGBA TextColor_Back       = Dokev::ColorPalette::BLACK;
 
     ////////////////////
     //   Text Scale   //
@@ -86,9 +88,7 @@ private:
     Math::vec2 Text_Position_Center_Bottom = { static_cast<double>(center_x), 0.0 + static_cast<double>(Padding_y_Bottom) };
     Math::vec2 Text_Position_Volume        = { static_cast<double>(center_x),
                                                static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top) - padding_y_Middle* static_cast<int>(Setting_Keys::Volume) };
-
-    Math::vec2 Text_Position_volume_num = { static_cast<double>(center_x), static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top) - padding_y_Middle + 150 };
-
+    Math::vec2 Text_Position_volume_num    = { static_cast<double>(center_x), static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top) - padding_y_Middle + 150 };
     Math::vec2 Text_Position_Back = { static_cast<double>(center_x), static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top) - padding_y_Middle* static_cast<int>(Setting_Keys::Back) };
 
 
@@ -103,4 +103,6 @@ private:
     // Helper func
     void DrawOptions();
     void SetVolume(int scale);
+
+    Dokev::Mouse mouse;
 };

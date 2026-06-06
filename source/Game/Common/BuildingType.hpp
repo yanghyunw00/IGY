@@ -17,11 +17,23 @@ enum class BuildingType
     WOOD_WORKSHOP,
     STEEL_WORKSHOP,
     GRANARY,
+    FARM,
+    WORKPLACE3, // Fire station
+    DISASTER_OBSERVATORY,
+
+    // ENTERTAINMENT / SERVICE buildings
+    CASINO,
+    PENTHOUSE,
 
     // RESIDENT buildings
     HOME,
     CAFE,
     RESTAURANT2,
+
+    // DECORATIONS
+    MISSING_TEXTURE,
+    STREET_LIGHT,
+    PARK,
 
     // INFRASTRUCTURE
     ROAD,

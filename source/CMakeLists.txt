@@ -100,6 +100,7 @@ set(SOURCE_CODE
     Game/States/GamePlayState.hpp Game/States/GamePlayState.cpp
     Game/States/MainMenu.hpp Game/States/MainMenu.cpp
     Game/States/Splash.hpp Game/States/Splash.cpp
+    Game/States/SplashGame.hpp Game/States/SplashGame.cpp
     Game/States/Setting.hpp Game/States/Setting.cpp
     Game/States/GameCredit.hpp Game/States/GameCredit.cpp
     Game/States/DEMO.hpp Game/States/DEMO.cpp
@@ -113,12 +114,6 @@ set(SOURCE_CODE
     Game/Entities/ResidentBuilding.hpp Game/Entities/ResidentBuilding.cpp
     Game/Entities/WorkBuilding.hpp Game/Entities/WorkBuilding.cpp
     Game/Entities/Road.hpp Game/Entities/Road.cpp
-
-    # Game - Resources
-    Game/Resources/Resource.hpp Game/Resources/Resource.cpp
-    Game/Resources/Wood.hpp Game/Resources/Wood.cpp
-    Game/Resources/Stone.hpp Game/Resources/Stone.cpp
-    Game/Resources/Steel.hpp Game/Resources/Steel.cpp
 
     # Game - Managers
     Game/Managers/AchievementManager.hpp Game/Managers/AchievementManager.cpp
@@ -141,7 +136,7 @@ set(SOURCE_CODE
     Game/World/pathFinding.hpp Game/World/pathFinding.cpp
     Game/World/DisasterEvent.hpp
     Game/World/Drought.hpp Game/World/Drought.cpp
-    Game/World/Meteor.hpp Game/World/Meteor.cpp
+    Game/World/Earthquake.hpp Game/World/Earthquake.cpp
     Game/World/Fire.hpp Game/World/Fire.cpp
 
 
@@ -210,8 +205,11 @@ if(EMSCRIPTEN)
     -sWASM=1 
     -sDISABLE_EXCEPTION_CATCHING=0 
     -sALLOW_MEMORY_GROWTH=1 
-    -sEXIT_RUNTIME=1 
-    -sSINGLE_FILE=1 
+    -sEXIT_RUNTIME=1
+    # NOTE: -sSINGLE_FILE=1 disabled. Embedding the wasm as raw bytes inside a
+    # UTF-8 html corrupts the binary in the browser ("illegal flag value").
+    # Emitting separate .js/.wasm/.data files is the robust way to deploy (e.g. GitHub Pages).
+    # -sSINGLE_FILE=1
     --embed-file ${CMAKE_SOURCE_DIR}/Assets@/Assets
     --use-preload-cache
     -lembind

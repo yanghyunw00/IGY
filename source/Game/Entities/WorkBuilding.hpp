@@ -10,6 +10,7 @@
 #pragma once
 
 #include "Building.hpp"
+#include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Managers/DKTimeManager.hpp"
 
 class WorkBuilding : public Building
@@ -19,28 +20,43 @@ protected:
     int                    resourceProduce;
     Dokev::Timer           productionTimer;
     class ResourceManager* resourceManager;
+    bool                   serviceOperating;
 
     // Static texture cache to prevent memory leaks
     static Dokev::Texture2D loggingCampTexture;
     static Dokev::Texture2D quarryTexture;
     static Dokev::Texture2D ironMineTexture;
     static Dokev::Texture2D granaryTexture;
+    static Dokev::Texture2D farmTexture;
     static Dokev::Texture2D cafeTexture;
     static Dokev::Texture2D restaurant2Texture;
+    static Dokev::Texture2D workplace3Texture;
+    static Dokev::Texture2D disasterObservatoryTexture;
+    static Dokev::Texture2D casinoTexture;
+    static Dokev::Texture2D eduBuildingTexture;
     static Dokev::Texture2D missingTexture;
     //added most recently
     static Dokev::Texture2D loggingCampInterationTexture;
     static Dokev::Texture2D quarryInterationTexture;
     static Dokev::Texture2D ironMineInterationTexture;
     static Dokev::Texture2D granaryInterationTexture;
+    static Dokev::Texture2D farmInteractionTexture;
     static Dokev::Texture2D cafeInteractionTexture;
     static Dokev::Texture2D restaurant2InteractionTexture;
 
     static bool             texturesLoaded;
 
+    static Dokev::AnimatedSprite woodWorkshopAnim;  // LoggingCamp
+    static Dokev::AnimatedSprite rockWorkshopAnim;   // Quarry
+    static Dokev::AnimatedSprite steelWorkshopAnim;  // IronWork
+
     static void LoadTextures();
 
+    Dokev::AnimatedSprite* GetWorkerAnimation() const;
+
 public:
+    static void UnloadTextures();
+    static void UpdateAnimations(double dt);
     WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType bt);
     ~WorkBuilding() override;
 
@@ -67,4 +83,5 @@ public:
     void SetProductionRate(float rate);
     bool  IsFull() const;
     bool  HasWorker() const;
+    bool  IsServiceOperating() const;
 };

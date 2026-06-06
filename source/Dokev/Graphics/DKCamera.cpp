@@ -52,6 +52,11 @@ namespace Dokev
         zoom *= factor;
     }
 
+    void Camera::AdjustTargetZoom(float factor, float minZoom, float maxZoom)
+    {
+        targetZoom = std::clamp(targetZoom * factor, minZoom, maxZoom);
+    }
+
     void Camera::ClampZoom(float minZoom, float maxZoom)
     {
         zoom = std::clamp(zoom, minZoom, maxZoom);
@@ -114,7 +119,7 @@ namespace Dokev
     {
         if (shakeTimeLeft <= 0.0f)
         {
-            shakeOffset   = { 0.0f, 0.0f };
+            shakeOffset   = { 0.0, 0.0 };
             shakeTimeLeft = 0.0f;
             return;
         }

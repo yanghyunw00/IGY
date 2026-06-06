@@ -545,6 +545,7 @@ namespace Dokev
                                              : human->GetState() == HumanState::FindingDestination ? "Finding"
                                              : human->GetState() == HumanState::Working            ? "Working"
                                              : human->GetState() == HumanState::Resting            ? "Resting"
+                                             : human->GetState() == HumanState::Firefighting       ? "Firefighting"
                                                                                                    : "?";
 
                         std::string label = "Human #" + std::to_string(index) + "  [" + stateStr + "]";
@@ -626,8 +627,28 @@ namespace Dokev
 
                 ImGui::Spacing();
 
-                if (ImGui::Button("Force Random Event"))
-                    eventManager->ForceEvent();
+                float fRadius = eventManager->GetFireRadius();
+                if (ImGui::SliderFloat("Fire Radius", &fRadius, 1.0f, 200.0f))
+                    eventManager->SetFireRadius(fRadius);
+
+                float eRadius = eventManager->GetEarthquakeRadius();
+                if (ImGui::SliderFloat("Earthquake Radius", &eRadius, 1.0f, 100.0f))
+                    eventManager->SetEarthquakeRadius(eRadius);
+
+                ImGui::Spacing();
+
+                if (ImGui::Button("Force Fire"))
+                    eventManager->ForceEventByType(EventList::FIRE);
+                ImGui::SameLine();
+                if (ImGui::Button("Force Drought"))
+                    eventManager->ForceEventByType(EventList::DROUGHT);
+                ImGui::SameLine();
+                if (ImGui::Button("Force Earthquake"))
+                    eventManager->ForceEventByType(EventList::EARTHQUAKE);
+
+                ImGui::Spacing();
+                if (ImGui::Checkbox("Show Disaster Radius Debug", &disasterDebugDraw))
+                    eventManager->SetDebugDrawRadius(disasterDebugDraw);
 
                 ImGui::Spacing();
                 ImGui::Separator();

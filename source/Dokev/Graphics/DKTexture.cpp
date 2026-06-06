@@ -136,7 +136,7 @@ namespace Dokev
 
         const auto size = texture->GetSize();
 
-        double rad = static_cast<double>(rotation) * PI / 180.0;
+        double rad = static_cast<double>(rotation * PI / 180.0f);
 
         Math::vec2 finalScale{ static_cast<double>(size.x) * scale.x, static_cast<double>(size.y) * scale.y };
 

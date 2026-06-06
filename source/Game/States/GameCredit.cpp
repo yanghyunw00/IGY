@@ -1,40 +1,66 @@
 /**
- * \file MainMenu.cpp
- * \brief Displays the main screen
+ * \file GameCredit.cpp
+ * \brief Displays the credits with a Star Wars-style scrolling image
  * \author Youngwoo Lee(youngwoo.lee)
  * \date 2025 Fall
  * \copyright DigiPen Institute of Technology
  */
 
 #include "GameCredit.hpp"
+#include "CS200/NDC.hpp"
+#include "CS200/RenderingAPI.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
-#include "GamePlayState.hpp"
+#include "Engine/Input.hpp"
+#include "Engine/Window.hpp"
 #include "MainMenu.hpp"
-#include "Setting.hpp"
 
 void GameCredit::Load()
 {
-    CS200::RenderingAPI::SetClearColor(0x0d0e20FF);
+    CS200::RenderingAPI::SetClearColor(CS200::WHITE);
+    creditTexture = Dokev::LoadTexture("Assets/images/IGY_CREDIT.png");
+
     try
     {
-        Font_outlined = std::make_unique<CS230::Font>("Assets/fonts/DungGeunMo.ttf", 40);
+        hintFont = std::make_unique<CS230::Font>("Assets/fonts/DungGeunMo.ttf", 40);
     }
     catch (const std::exception& e)
     {
         std::cerr << e.what() << '\n';
     }
+
+    if (creditTexture.IsValid())
+    {
+        auto  winSize  = Engine::GetWindow().GetSize();
+        float imgWidth = static_cast<float>(creditTexture.GetWidth());
+        imageScale     = static_cast<float>(winSize.x) / imgWidth;
+        scaledHeight   = creditTexture.GetHeight() * static_cast<double>(imageScale);
+        scrollY        = -4300;
+        loaded         = true;
+    }
 }
 
 void GameCredit::Update(double dt)
 {
-    (void)dt;
     const auto& input = Engine::GetInput();
 
-    if (input.KeyJustPressed(CS230::Input::Keys::Enter))
+    if (input.KeyJustPressed(CS230::Input::Keys::Enter) || input.KeyJustPressed(CS230::Input::Keys::Escape))
     {
         Engine::GetGameStateManager().PopState();
         Engine::GetGameStateManager().PushState<MainMenu>();
+        return;
+    }
+
+    scrollY += SCROLL_SPEED * dt;
+
+    if (input.KeyDown(CS230::Input::Keys::Space))
+    {
+        scrollY += SCROLL_SPEED * dt * 3.0;
+    }
+
+    if (scrollY > 0)
+    {
+        scrollY = -4300;
     }
 }
 
@@ -50,91 +76,24 @@ gsl::czstring GameCredit::GetName() const
 void GameCredit::Draw() const
 {
     CS200::RenderingAPI::Clear();
+    if (!loaded)
+        return;
+
     auto& renderer2d = Engine::GetRenderer2D();
+    auto  winSize    = Engine::GetWindow().GetSize();
+    renderer2d.BeginScene(CS200::build_ndc_matrix(winSize));
 
-    renderer2d.BeginScene(CS200::build_ndc_matrix(Engine::GetWindow().GetSize()));
-    ////////////////////////////////
-    //           Credit           //
-    ////////////////////////////////
+    float      posX = (winSize.x - creditTexture.GetWidth() * imageScale) / 2.0f;
+    Math::vec2 pos{ static_cast<double>(posX), scrollY };
+    creditTexture.DrawEx(pos, 0.0f, Math::vec2{ imageScale, imageScale }, CS200::WHITE);
 
-    DrawText(Credit, Text_Position_Credit, *Font_outlined, TextColor_Title, TextScale_Credit);
+    constexpr double rightMargin  = 20.0;
+    constexpr double lineHeight   = 40.0;
+    constexpr double bottomMargin = 20.0;
+    double           leftEdge     = static_cast<double>(winSize.x) - rightMargin - 380.0;
 
-    ////////////////////////////////
-    //         Libraries          //
-    ////////////////////////////////
-
-    DrawText(Libraries, Text_Position_Third_Party_Libraries, *Font_outlined, TextColor_ThirdPL, TextScale_Title);
-
-    ////////////////////////////////
-    //            GLEW            //
-    ////////////////////////////////
-
-    DrawText(GLEW, Text_Position_GLEW, *Font_outlined, TextColor_contents, TextScale_Title);
-    Math::vec2 GlewContentPosition1 = { Text_Position_GLEW.x - 0, Text_Position_GLEW.y - (contents_padding_y * 2) + 10 };
-    Math::vec2 GlewContentPosition2 = { Text_Position_GLEW.x - 0, Text_Position_GLEW.y - (contents_padding_y * 3) + 10 };
-
-    DrawText(GLEWLicense, GlewContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
-    DrawText(GLEWCopyright, GlewContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
-
-    ////////////////////////////////
-    //            SDL2            //
-    ////////////////////////////////
-
-    DrawText(SDL2, Text_Position_SDL2, *Font_outlined, TextColor_contents, TextScale_Title);
-    Math::vec2 SDL2ContentPosition1 = { Text_Position_SDL2.x - 0, Text_Position_SDL2.y - (contents_padding_y * 2) + 10 };
-    Math::vec2 SDL2ContentPosition2 = { Text_Position_SDL2.x - 0, Text_Position_SDL2.y - (contents_padding_y * 3) + 10 };
-
-    DrawText(SDL2License, SDL2ContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
-    DrawText(SDL2Copyright, SDL2ContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
-
-    ////////////////////////////////
-    //            ImGui           //
-    ////////////////////////////////
-
-    DrawText(ImGui, Text_Position_ImGui, *Font_outlined, TextColor_contents, TextScale_Title);
-    Math::vec2 ImGuiContentPosition1 = { Text_Position_ImGui.x - 0, Text_Position_ImGui.y - (contents_padding_y * 2) + 10 };
-    Math::vec2 ImGuiContentPosition2 = { Text_Position_ImGui.x - 0, Text_Position_ImGui.y - (contents_padding_y * 3) + 10 };
-
-    DrawText(ImGuiLicense, ImGuiContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
-    DrawText(ImGuiCopyright, ImGuiContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
-
-    ////////////////////////////////
-    //          Microsoft         //
-    ////////////////////////////////
-
-    DrawText(Microsoft, Text_Position_Microsoft, *Font_outlined, TextColor_contents, TextScale_Title);
-    Math::vec2 MicrosoftContentPosition1 = { Text_Position_Microsoft.x - 0, Text_Position_Microsoft.y - (contents_padding_y * 2) + 10 };
-    Math::vec2 MicrosoftContentPosition2 = { Text_Position_Microsoft.x - 0, Text_Position_Microsoft.y - (contents_padding_y * 3) + 10 };
-
-    DrawText(MicrosoftLicense, MicrosoftContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
-    DrawText(MicrosoftCopyright, MicrosoftContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
-
-    ////////////////////////////////
-    //             STB            //
-    ////////////////////////////////
-
-    DrawText(STB, Text_Position_STB, *Font_outlined, TextColor_contents, TextScale_Title);
-    Math::vec2 STBContentPosition1 = { Text_Position_STB.x - 0, Text_Position_STB.y - (contents_padding_y * 2) + 10 };
-    Math::vec2 STBContentPosition2 = { Text_Position_STB.x - 0, Text_Position_STB.y - (contents_padding_y * 3) + 10 };
-
-    DrawText(STBLicense, STBContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
-    DrawText(STBCopyright, STBContentPosition2, *Font_outlined, TextColor_contents, TextScale_contents);
-
-    ////////////////////////////////
-    //       Game Copyright       //
-    ////////////////////////////////
-
-    DrawText(Game_Copyright, Text_Position_Game_Copyright, *Font_outlined, TextColor_GameCP, TextScale_Title);
-    Math::vec2 Game_CopyrightContentPosition1 = { Text_Position_Game_Copyright.x - 0, Text_Position_Game_Copyright.y - (contents_padding_y * 2) + 10 };
-
-    DrawText(DigipenCopyright, Game_CopyrightContentPosition1, *Font_outlined, TextColor_contents, TextScale_contents);
-
-    ////////////////////////////////
-    //            Back            //
-    ////////////////////////////////
-
-    DrawText(Back, Text_Position_Back, *Font_outlined, TextColor_Back, TextScale_Title);
-
+    DrawHintText(escapeText, { leftEdge, bottomMargin + lineHeight }, Dokev::ColorPalette::BLACK);
+    DrawHintText(spaceBarText, { leftEdge, bottomMargin + lineHeight * 2.0 }, Dokev::ColorPalette::BLACK);
     renderer2d.EndScene();
 }
 
@@ -142,28 +101,19 @@ void GameCredit::DrawImGui()
 {
 }
 
-void GameCredit::DrawText(const std::string& text, const Math::vec2& position, CS230::Font& font, CS200::RGBA color, Math::vec2 textscale) const
+void GameCredit::DrawHintText(const std::string& text, Math::vec2 bottomLeft, CS200::RGBA color) const
 {
-    auto text_texture = font.PrintToTexture(text, color);
-
-    if (!text_texture)
-    {
+    if (!hintFont)
         return;
-    }
-    else
-    {
-        // Texture - GetSize
-        Math::ivec2 size = text_texture->GetSize(); // {width, height}
 
-        double     padding = 0.5;
-        Math::vec2 halfSize{ static_cast<double>(size.x) * padding * textscale.x, static_cast<double>(size.y) * padding * textscale.y };
+    auto text_texture = hintFont->PrintToTexture(text, color);
+    if (!text_texture)
+        return;
 
-        // Center Pos - HalfSize
-        Math::vec2 drawPos = position - halfSize;
-
-        // Final Transform
-        const auto position_transform = Math::TranslationMatrix(drawPos) * Math::ScaleMatrix(textscale);
-
-        text_texture->Draw(position_transform, color);
-    }
+    const Math::vec2 scale{ 0.45, 0.45 };
+    constexpr double xMargin = 150;
+    constexpr double yMargin = 50;
+    Math::vec2       drawPos{ bottomLeft.x + xMargin, bottomLeft.y - yMargin };
+    const auto       transform = Math::TranslationMatrix(drawPos) * Math::ScaleMatrix(scale);
+    text_texture->Draw(transform, color);
 }

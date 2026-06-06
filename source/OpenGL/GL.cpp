@@ -619,11 +619,6 @@ namespace GL
         glCheck(glGetTexParameteriv(target, pname, params));
     }
 
-    void GetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint* params SOURCE_LOCATION)
-    {
-        glCheck(glGetTexLevelParameteriv(target, level, pname, params));
-    }
-
     void GetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params SOURCE_LOCATION)
     {
         glCheck(glGetVertexAttribfv(index, pname, params));

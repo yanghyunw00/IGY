@@ -41,9 +41,13 @@ namespace Dokev
 
         constexpr bool is_workshop_type(BuildingType type)
         {
-            return type == BuildingType::ROCK_WORKSHOP ||
-                   type == BuildingType::WOOD_WORKSHOP ||
-                   type == BuildingType::STEEL_WORKSHOP;
+            return type == BuildingType::ROCK_WORKSHOP   ||
+                   type == BuildingType::WOOD_WORKSHOP   ||
+                   type == BuildingType::STEEL_WORKSHOP  ||
+                   type == BuildingType::WORKPLACE3      ||
+                   type == BuildingType::DISASTER_OBSERVATORY ||
+                   type == BuildingType::CASINO          ||
+                   type == BuildingType::PENTHOUSE;
         }
 
         constexpr bool is_residential_type(BuildingType type)

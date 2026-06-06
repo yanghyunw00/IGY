@@ -19,24 +19,45 @@ Dokev::Texture2D WorkBuilding::loggingCampTexture;
 Dokev::Texture2D WorkBuilding::quarryTexture;
 Dokev::Texture2D WorkBuilding::ironMineTexture;
 Dokev::Texture2D WorkBuilding::granaryTexture;
+Dokev::Texture2D WorkBuilding::farmTexture;
 Dokev::Texture2D WorkBuilding::cafeTexture;
 Dokev::Texture2D WorkBuilding::restaurant2Texture;
+Dokev::Texture2D WorkBuilding::workplace3Texture;
+Dokev::Texture2D WorkBuilding::disasterObservatoryTexture;
+Dokev::Texture2D WorkBuilding::casinoTexture;
+Dokev::Texture2D WorkBuilding::eduBuildingTexture;
 
 Dokev::Texture2D WorkBuilding::loggingCampInterationTexture;
 Dokev::Texture2D WorkBuilding::quarryInterationTexture;
 Dokev::Texture2D WorkBuilding::ironMineInterationTexture;
 Dokev::Texture2D WorkBuilding::granaryInterationTexture;
+Dokev::Texture2D WorkBuilding::farmInteractionTexture;
 Dokev::Texture2D WorkBuilding::cafeInteractionTexture;
 Dokev::Texture2D WorkBuilding::restaurant2InteractionTexture;
 
 Dokev::Texture2D WorkBuilding::missingTexture;
 bool             WorkBuilding::texturesLoaded = false;
 
+Dokev::AnimatedSprite WorkBuilding::woodWorkshopAnim;
+Dokev::AnimatedSprite WorkBuilding::rockWorkshopAnim;
+Dokev::AnimatedSprite WorkBuilding::steelWorkshopAnim;
+
 namespace
 {
+    constexpr int kGranaryFoodCapacity      = 200;
+    constexpr int kCafeFoodPerTick          = 1;
+    constexpr int kRestaurantFoodPerTick    = 2;
+    constexpr int kCafeIncomePerTick        = 3;
+    constexpr int kRestaurantIncomePerTick  = 7;
+
     CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
     {
         return (color & 0xFFFFFF00u) | alpha;
+    }
+
+    bool IsFoodService(BuildingType buildingType)
+    {
+        return buildingType == BuildingType::CAFE || buildingType == BuildingType::RESTAURANT2;
     }
 }
 
@@ -48,18 +69,75 @@ void WorkBuilding::LoadTextures()
         quarryTexture      = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
         ironMineTexture    = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine.png").string());
         granaryTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2.png").string());
+        farmTexture        = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Farm.png").string());
 
         loggingCampInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp_interaction.png").string());
         quarryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Quarry_interaction.png").string());
         ironMineInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/IronMine_interaction.png").string());
         granaryInterationTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2_interaction.png").string());
+        farmInteractionTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Farm.png").string());
         cafeTexture              = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
         restaurant2Texture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
         cafeInteractionTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/Cafe_interaction.png").string());
         restaurant2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/resources/restaurant2_interaction.png").string());
 
+        workplace3Texture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/workplace3.png").string());
+        disasterObservatoryTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/disaster_observatory.png").string());
+        casinoTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
+        eduBuildingTexture  = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
+
         missingTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+
+        woodWorkshopAnim  = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/LoggingCamp_Human_Interaction_Line.spt"));
+        rockWorkshopAnim  = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/Quarry_Human_Interaction_Line.spt"));
+        steelWorkshopAnim = Dokev::AnimatedSprite(assets::locate_asset("Assets/resources/IronWork_Human_Interaction_Line.spt"));
+
         texturesLoaded = true;
+    }
+}
+
+void WorkBuilding::UnloadTextures()
+{
+    loggingCampTexture            = Dokev::Texture2D{};
+    quarryTexture                 = Dokev::Texture2D{};
+    ironMineTexture               = Dokev::Texture2D{};
+    granaryTexture                = Dokev::Texture2D{};
+    farmTexture                   = Dokev::Texture2D{};
+    cafeTexture                   = Dokev::Texture2D{};
+    restaurant2Texture            = Dokev::Texture2D{};
+    workplace3Texture             = Dokev::Texture2D{};
+    disasterObservatoryTexture             = Dokev::Texture2D{};
+    casinoTexture                 = Dokev::Texture2D{};
+    eduBuildingTexture            = Dokev::Texture2D{};
+    missingTexture                = Dokev::Texture2D{};
+    loggingCampInterationTexture  = Dokev::Texture2D{};
+    quarryInterationTexture       = Dokev::Texture2D{};
+    ironMineInterationTexture     = Dokev::Texture2D{};
+    granaryInterationTexture      = Dokev::Texture2D{};
+    farmInteractionTexture        = Dokev::Texture2D{};
+    cafeInteractionTexture        = Dokev::Texture2D{};
+    restaurant2InteractionTexture = Dokev::Texture2D{};
+    woodWorkshopAnim              = Dokev::AnimatedSprite{};
+    rockWorkshopAnim              = Dokev::AnimatedSprite{};
+    steelWorkshopAnim             = Dokev::AnimatedSprite{};
+    texturesLoaded                = false;
+}
+
+void WorkBuilding::UpdateAnimations(double dt)
+{
+    woodWorkshopAnim.Update(dt);
+    rockWorkshopAnim.Update(dt);
+    steelWorkshopAnim.Update(dt);
+}
+
+Dokev::AnimatedSprite* WorkBuilding::GetWorkerAnimation() const
+{
+    switch (buildingType)
+    {
+        case BuildingType::WOOD_WORKSHOP: return &woodWorkshopAnim;
+        case BuildingType::ROCK_WORKSHOP: return &rockWorkshopAnim;
+        case BuildingType::STEEL_WORKSHOP: return &steelWorkshopAnim;
+        default: return nullptr;
     }
 }
 
@@ -97,9 +175,17 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             break;
 
         case BuildingType::GRANARY:
-            texture      = granaryTexture;
-            max_capacity = 2;
-            cost         = 0;
+            texture         = granaryTexture;
+            max_capacity    = 0; 
+            cost            = 0;
+            maintenanceCost = 5;
+            break;
+
+        case BuildingType::FARM:
+            texture         = farmTexture;
+            max_capacity    = 2;
+            cost            = 0;
+            maintenanceCost = 10;
             break;
 
         case BuildingType::CAFE:
@@ -116,6 +202,34 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             maintenanceCost = 12;
             break;
 
+        case BuildingType::WORKPLACE3:
+            texture         = workplace3Texture;
+            max_capacity    = 3;
+            cost            = 0;
+            maintenanceCost = 12;
+            break;
+
+        case BuildingType::DISASTER_OBSERVATORY:
+            texture         = disasterObservatoryTexture;
+            max_capacity    = 4;
+            cost            = 0;
+            maintenanceCost = 15;
+            break;
+
+        case BuildingType::CASINO:
+            texture         = casinoTexture;
+            max_capacity    = 3;
+            cost            = 0;
+            maintenanceCost = 18;
+            break;
+
+        case BuildingType::PENTHOUSE:
+            texture         = eduBuildingTexture;
+            max_capacity    = 3;
+            cost            = 0;
+            maintenanceCost = 15;
+            break;
+
         default:
             texture      = missingTexture;
             max_capacity = 0;
@@ -127,38 +241,44 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
 WorkBuilding::~WorkBuilding()
 {
     WorkManager::GetInstance().RemoveAllJobsForBuilding(this);
+    if (buildingType == BuildingType::GRANARY && resourceManager != nullptr)
+        resourceManager->RemoveFoodCapacity(kGranaryFoodCapacity);
 }
 
 void WorkBuilding::OnConstructed()
 {
-    // add job when constructed
-    if (max_capacity > 0)
+    // Granary is pure storage, not a workplace: only expand food capacity, no jobs.
+    if (buildingType == BuildingType::GRANARY)
     {
-        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
+        if (resourceManager != nullptr)
+            resourceManager->AddFoodCapacity(kGranaryFoodCapacity);
+        return;
     }
+
+    if (buildingType == BuildingType::WORKPLACE3)
+        return;
+
+    for (unsigned int i = 0; i < max_capacity; ++i)
+        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
 }
 
 void WorkBuilding::OnWorkerArrived(Human* human)
 {
     (void)human;
     AddWorker(1);
-
-    // Add next worker if not full
-    if (!IsFull())
-    {
-        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
-    }
 }
 
 void WorkBuilding::OnWorkerLeft(Human* human)
 {
     (void)human;
     RemoveWorker(1);
+    WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
 }
 
 void WorkBuilding::Update(float dt)
 {
     UpdateConstruction(dt);
+    UpdateLightTimer(dt);
 
     if (!isBuilt)
     {
@@ -171,12 +291,48 @@ void WorkBuilding::Update(float dt)
 
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP: resourceManager->AddResource(ResourceType::Wood, amountToProduce); break;
-            case BuildingType::ROCK_WORKSHOP: resourceManager->AddResource(ResourceType::Stone, amountToProduce); break;
-            case BuildingType::STEEL_WORKSHOP: resourceManager->AddResource(ResourceType::Steel, amountToProduce); break;
+            case BuildingType::WOOD_WORKSHOP:  resourceManager->AddNamedIncome("Wood Workshop",  amountToProduce); break;
+            case BuildingType::ROCK_WORKSHOP:  resourceManager->AddNamedIncome("Rock Workshop",  amountToProduce); break;
+            case BuildingType::STEEL_WORKSHOP: resourceManager->AddNamedIncome("Steel Workshop", amountToProduce); break;
             case BuildingType::GRANARY: break;
+            case BuildingType::FARM:
+                if (resourceManager->GetFoodCapacity() > 0)
+                {
+                    resourceManager->AddFood(amountToProduce);
+                    resourceManager->AddNamedFoodProduction("Farm", amountToProduce);
+                }
+                break;
+            case BuildingType::CAFE:
+                if (resourceManager->TrySpendFood(kCafeFoodPerTick))
+                {
+                    serviceOperating = true;
+                    resourceManager->AddNamedIncome("Cafe", kCafeIncomePerTick);
+                    resourceManager->AddNamedFoodConsumption("Cafe", kCafeFoodPerTick);
+                }
+                else
+                {
+                    serviceOperating = false;
+                }
+                break;
+            case BuildingType::RESTAURANT2:
+                if (resourceManager->TrySpendFood(kRestaurantFoodPerTick))
+                {
+                    serviceOperating = true;
+                    resourceManager->AddNamedIncome("Restaurant", kRestaurantIncomePerTick);
+                    resourceManager->AddNamedFoodConsumption("Restaurant", kRestaurantFoodPerTick);
+                }
+                else
+                {
+                    serviceOperating = false;
+                }
+                break;
             default: break;
         }
+    }
+
+    if (!HasWorker() && IsFoodService(buildingType))
+    {
+        serviceOperating = true;
     }
 
     if (HasWorker())
@@ -195,11 +351,14 @@ void WorkBuilding::Update(float dt)
         case BuildingType::GRANARY:
             texture = granaryInterationTexture;
             break;
+        case BuildingType::FARM:
+            texture = farmInteractionTexture;
+            break;
         case BuildingType::CAFE:
-            texture = cafeInteractionTexture;
+            texture = serviceOperating ? cafeInteractionTexture : cafeTexture;
             break;
         case BuildingType::RESTAURANT2:
-            texture = restaurant2InteractionTexture;
+            texture = serviceOperating ? restaurant2InteractionTexture : restaurant2Texture;
             break;
         default:
             break;
@@ -221,6 +380,9 @@ void WorkBuilding::Update(float dt)
         case BuildingType::GRANARY:
             texture = granaryTexture;
             break;
+        case BuildingType::FARM:
+            texture = farmTexture;
+            break;
         case BuildingType::CAFE:
             texture = cafeTexture;
             break;
@@ -233,14 +395,12 @@ void WorkBuilding::Update(float dt)
     }
 }
 
-void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
+void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int x, [[maybe_unused]] int y)
 {
     if (!map)
     {
         return;
     }
-
-    // Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
     CS200::RGBA tint = CS200::WHITE;
 
@@ -249,14 +409,22 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         const auto alpha = static_cast<uint8_t>(128 + static_cast<int>(progress * 127.0f));
         tint             = ApplyAlpha(tint, alpha);
     }
-
-    int drawX = x;
-    if (buildingType == BuildingType::GRANARY)
+    else if (IsFoodService(buildingType) && HasWorker() && !serviceOperating)
     {
-        drawX -= TILE_WIDTH_HALF;
+        tint = 0xFF8080FF;
     }
 
-    texture.Draw(drawX, y, tint);
+    Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
+
+    Dokev::AnimatedSprite* workerAnim = GetWorkerAnimation();
+    if (isBuilt && HasWorker() && workerAnim != nullptr && workerAnim->GetSpriteSheet().IsValid())
+    {
+        workerAnim->DrawAtPosition(drawPos.x, drawPos.y);
+    }
+    else
+    {
+        texture.Draw(drawPos.x, drawPos.y, tint);
+    }
 
     if (!isBuilt)
     {
@@ -308,6 +476,16 @@ bool WorkBuilding::IsFull() const
 bool WorkBuilding::HasWorker() const
 {
     return current_capacity > 0;
+}
+
+bool WorkBuilding::IsServiceOperating() const
+{
+    if (!IsFoodService(buildingType))
+    {
+        return true;
+    }
+
+    return HasWorker() && serviceOperating;
 }
 
 void WorkBuilding::SetResourceManager(ResourceManager* rm)

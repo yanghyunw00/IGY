@@ -12,6 +12,8 @@
 Dokev::Texture2D ResidentBuilding::house2Texture;
 Dokev::Texture2D ResidentBuilding::house2InteractionTexture;
 Dokev::Texture2D ResidentBuilding::missingTexture;
+Dokev::Texture2D ResidentBuilding::streetLightTexture;
+Dokev::Texture2D ResidentBuilding::parkTexture;
 bool             ResidentBuilding::texturesLoaded = false;
 
 namespace
@@ -29,15 +31,27 @@ void ResidentBuilding::LoadTextures()
         house2Texture            = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/house2.png").string());
         house2InteractionTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/house2_interation.png").string());
         missingTexture           = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        streetLightTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/street_light.png").string());
+        parkTexture              = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/park.png").string());
         texturesLoaded           = true;
     }
+}
+
+void ResidentBuilding::UnloadTextures()
+{
+    house2Texture            = Dokev::Texture2D{};
+    missingTexture           = Dokev::Texture2D{};
+    house2InteractionTexture = Dokev::Texture2D{};
+    streetLightTexture       = Dokev::Texture2D{};
+    parkTexture              = Dokev::Texture2D{};
+    texturesLoaded           = false;
 }
 
 ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, int hp_, BuildingType bt) : Building(pos, w, h, hp_), satisfaction(1.0f), taxrate(10)
 {
     LoadTextures();
 
-    max_capacity     = 50;
+    max_capacity     = 2;
     current_capacity = 0;
     cost             = 100;
     buildingType     = bt;
@@ -49,6 +63,19 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, int hp_, Build
             max_capacity    = 2;
             cost            = 0;
             maintenanceCost = 5;
+            break;
+
+        case BuildingType::STREET_LIGHT:
+            texture      = streetLightTexture;
+            max_capacity = 0;
+            cost         = 0;
+            break;
+
+        case BuildingType::PARK:
+            texture         = parkTexture;
+            max_capacity    = 0;
+            cost            = 0;
+            maintenanceCost = 3;
             break;
 
         default:
@@ -78,6 +105,7 @@ void ResidentBuilding::OnWorkerLeft(Human* human)
 void ResidentBuilding::Update(float dt)
 {
     UpdateConstruction(dt);
+    UpdateLightTimer(dt);
 
     if (!isBuilt)
     {
@@ -88,22 +116,16 @@ void ResidentBuilding::Update(float dt)
     {
         switch (buildingType)
         {
-        case BuildingType::HOME:
-            texture = house2InteractionTexture;
-            break;
-        default:
-            break;
+            case BuildingType::HOME: texture = house2InteractionTexture; break;
+            default: break;
         }
     }
     else
     {
         switch (buildingType)
         {
-        case BuildingType::HOME:
-            texture = house2Texture;
-            break;
-        default:
-            break;
+            case BuildingType::HOME: texture = house2Texture; break;
+            default: break;
         }
     }
 }
@@ -122,7 +144,9 @@ void ResidentBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    texture.Draw(x, y, tint);
+    int drawX = (buildingType == BuildingType::STREET_LIGHT) ? x + TILE_WIDTH_HALF / 2 : x;
+    int drawY = (buildingType == BuildingType::STREET_LIGHT) ? y - TILE_HEIGHT_HALF : y;
+    texture.Draw(drawX, drawY, tint);
 
     if (!isBuilt)
     {

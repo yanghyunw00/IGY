@@ -19,6 +19,7 @@
 class GridMap;
 class Road;
 class ResourceManager;
+class Building;
 namespace Dokev { class GameObjectManager; }
 
 enum class HumanState
@@ -28,6 +29,7 @@ enum class HumanState
     FindingDestination, // Deciding where to go next
     Working,            // work
     Resting,            // resting at home after fatigue
+    Firefighting,       // dispatched to fight a fire
 };
 
 struct HumanStats
@@ -45,7 +47,8 @@ enum class WorkType
     None,
     Gathering,
     Building,
-    Farming
+    Farming,
+    REST
 };
 
 /**
@@ -63,7 +66,7 @@ struct HumanAI
     float       maxIdleTime     = 0.5f; // Max time before finding new destination
     Math::fvec2 previousGridPos = { -1.0f, -1.0f };
 
-    float explorationRadius = 15.0f; // How far from current position to explore
+    float explorationRadius = 100.0f; // How far from current position to explore
     bool  isExploring       = true;  // Currently in exploration mode
 
     Math::fvec2              lastDirection = { 0.0f, 0.0f }; // Last movement direction
@@ -77,9 +80,12 @@ struct HumanAI
     float restTimer             = 0.0f;
     float maxRestTime           = 7.0f;
     Math::fvec2 targetHomePosition = { -1.0f, -1.0f };
-    bool  isHeadingHome         = false;
+    bool        isHeadingHome      = false;
+    Building*   assignedHome       = nullptr;
     Math::fvec2 targetCafePosition = { -1.0f, -1.0f };
     bool  isSeekingCafe         = false;
+
+    bool  isHomeless            = false; // Evening with no available home to return to
 
     // Road following
     bool                 preferRoads           = true;  // Should try to use roads when pathfinding
@@ -137,6 +143,11 @@ public:
     bool HasWorkAssignment() const { return ai.assignedJobId != -1; }
     void CancelWork(); // Cancel the work when some situation happened
 
+    void DispatchToFire(Math::fvec2 fireCenter, GridMap* map);
+    void CancelFirefighting();
+    bool IsFirefighting()    const { return state == HumanState::Firefighting; }
+    bool IsAtFireLocation()  const;
+
     int         GetAssignedJobId()       const { return ai.assignedJobId; }
     Math::fvec2 GetWorkplacePosition()   const { return ai.workplacePosition; }
     float       GetJobSearchRadius()     const { return ai.explorationRadius; }
@@ -157,6 +168,16 @@ public:
     HumanState GetState() const
     {
         return state;
+    }
+
+    bool IsHomeless() const
+    {
+        return ai.isHomeless;
+    }
+
+    bool IsEmigrating() const
+    {
+        return isEmigrating;
     }
 
     const HumanStats& GetStats() const
@@ -198,13 +219,17 @@ public:
 private:
 
     // INTERNAL UPDATE FUNCTIONS
-    void UpdateMovement(float deltaTime, GridMap* map);
+    void UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr = nullptr);
     void UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr);
     void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr);
     void ChangeState(HumanState newState);
 
     void UpdateWorking(float deltaTime, int currentHour);
     void UpdateResting(float deltaTime);
+    void UpdateFirefighting();
+
+    void StartEmigrating();
+    void SpawnFloatingStatus(const std::string& text, CS200::RGBA color, GridMap* map) const;
 
     // TERRAIN HELPERS
     std::string GetTerrainName(double height) const;
@@ -245,4 +270,12 @@ private:
 
     // Accumulated wages this shift (reset on tax collection)
     float shiftEarnings = 0.0f;
+
+    // Firefighting
+    Math::fvec2 fireTargetPos    = { 0.0f, 0.0f };
+    bool        firefightingDone = false;
+
+    // Homelessness / emigration
+    float homelessTextTimer = 0.0f; // Accumulator for the periodic "Homeless" label
+    bool  isEmigrating      = false; // Walking off the map to leave the city
 };

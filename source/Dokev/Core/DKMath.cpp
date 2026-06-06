@@ -25,8 +25,8 @@ float Dokev::DKMath::Lerp(float start, float end, float amount)
 
 int Dokev::DKMath::fastFloor(float f)
 {
-    int ai = (int)f;
-    return (f < ai) ? ai - 1 : ai;
+    int ai = static_cast<int>(f);
+    return (static_cast<int>(f) < ai) ? ai - 1 : ai;
 }
 
 float Dokev::DKMath::fade(float t)
@@ -130,16 +130,16 @@ float Dokev::DKMath::PerlinNoise(float x, float y, float z, int wrapX, int wrapY
     int cell_y = fastFloor(y);
     int cell_z = fastFloor(z);
 
-    int grid_x0 = cell_x & mask_x;
-    int grid_x1 = (cell_x + 1) & mask_x;
-    int grid_y0 = cell_y & mask_y;
-    int grid_y1 = (cell_y + 1) & mask_y;
-    int grid_z0 = cell_z & mask_z;
-    int grid_z1 = (cell_z + 1) & mask_z;
+    int grid_x0 = static_cast<int>(cell_x & mask_x);
+    int grid_x1 = static_cast<int>((cell_x + 1) & mask_x);
+    int grid_y0 = static_cast<int>(cell_y & mask_y);
+    int grid_y1 = static_cast<int>((cell_y + 1) & mask_y);
+    int grid_z0 = static_cast<int>(cell_z & mask_z);
+    int grid_z1 = static_cast<int>((cell_z + 1) & mask_z);
 
-    float rel_x = x - cell_x;
-    float rel_y = y - cell_y;
-    float rel_z = z - cell_z;
+    float rel_x = x - static_cast<float>(cell_x);
+    float rel_y = y - static_cast<float>(cell_y);
+    float rel_z = z - static_cast<float>(cell_z);
 
     float smooth_x = fade(rel_x);
     float smooth_y = fade(rel_y);

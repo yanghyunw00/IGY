@@ -31,6 +31,7 @@ bool Drought::IsFinished() const
     return elapsed >= maxDuration;
 }
 
-void Drought::Draw() const
+void Drought::Draw(int index) const
 {
+    (void)index;
 }

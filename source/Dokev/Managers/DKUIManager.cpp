@@ -16,10 +16,17 @@
 #include "Engine/Path.hpp"
 #include "Engine/Window.hpp"
 #include "Game/Managers/BuildingCostManager.hpp"
+#include "Game/Managers/DKCityMetrics.hpp"
+#include "Game/Managers/HappinessManager.hpp"
 #include "Game/Managers/ResourceManager.hpp"
 #include <cmath>
 #include <string>
 
+
+namespace
+{
+    constexpr int kGranaryWarningThresholdPercent = 90;
+}
 
 namespace Dokev
 {
@@ -31,9 +38,14 @@ namespace Dokev
     void UIManager::Initialize()
     {
         CreateMainButtons();
-        happyIcon = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
-        humanIcon = LoadTexture(assets::locate_asset("Assets/images/textures/human.png").string());
-        outlined  = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
+        happyIcon     = LoadTexture(assets::locate_asset("Assets/images/textures/smile.png").string());
+        humanIcon     = LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
+        iconTime      = LoadTexture(assets::locate_asset("Assets/images/textures/top_icon_time.png").string());
+        iconMoney     = LoadTexture(assets::locate_asset("Assets/images/textures/top_icon_money.png").string());
+        iconFood      = LoadTexture(assets::locate_asset("Assets/images/textures/top_icon_food.png").string());
+        iconHuman     = LoadTexture(assets::locate_asset("Assets/images/textures/top_icon_human.png").string());
+        iconHappiness = LoadTexture(assets::locate_asset("Assets/images/textures/top_icon_happiness.png").string());
+        outlined      = std::make_unique<CS230::Font>(assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
     }
 
     void UIManager::CreateBuildingButtons(CategoryType category)
@@ -42,7 +54,7 @@ namespace Dokev
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
+        float totalWidth = BUTTON_WIDTH * 4 + BUTTON_SPACING * 3;
         float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
 
         switch (category)
@@ -50,7 +62,16 @@ namespace Dokev
             case CategoryType::HOME_CATEGORY:
                 {
                     float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
-                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
+
+                    BuildingButton cancelButton;
+                    cancelButton.type     = BuildingType::NONE;
+                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+                    cancelButton.position = Math::fvec2(offsetX, startY);
+                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelButton.name     = "Cancel";
+                    cancelButton.tint     = Dokev::ColorPalette::RED;
+                    buildingButtons.push_back(cancelButton);
 
                     BuildingButton homeButton;
                     homeButton.type     = BuildingType::HOME;
@@ -61,24 +82,33 @@ namespace Dokev
                     homeButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(homeButton);
 
-                    BuildingButton cafeButton;
-                    cafeButton.type     = BuildingType::CAFE;
-                    cafeButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
-                    cafeButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
-                    cafeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    cafeButton.name     = "Cafe";
-                    cafeButton.tint     = Dokev::ColorPalette::WHITE;
-                    buildingButtons.push_back(cafeButton);
+                    BuildingButton casinoButton;
+                    casinoButton.type     = BuildingType::CASINO;
+                    casinoButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
+                    casinoButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    casinoButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    casinoButton.name     = "Casino";
+                    casinoButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(casinoButton);
 
-                    BuildingButton restaurantButton;
-                    restaurantButton.type     = BuildingType::RESTAURANT2;
-                    restaurantButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
-                    restaurantButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
-                    restaurantButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    restaurantButton.name     = "Restaurant";
-                    restaurantButton.tint     = Dokev::ColorPalette::WHITE;
-                    buildingButtons.push_back(restaurantButton);
+                    BuildingButton eduButton;
+                    eduButton.type     = BuildingType::PENTHOUSE;
+                    eduButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
+                    eduButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    eduButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    eduButton.name     = "Penthouse";
+                    eduButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(eduButton);
+                    break;
+                }
 
+            case CategoryType::WORK_CATEGORY:
+                {
+                    float startY   = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
+                    float offsetX  = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
+                    float offsetX2 = offsetX + BUTTON_WIDTH + BUTTON_SPACING;  // second column for food buildings
+
+                    // Column 1: production buildings
                     BuildingButton cancelButton;
                     cancelButton.type     = BuildingType::NONE;
                     cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
@@ -87,31 +117,6 @@ namespace Dokev
                     cancelButton.name     = "Cancel";
                     cancelButton.tint     = Dokev::ColorPalette::RED;
                     buildingButtons.push_back(cancelButton);
-                    break;
-                }
-
-            case CategoryType::WORK_CATEGORY:
-                {
-                    float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
-                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
-
-                    BuildingButton woodButton;
-                    woodButton.type     = BuildingType::WOOD_WORKSHOP;
-                    woodButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
-                    woodButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
-                    woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    woodButton.name     = "Wood Workshop";
-                    woodButton.tint     = Dokev::ColorPalette::BROWN;
-                    buildingButtons.push_back(woodButton);
-
-                    BuildingButton rockButton;
-                    rockButton.type     = BuildingType::ROCK_WORKSHOP;
-                    rockButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
-                    rockButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
-                    rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    rockButton.name     = "Rock Workshop";
-                    rockButton.tint     = Dokev::ColorPalette::GRAY;
-                    buildingButtons.push_back(rockButton);
 
                     BuildingButton steelButton;
                     steelButton.type     = BuildingType::STEEL_WORKSHOP;
@@ -122,6 +127,24 @@ namespace Dokev
                     steelButton.tint     = Dokev::ColorPalette::LIGHTGRAY;
                     buildingButtons.push_back(steelButton);
 
+                    BuildingButton rockButton;
+                    rockButton.type     = BuildingType::ROCK_WORKSHOP;
+                    rockButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Quarry.png").string());
+                    rockButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    rockButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    rockButton.name     = "Rock Workshop";
+                    rockButton.tint     = Dokev::ColorPalette::GRAY;
+                    buildingButtons.push_back(rockButton);
+
+                    BuildingButton woodButton;
+                    woodButton.type     = BuildingType::WOOD_WORKSHOP;
+                    woodButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/LoggingCamp.png").string());
+                    woodButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    woodButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    woodButton.name     = "Wood Workshop";
+                    woodButton.tint     = Dokev::ColorPalette::BROWN;
+                    buildingButtons.push_back(woodButton);
+
                     BuildingButton granaryButton;
                     granaryButton.type     = BuildingType::GRANARY;
                     granaryButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Granary_2x2.png").string());
@@ -131,21 +154,58 @@ namespace Dokev
                     granaryButton.tint     = Dokev::ColorPalette::WHITE;
                     buildingButtons.push_back(granaryButton);
 
-                    BuildingButton cancelButton;
-                    cancelButton.type     = BuildingType::NONE;
-                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
-                    cancelButton.position = Math::fvec2(offsetX, startY);
-                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    cancelButton.name     = "Cancel";
-                    cancelButton.tint     = Dokev::ColorPalette::RED;
-                    buildingButtons.push_back(cancelButton);
+                    BuildingButton farmButton;
+                    farmButton.type     = BuildingType::FARM;
+                    farmButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Farm.png").string());
+                    farmButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 5);
+                    farmButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    farmButton.name     = "Farm";
+                    farmButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(farmButton);
+
+                    // Column 2: food/service buildings
+                    BuildingButton cafeButton;
+                    cafeButton.type     = BuildingType::CAFE;
+                    cafeButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/Cafe.png").string());
+                    cafeButton.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    cafeButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cafeButton.name     = "Cafe";
+                    cafeButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(cafeButton);
+
+                    BuildingButton restaurantButton;
+                    restaurantButton.type     = BuildingType::RESTAURANT2;
+                    restaurantButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/restaurant2.png").string());
+                    restaurantButton.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    restaurantButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    restaurantButton.name     = "Restaurant";
+                    restaurantButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(restaurantButton);
+
+                    BuildingButton wp3Button;
+                    wp3Button.type     = BuildingType::WORKPLACE3;
+                    wp3Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/workplace3.png").string());
+                    wp3Button.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    wp3Button.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    wp3Button.name     = "Fire Station";
+                    wp3Button.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(wp3Button);
+
+                    BuildingButton wp4Button;
+                    wp4Button.type     = BuildingType::DISASTER_OBSERVATORY;
+                    wp4Button.texture  = LoadTexture(assets::locate_asset("Assets/images/building/disaster_observatory.png").string());
+                    wp4Button.position = Math::fvec2(offsetX2, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 4);
+                    wp4Button.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    wp4Button.name     = "Disaster Observatory";
+                    wp4Button.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(wp4Button);
                     break;
                 }
 
             case CategoryType::ROAD_CATEGORY:
                 {
                     float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
-                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
 
                     BuildingButton roadButton;
                     roadButton.type     = BuildingType::ROAD;
@@ -164,6 +224,49 @@ namespace Dokev
                     cancelButton.name     = "Cancel";
                     cancelButton.tint     = Dokev::ColorPalette::RED;
                     buildingButtons.push_back(cancelButton);
+                    break;
+                }
+
+            case CategoryType::DECORATION_CATEGORY:
+                {
+                    float startY  = UI_SPACING + (BUTTON_HEIGHT + BUTTON_SPACING) * 2;
+                    float offsetX = startX + (BUTTON_WIDTH + BUTTON_SPACING) * 4;
+
+                    BuildingButton cancelButton;
+                    cancelButton.type     = BuildingType::NONE;
+                    cancelButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+                    cancelButton.position = Math::fvec2(offsetX, startY);
+                    cancelButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    cancelButton.name     = "Cancel";
+                    cancelButton.tint     = Dokev::ColorPalette::RED;
+                    buildingButtons.push_back(cancelButton);
+
+                    BuildingButton missingButton;
+                    missingButton.type     = BuildingType::MISSING_TEXTURE;
+                    missingButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+                    missingButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    missingButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    missingButton.name     = "Missing Texture";
+                    missingButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(missingButton);
+
+                    BuildingButton streetLightButton;
+                    streetLightButton.type     = BuildingType::STREET_LIGHT;
+                    streetLightButton.texture  = LoadTexture(assets::locate_asset("Assets/resources/street_light.png").string());
+                    streetLightButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
+                    streetLightButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    streetLightButton.name     = "Street Light";
+                    streetLightButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(streetLightButton);
+
+                    BuildingButton parkButton;
+                    parkButton.type     = BuildingType::PARK;
+                    parkButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/park.png").string());
+                    parkButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
+                    parkButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    parkButton.name     = "Park";
+                    parkButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(parkButton);
                     break;
                 }
 
@@ -224,7 +327,7 @@ namespace Dokev
 
         auto windowSize = Engine::GetWindow().GetSize();
 
-        float totalWidth = BUTTON_WIDTH * 3 + BUTTON_SPACING * 2;
+        float totalWidth = BUTTON_WIDTH * 4 + BUTTON_SPACING * 3;
         float startX     = (static_cast<float>(windowSize.x) - totalWidth) / 2.0f;
         float startY     = UI_SPACING + BUTTON_HEIGHT + BUTTON_SPACING;
 
@@ -254,6 +357,15 @@ namespace Dokev
         roadButton.name     = "Road";
         roadButton.tint     = Dokev::ColorPalette::WHITE;
         categoryButtons.push_back(roadButton);
+
+        BuildingButton decorationButton;
+        decorationButton.type     = BuildingType::NONE;
+        decorationButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        decorationButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3, startY);
+        decorationButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+        decorationButton.name     = "Decoration";
+        decorationButton.tint     = Dokev::ColorPalette::WHITE;
+        categoryButtons.push_back(decorationButton);
     }
 
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked, float dt)
@@ -317,6 +429,13 @@ namespace Dokev
                 CreateBuildingButtons(CategoryType::ROAD_CATEGORY);
                 hotkeyHandled = true;
             }
+            else if (input.KeyJustPressed(CS230::Input::Keys::D))
+            {
+                currentMenuState = MenuState::BUILDING;
+                currentCategory  = CategoryType::DECORATION_CATEGORY;
+                CreateBuildingButtons(CategoryType::DECORATION_CATEGORY);
+                hotkeyHandled = true;
+            }
         }
 
         // Building selection shortcuts (when in BUILDING state)
@@ -354,6 +473,14 @@ namespace Dokev
                 else if (input.KeyJustPressed(CS230::Input::Keys::G))
                 {
                     selectedBuilding = BuildingType::GRANARY;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::F))
+                {
+                    selectedBuilding = BuildingType::FARM;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
@@ -362,7 +489,22 @@ namespace Dokev
                 {
                     selectedBuilding = BuildingType::ROAD;
                     CloseButtonMenus();
-                    hotkeyHandled = true; 
+                    hotkeyHandled = true;
+                }
+            }
+            else if (currentCategory == CategoryType::DECORATION_CATEGORY)
+            {
+                if (input.KeyJustPressed(CS230::Input::Keys::M))
+                {
+                    selectedBuilding = BuildingType::MISSING_TEXTURE;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
+                }
+                else if (input.KeyJustPressed(CS230::Input::Keys::S))
+                {
+                    selectedBuilding = BuildingType::STREET_LIGHT;
+                    CloseButtonMenus();
+                    hotkeyHandled = true;
                 }
             }
         }
@@ -427,6 +569,8 @@ namespace Dokev
                             currentCategory = CategoryType::WORK_CATEGORY;
                         else if (button.name == "Road")
                             currentCategory = CategoryType::ROAD_CATEGORY;
+                        else if (button.name == "Decoration")
+                            currentCategory = CategoryType::DECORATION_CATEGORY;
 
                         CreateBuildingButtons(currentCategory);
                         break;
@@ -450,6 +594,8 @@ namespace Dokev
                             currentCategory = CategoryType::WORK_CATEGORY;
                         else if (button.name == "Road")
                             currentCategory = CategoryType::ROAD_CATEGORY;
+                        else if (button.name == "Decoration")
+                            currentCategory = CategoryType::DECORATION_CATEGORY;
 
                         CreateBuildingButtons(currentCategory);
                         return;
@@ -484,13 +630,68 @@ namespace Dokev
                     break;
                 }
         }
-        UpdateSelectedStates(); 
+        UpdateSelectedStates();
         UpdateButtonScales(dt);
+
+        // Top bar icon column hover / click detection
+        {
+            auto  ws   = Engine::GetWindow().GetSize();
+            float colW = static_cast<float>(ws.x) / 5.0f;
+            float barY = static_cast<float>(ws.y) - 50.0f;
+            bool  inBar = (mousePos.y >= barY && mousePos.y <= static_cast<float>(ws.y));
+
+            hoveredIconColumn    = -1;
+            timeHoveredThisFrame  = false;
+            moneyHoveredThisFrame = false;
+
+            if (inBar)
+            {
+                int col = static_cast<int>(mousePos.x / colW);
+                if (col >= 0 && col < 5)
+                {
+                    hoveredIconColumn = col;
+                    if (col == 0) timeHoveredThisFrame  = true;
+                    if (col == 1) moneyHoveredThisFrame = true;
+                }
+            }
+
+            foodHoveredThisFrame = inBar && hoveredIconColumn == 2;
+            popHoveredThisFrame  = inBar && hoveredIconColumn == 3;
+            happHoveredThisFrame = inBar && hoveredIconColumn == 4;
+
+            timeClickedThisFrame  = timeHoveredThisFrame  && mouseClicked;
+            moneyClickedThisFrame = moneyHoveredThisFrame && mouseClicked;
+            foodClickedThisFrame  = foodHoveredThisFrame  && mouseClicked;
+            popClickedThisFrame   = popHoveredThisFrame   && mouseClicked;
+
+            if (timeClickedThisFrame)
+                timeClickAnimTimer = 0.12f;
+            if (moneyClickedThisFrame)
+                moneyPopupOpen = !moneyPopupOpen;
+            if (mouseClicked && !moneyHoveredThisFrame)
+                moneyPopupOpen = false;
+            if (foodClickedThisFrame)
+                foodPopupOpen = !foodPopupOpen;
+            if (mouseClicked && !foodHoveredThisFrame)
+                foodPopupOpen = false;
+            if (popClickedThisFrame)
+                popPopupOpen = !popPopupOpen;
+            if (mouseClicked && !popHoveredThisFrame)
+                popPopupOpen = false;
+            happClickedThisFrame = happHoveredThisFrame && mouseClicked;
+            if (happClickedThisFrame)
+                happPopupOpen = !happPopupOpen;
+            if (mouseClicked && !happHoveredThisFrame)
+                happPopupOpen = false;
+        }
+
+        if (timeClickAnimTimer > 0.0f)
+            timeClickAnimTimer -= dt;
     }
 
-    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr) const
+    void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, const PopulationStats& popStats, BuildingCostManager* costMgr, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const
     {
-        DrawResources(resourceMgr, humanCount);
+        DrawResources(resourceMgr, humanCount, popStats, hour, minute, currentDay, speedIndex, simPaused);
         DrawHappiness(cm);
 
         switch (currentMenuState)
@@ -498,100 +699,528 @@ namespace Dokev
             case MenuState::MAIN:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 break;
 
             case MenuState::CATEGORY:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 for (const auto& button : categoryButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 break;
 
             case MenuState::BUILDING:
                 for (const auto& button : mainButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 for (const auto& button : categoryButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 for (const auto& button : buildingButtons)
                 {
-                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime);
+                    DrawBuildingButton(button, resourceMgr, costMgr, totalTime, cm, humanCount);
                 }
                 break;
         }
     }
 
-    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount) const
+    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const
     {
-        if (!resourceMgr)
+        if (!resourceMgr || !outlined)
             return;
 
-        auto  windowSize = Engine::GetWindow().GetSize();
-        float startX     = static_cast<float>(windowSize.x) - 170.0f;
-        float resourceY  = static_cast<float>(windowSize.y) - 100.0f;
+        auto winSize = Engine::GetWindow().GetSize();
 
-        float height       = 35.0f;
-        float paddingY     = -10;
-        int   iconPaddingY = 15;
-        float iconScale    = 0.8f;
+        constexpr float barHeight = 50.0f;
+        const float     barY      = static_cast<float>(winSize.y) - barHeight;
 
-        float currentX = startX;
-        float currentY = resourceY;
+        // Black background bar
+        Dokev::DrawRectangle(0, static_cast<int>(barY), winSize.x, static_cast<int>(barHeight), 0x000000CC);
 
-        if (outlined)
+        const float y        = barY + 11.0f; // vertically center text in bar
+        const float colWidth = static_cast<float>(winSize.x) / 5.0f;
+
+        constexpr float iconSize = 2.0f;
+        constexpr float iconGap  = 36.0f;
+        constexpr float iconYOff = 4.0f;
+
+        // Pulsing icon draw — oscillates small↔big when hovered
+        auto drawIcon = [&](const Texture2D& tex, float bx, float by, int col)
         {
-            std::string moneyText = "Money: " + FormatNumber(resourceMgr->totalMoney);
-            if (auto textTexture = outlined->PrintToTexture(moneyText, Dokev::ColorPalette::WHITE))
+            if (!tex.IsValid()) return;
+            float pulse = (hoveredIconColumn == col) ? 1.0f + 0.18f * std::sinf(totalTime * 9.0f) : 1.0f;
+            float s     = iconSize * pulse;
+            float adjX  = static_cast<float>(tex.GetWidth())  * iconSize * (1.0f - pulse) * 0.5f;
+            float adjY  = static_cast<float>(tex.GetHeight()) * iconSize * (1.0f - pulse) * 0.5f;
+            tex.DrawEx(static_cast<int>(bx + adjX), static_cast<int>(by + adjY), 0.0f, s, Dokev::ColorPalette::WHITE);
+        };
+
+        // Time  (column 0)
+        {
+            float x = colWidth * 0.0f + 20.0f;
+            drawIcon(iconTime, x, y + iconYOff, 0);
+            char buf[16];
+            std::snprintf(buf, sizeof(buf), "%02d:%02d", hour, minute);
+            if (auto tex = outlined->PrintToTexture(buf, Dokev::ColorPalette::WHITE))
+                tex->Draw(Math::TranslationMatrix(Math::vec2{ x + iconGap, y }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+
+            // Speed badge — small text right after time
             {
-                textTexture->Draw(
-                    Math::TranslationMatrix(Math::vec2{ currentX - ICON_SPACING, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }),
-                    Dokev::ColorPalette::WHITE);
+                const char* labels[]     = { "1x", "2x", "5x", "10x" };
+                constexpr CS200::RGBA speedColors[] = { 0xFFFFFFFF, 0xFFFF00FF, 0xFF8800FF, 0xFF2222FF };
+                std::string  speedLabel  = simPaused ? "||" : (speedIndex < 4 ? labels[speedIndex] : "1x");
+                CS200::RGBA  badgeColor  = simPaused ? 0x88AAFFFF : speedColors[std::min(speedIndex, 3)];
+                constexpr float badgeScale = 0.40f;
+                if (auto badge = outlined->PrintToTexture(speedLabel, badgeColor))
+                    badge->Draw(Math::TranslationMatrix(Math::vec2{ x + iconGap + 80.0f, y + 4.0f }) * Math::ScaleMatrix(Math::vec2{ badgeScale, badgeScale }), badgeColor);
+            }
+
+            // Click pressed effect (sunken overlay)
+            if (timeClickAnimTimer > 0.0f)
+            {
+                float alpha  = timeClickAnimTimer / 0.12f; // 1.0 → 0.0
+                auto  ov     = static_cast<uint8_t>(static_cast<int>(alpha * 80));
+                CS200::RGBA pressColor = (static_cast<CS200::RGBA>(0) << 24) | (static_cast<CS200::RGBA>(0) << 16) | (static_cast<CS200::RGBA>(0) << 8) | ov;
+                Dokev::DrawRectangle(0, static_cast<int>(barY), static_cast<int>(colWidth), 50, pressColor);
+                // inset border (top/left dark, bottom/right white) for sunken look
+                Dokev::DrawRectangleLinesEx(2, static_cast<int>(barY) + 2, static_cast<int>(colWidth) - 4, 46, 2.0f, 0x00000088);
+            }
+
+            // Day tooltip (when hovering)
+            if (timeHoveredThisFrame)
+            {
+                std::string dayStr = "Day " + std::to_string(currentDay);
+                float       tipW   = 120.0f;
+                float       tipH   = 34.0f;
+                float       tipX   = x;
+                float       tipY   = barY - tipH - 4.0f;
+                Dokev::DrawRectangle(static_cast<int>(tipX), static_cast<int>(tipY), static_cast<int>(tipW), static_cast<int>(tipH), 0x000000E6);
+                Dokev::DrawRectangleLinesEx(static_cast<int>(tipX), static_cast<int>(tipY), static_cast<int>(tipW), static_cast<int>(tipH), 2.0f, 0xFFFFFFFF);
+                if (auto tip = outlined->PrintToTexture(dayStr, Dokev::ColorPalette::WHITE))
+                    tip->Draw(Math::TranslationMatrix(Math::vec2{ tipX + 8.0f, tipY + 5.0f }) * Math::ScaleMatrix(Math::vec2{ 0.42, 0.42 }), Dokev::ColorPalette::WHITE);
             }
         }
-        currentY -= height + 5.0f;
 
-        if (humanIcon.IsValid())
+        // Money (column 1)
         {
-            humanIcon.DrawEx(static_cast<int>(currentX) - ICON_SPACING, static_cast<int>(currentY) + iconPaddingY, 0.0f, iconScale, Dokev::ColorPalette::WHITE);
-        }
-        if (outlined)
-        {
-            std::string humanText = FormatNumber(humanCount);
-            if (auto textTexture = outlined->PrintToTexture(humanText, Dokev::ColorPalette::WHITE))
+            float x = colWidth * 1.0f + 20.0f;
+            drawIcon(iconMoney, x, y + iconYOff, 1);
+            std::string txt = std::to_string(resourceMgr->totalMoney);
+            if (auto tex = outlined->PrintToTexture(txt, Dokev::ColorPalette::WHITE))
+                tex->Draw(Math::TranslationMatrix(Math::vec2{ x + iconGap, y }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+
+            // Finance popup — per-building breakdown
+            if (moneyPopupOpen)
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ currentX, currentY - paddingY }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+                constexpr float popW  = 280.0f;
+                constexpr float ts    = 0.35f;
+                constexpr float lineH = 21.0f;
+                constexpr float indentX = 18.0f;
+                float popX = x - 10.0f;
+
+                // Measure height based on actual entries
+                auto sectionHeight = [&](const ResourceManager::DayStats& s) -> float
+                {
+                    float h = lineH; // section title
+                    if (!s.income.empty())
+                    {
+                        h += lineH * 0.6f; // "Income:" sub-header
+                        h += lineH * static_cast<float>(s.income.size());
+                    }
+                    if (!s.upkeep.empty())
+                    {
+                        h += 6.0f + lineH * 0.6f; // divider + "Upkeep:" sub-header
+                        h += lineH * static_cast<float>(s.upkeep.size());
+                    }
+                    h += 8.0f + lineH; // divider + net
+                    return h;
+                };
+
+                const auto& ld  = resourceMgr->lastDay;
+                const auto& tod = resourceMgr->GetCurrentDayStats();
+                float popH = sectionHeight(ld) + 10.0f + sectionHeight(tod) + 12.0f;
+                float popY = barY - popH - 6.0f;
+
+                Dokev::DrawRectangle(static_cast<int>(popX), static_cast<int>(popY),
+                                     static_cast<int>(popW), static_cast<int>(popH), 0x000000EE);
+                Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
+                                            static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0xFFD700FF);
+
+                auto printLine = [&](const std::string& label, int val, float ly, CS200::RGBA col, bool indent)
+                {
+                    std::string sign = (val >= 0) ? "+" : "";
+                    std::string txt  = label + "  " + sign + std::to_string(val);
+                    float       lx   = popX + (indent ? indentX : 8.0f);
+                    if (auto t = outlined->PrintToTexture(txt, col))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ lx, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                };
+
+                auto printHeader = [&](const std::string& txt, float ly, CS200::RGBA col)
+                {
+                    if (auto t = outlined->PrintToTexture(txt, col))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.9f, ts * 0.9f }), col);
+                };
+
+                auto drawSection = [&](const ResourceManager::DayStats& s, float startY, CS200::RGBA titleColor,
+                                       const std::string& title) -> float
+                {
+                    float ly = startY;
+                    if (auto t = outlined->PrintToTexture(title, titleColor))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), titleColor);
+                    ly += lineH;
+
+                    if (!s.income.empty())
+                    {
+                        printHeader("Income:", ly, 0xAAFFAAFF);
+                        ly += lineH * 0.6f;
+                        for (const auto& [name, amt] : s.income)
+                        {
+                            printLine(name, amt, ly, 0x88FF88FF, true);
+                            ly += lineH;
+                        }
+                    }
+
+                    if (!s.upkeep.empty())
+                    {
+                        Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                                             static_cast<int>(popW - 16), 1, 0xFFFFFF33);
+                        ly += 6.0f;
+                        printHeader("Upkeep:", ly, 0xFFAAAAFF);
+                        ly += lineH * 0.6f;
+                        for (const auto& [name, amt] : s.upkeep)
+                        {
+                            printLine(name, -amt, ly, 0xFF6666FF, true);
+                            ly += lineH;
+                        }
+                    }
+
+                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                                         static_cast<int>(popW - 16), 1, 0xFFFFFF55);
+                    ly += 8.0f;
+                    int         net      = s.TotalIncome() - s.TotalUpkeep();
+                    CS200::RGBA netColor = (net >= 0) ? 0x44FF44FF : 0xFF4444FF;
+                    printLine("Net", net, ly, netColor, false);
+                    ly += lineH;
+                    return ly;
+                };
+
+                float ly = popY + 6.0f;
+                ly = drawSection(ld,  ly, Dokev::ColorPalette::WHITE, "[ Yesterday ]");
+
+                // Separator between sections
+                Dokev::DrawRectangle(static_cast<int>(popX + 4), static_cast<int>(ly + 2),
+                                     static_cast<int>(popW - 8), 2, 0xFFD70066);
+                ly += 10.0f;
+
+                drawSection(tod, ly, 0xFFFF88FF, "[ Today ]");
+            }
+        }
+
+        // Food   (column 2)
+        {
+            float x = colWidth * 2.0f + 20.0f;
+
+            const int   foodAmount   = resourceMgr->GetFood();
+            const int   foodCapacity = resourceMgr->GetFoodCapacity();
+            const bool  foodLow      = foodCapacity > 0 && foodAmount * 5 < foodCapacity; // < 20%
+            const bool  foodCritical = foodCapacity > 0 && foodAmount == 0;
+
+            // Blink icon when food is low: alternate white↔red
+            if (!foodLow || (std::fmod(totalTime, 0.5f) < 0.25f))
+            {
+                CS200::RGBA tint = foodCritical ? 0xFF2222FF : (foodLow ? 0xFF8800FF : Dokev::ColorPalette::WHITE);
+                // apply pulse same as drawIcon but with custom tint
+                float pulse = (hoveredIconColumn == 2) ? 1.0f + 0.18f * std::sinf(totalTime * 9.0f) : 1.0f;
+                if (foodLow) pulse = 1.0f + 0.25f * std::abs(std::sinf(totalTime * 6.0f)); // stronger pulse when low
+                float s    = iconSize * pulse;
+                float adjX = static_cast<float>(iconFood.GetWidth())  * iconSize * (1.0f - pulse) * 0.5f;
+                float adjY = static_cast<float>(iconFood.GetHeight()) * iconSize * (1.0f - pulse) * 0.5f;
+                if (iconFood.IsValid())
+                    iconFood.DrawEx(static_cast<int>(x + adjX), static_cast<int>(y + iconYOff + adjY), 0.0f, s, tint);
+            }
+
+            std::string txt   = std::to_string(foodAmount) + "/" + std::to_string(foodCapacity);
+            CS200::RGBA color = foodCritical ? 0xFF2222FF : (foodLow ? 0xFF8800FF : Dokev::ColorPalette::WHITE);
+            if (foodCapacity > 0 && foodAmount * 100 >= foodCapacity * kGranaryWarningThresholdPercent)
+                color = Dokev::ColorPalette::ORANGE;
+            if (auto tex = outlined->PrintToTexture(txt, color))
+                tex->Draw(Math::TranslationMatrix(Math::vec2{ x + iconGap, y }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), color);
+
+            // Food popup
+            if (foodPopupOpen)
+            {
+                constexpr float popW  = 260.0f;
+                constexpr float ts    = 0.35f;
+                constexpr float lineH = 21.0f;
+                float popX = x - 10.0f;
+
+                auto fSectionH = [&](const ResourceManager::FoodDayStats& s) -> float
+                {
+                    float h = lineH;
+                    if (!s.production.empty())  { h += lineH * 0.6f + lineH * static_cast<float>(s.production.size()); }
+                    if (!s.consumption.empty()) { h += 6.0f + lineH * 0.6f + lineH * static_cast<float>(s.consumption.size()); }
+                    h += 8.0f + lineH;
+                    return h;
+                };
+
+                const auto& lf  = resourceMgr->lastFoodDay;
+                const auto& tfd = resourceMgr->GetCurrentFoodDayStats();
+                float popH = fSectionH(lf) + 10.0f + fSectionH(tfd) + 12.0f;
+                float popY = barY - popH - 6.0f;
+
+                Dokev::DrawRectangle(static_cast<int>(popX), static_cast<int>(popY),
+                                     static_cast<int>(popW), static_cast<int>(popH), 0x000000EE);
+                Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
+                                            static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0x44CC44FF);
+
+                auto printLine = [&](const std::string& label, int val, float ly, CS200::RGBA col, bool indent)
+                {
+                    std::string sign = (val >= 0) ? "+" : "";
+                    std::string txt2 = label + "  " + sign + std::to_string(val);
+                    float       lx   = popX + (indent ? 18.0f : 8.0f);
+                    if (auto t = outlined->PrintToTexture(txt2, col))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ lx, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                };
+                auto printSubHeader = [&](const std::string& txt2, float ly, CS200::RGBA col)
+                {
+                    if (auto t = outlined->PrintToTexture(txt2, col))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.9f, ts * 0.9f }), col);
+                };
+
+                auto drawFoodSection = [&](const ResourceManager::FoodDayStats& s, float startY,
+                                           CS200::RGBA titleColor, const std::string& title) -> float
+                {
+                    float ly = startY;
+                    if (auto t = outlined->PrintToTexture(title, titleColor))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), titleColor);
+                    ly += lineH;
+
+                    if (!s.production.empty())
+                    {
+                        printSubHeader("Production:", ly, 0xAAFFAAFF);
+                        ly += lineH * 0.6f;
+                        for (const auto& [name, amt] : s.production)
+                        {
+                            printLine(name, amt, ly, 0x88FF88FF, true);
+                            ly += lineH;
+                        }
+                    }
+                    if (!s.consumption.empty())
+                    {
+                        Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                                             static_cast<int>(popW - 16), 1, 0xFFFFFF33);
+                        ly += 6.0f;
+                        printSubHeader("Consumed:", ly, 0xFFAAAAFF);
+                        ly += lineH * 0.6f;
+                        for (const auto& [name, amt] : s.consumption)
+                        {
+                            printLine(name, -amt, ly, 0xFF6666FF, true);
+                            ly += lineH;
+                        }
+                    }
+                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                                         static_cast<int>(popW - 16), 1, 0xFFFFFF55);
+                    ly += 8.0f;
+                    int         net      = s.TotalProduction() - s.TotalConsumption();
+                    CS200::RGBA netColor = (net >= 0) ? 0x44FF44FF : 0xFF4444FF;
+                    printLine("Net", net, ly, netColor, false);
+                    ly += lineH;
+                    return ly;
+                };
+
+                float ly = popY + 6.0f;
+                ly = drawFoodSection(lf,  ly, Dokev::ColorPalette::WHITE, "[ Yesterday ]");
+                Dokev::DrawRectangle(static_cast<int>(popX + 4), static_cast<int>(ly + 2),
+                                     static_cast<int>(popW - 8), 2, 0x44CC4466);
+                ly += 10.0f;
+                drawFoodSection(tfd, ly, 0xAAFFAAFF, "[ Today ]");
+            }
+        }
+
+        // Citizens (column 3)
+        {
+            float x = colWidth * 3.0f + 20.0f;
+            drawIcon(iconHuman, x, y + iconYOff, 3);
+            std::string txt = std::to_string(humanCount);
+            if (auto tex = outlined->PrintToTexture(txt, Dokev::ColorPalette::WHITE))
+                tex->Draw(Math::TranslationMatrix(Math::vec2{ x + iconGap, y }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
+
+            // Population popup
+            if (popPopupOpen)
+            {
+                constexpr float popW  = 250.0f;
+                constexpr float ts    = 0.37f;
+                constexpr float lineH = 23.0f;
+                float popX = x - 10.0f;
+                float popH = lineH * 9.0f + 32.0f; // title + 8 data rows + 3 dividers
+                float popY = barY - popH - 6.0f;
+
+                Dokev::DrawRectangle(static_cast<int>(popX), static_cast<int>(popY),
+                                     static_cast<int>(popW), static_cast<int>(popH), 0x000000EE);
+                Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
+                                            static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0x88AAFFFF);
+
+                auto pline = [&](const std::string& label, const std::string& val, float ly, CS200::RGBA col)
+                {
+                    if (auto t = outlined->PrintToTexture(label + "  " + val, col))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                };
+                auto divider = [&](float ly)
+                {
+                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly),
+                                         static_cast<int>(popW - 16), 1, 0xFFFFFF33);
+                };
+
+                float ly = popY + 6.0f;
+
+                if (auto t = outlined->PrintToTexture("[ Population ]", Dokev::ColorPalette::WHITE))
+                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), Dokev::ColorPalette::WHITE);
+                ly += lineH;
+
+                pline("Total:", std::to_string(popStats.total), ly, Dokev::ColorPalette::WHITE);
+                ly += lineH;
+
+                divider(ly); ly += 8.0f;
+
+                CS200::RGBA homelessColor = (popStats.homeless > 0) ? 0xFF8800FF : Dokev::ColorPalette::WHITE;
+                pline("Housed:", std::to_string(popStats.housed) + " / " + std::to_string(popStats.housingCap), ly, Dokev::ColorPalette::WHITE);
+                ly += lineH;
+                pline("Homeless:", std::to_string(popStats.homeless), ly, homelessColor);
+                ly += lineH;
+
+                divider(ly); ly += 8.0f;
+
+                CS200::RGBA joblessColor = (popStats.unemployed > 0) ? 0xFFDD44FF : Dokev::ColorPalette::WHITE;
+                pline("Employed:", std::to_string(popStats.employed), ly, Dokev::ColorPalette::WHITE);
+                ly += lineH;
+                pline("Jobless:", std::to_string(popStats.unemployed), ly, joblessColor);
+                ly += lineH;
+
+                divider(ly); ly += 8.0f;
+
+                char happyBuf[16], energyBuf[16];
+                std::snprintf(happyBuf, sizeof(happyBuf), "%.0f%%", popStats.avgHappiness);
+                std::snprintf(energyBuf, sizeof(energyBuf), "%.0f%%", popStats.avgEnergy);
+
+                CS200::RGBA happyColor = (popStats.avgHappiness >= 70.f) ? 0x44FF44FF :
+                                         (popStats.avgHappiness >= 40.f) ? 0xFFDD44FF : 0xFF4444FF;
+                CS200::RGBA energyColor = (popStats.avgEnergy >= 50.f) ? Dokev::ColorPalette::WHITE : 0xFF8800FF;
+
+                pline("Avg Happy:", happyBuf, ly, happyColor);
+                ly += lineH;
+                pline("Avg Energy:", energyBuf, ly, energyColor);
             }
         }
     }
 
     void UIManager::DrawHappiness(CityMetrics* cm) const
     {
-        auto  windowSize   = Engine::GetWindow().GetSize();
-        float startX       = static_cast<float>(windowSize.x) - 170.0f;
-        float startY       = static_cast<float>(windowSize.y) - 60.0f;
-        int   iconPaddingY = 15;
+        if (!cm || !outlined)
+            return;
 
-        if (happyIcon.IsValid())
+        auto winSize = Engine::GetWindow().GetSize();
+
+        constexpr float barHeight = 50.0f;
+        const float colWidth = static_cast<float>(winSize.x) / 5.0f;
+        const float barY = static_cast<float>(winSize.y) - barHeight;
+        const float x    = colWidth * 4.0f + 20.0f;
+        const float y    = barY + 11.0f;
+
+        constexpr float iconSize = 2.0f;
+        constexpr float iconGap  = 36.0f;
+        constexpr float iconYOff = 4.0f;
+
+        float happiness = cm->GetHappiness();
+        CS200::RGBA happColor = (happiness >= 70.f) ? Dokev::ColorPalette::WHITE :
+                                (happiness >= 40.f) ? 0xFFDD44FF : 0xFF4444FF;
+
+        if (iconHappiness.IsValid())
         {
-            happyIcon.DrawEx(static_cast<int>(startX) - ICON_SPACING, static_cast<int>(startY) + iconPaddingY, 0.0f, 0.6f, Dokev::ColorPalette::WHITE);
+            float pulse = (hoveredIconColumn == 4) ? 1.0f + 0.18f * std::sinf(totalTime * 9.0f) : 1.0f;
+            float s     = iconSize * pulse;
+            float adjX  = static_cast<float>(iconHappiness.GetWidth())  * iconSize * (1.0f - pulse) * 0.5f;
+            float adjY  = static_cast<float>(iconHappiness.GetHeight()) * iconSize * (1.0f - pulse) * 0.5f;
+            iconHappiness.DrawEx(static_cast<int>(x + adjX), static_cast<int>(y + iconYOff + adjY), 0.0f, s, happColor);
         }
 
-        if (outlined)
+        std::string txt = std::to_string(static_cast<int>(happiness)) + "%";
+        if (auto tex = outlined->PrintToTexture(txt, happColor))
+            tex->Draw(Math::TranslationMatrix(Math::vec2{ x + iconGap, y }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), happColor);
+
+        // Happiness popup
+        if (happPopupOpen)
         {
-            std::string happinesstext = std::to_string(cm->GetHappiness());
-            if (auto textTexture = outlined->PrintToTexture(happinesstext, Dokev::ColorPalette::WHITE))
+            const auto  factors = cm->GetHappinessManager()->GetFactors();
+            constexpr float popW  = 270.0f;
+            constexpr float popH  = 210.0f;
+            constexpr float ts    = 0.37f;
+            constexpr float lineH = 23.0f;
+            float popX = x - 30.0f;
+            float popY = barY - popH - 6.0f;
+
+            Dokev::DrawRectangle(static_cast<int>(popX), static_cast<int>(popY),
+                                 static_cast<int>(popW), static_cast<int>(popH), 0x000000EE);
+            Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
+                                        static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0xFFDD44FF);
+
+            auto scoreColor = [](float s) -> CS200::RGBA {
+                return (s >= 80.f) ? 0x44FF44FF : (s >= 50.f) ? 0xFFDD44FF : 0xFF4444FF;
+            };
+            auto hint = [](float s) -> const char* {
+                return (s >= 80.f) ? "Good" : (s >= 50.f) ? "Fair" : "Poor";
+            };
+
+            auto pline = [&](const std::string& label, float score, float weight, float ly)
             {
-                textTexture->Draw(Math::TranslationMatrix(Math::vec2{ startX, startY + 10.0f }) * Math::ScaleMatrix(Math::vec2{ FONT_SCALE, FONT_SCALE }), Dokev::ColorPalette::WHITE);
-            }
+                char buf[64];
+                std::snprintf(buf, sizeof(buf), "%.0f%%  [%s]", score, hint(score));
+                CS200::RGBA col = scoreColor(score);
+
+                std::string weightStr = "x" + std::to_string(static_cast<int>(weight * 100)) + "%  ";
+                if (auto t = outlined->PrintToTexture(label + "  " + buf, col))
+                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                if (auto t = outlined->PrintToTexture(weightStr, 0xAAAAAAFF))
+                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + popW - 70.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.8f, ts * 0.8f }), 0xAAAAAAFF);
+            };
+
+            float ly = popY + 6.0f;
+
+            if (auto t = outlined->PrintToTexture("[ Happiness ]", Dokev::ColorPalette::WHITE))
+                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), Dokev::ColorPalette::WHITE);
+            ly += lineH;
+
+            char overallBuf[16];
+            std::snprintf(overallBuf, sizeof(overallBuf), "%.0f%%", happiness);
+            if (auto t = outlined->PrintToTexture(std::string("Overall:  ") + overallBuf, happColor))
+                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), happColor);
+            ly += lineH;
+
+            Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                                 static_cast<int>(popW - 16), 1, 0xFFFFFF33);
+            ly += 10.0f;
+
+            pline("Housing    ", factors.housingScore,     0.40f, ly); ly += lineH;
+            pline("Employment ", factors.employmentScore,  0.40f, ly); ly += lineH;
+            pline("Night Safe ", factors.nightSafetyScore, 0.20f, ly); ly += lineH;
+
+            Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                                 static_cast<int>(popW - 16), 1, 0xFFFFFF33);
+            ly += 10.0f;
+
+            // Tip: worst factor
+            float worst = std::min({ factors.housingScore, factors.employmentScore, factors.nightSafetyScore });
+            const char* tip = (worst == factors.housingScore)     ? "! Build more homes"      :
+                              (worst == factors.employmentScore)   ? "! Build more workshops"  :
+                                                                     "! Add street lights";
+            if (auto t = outlined->PrintToTexture(tip, 0xFF8800FF))
+                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.85f, ts * 0.85f }), 0xFF8800FF);
         }
     }
 
@@ -600,7 +1229,7 @@ namespace Dokev
         DrawRectangle(static_cast<int>(position.x), static_cast<int>(position.y), static_cast<int>(size.x), static_cast<int>(size.y), color);
     }
 
-    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time) const
+    void UIManager::DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time, CityMetrics* cm, int humanCount) const
     {
         // Compute scaled box from center 
         float scale   = button.hoverScale;
@@ -657,7 +1286,8 @@ namespace Dokev
             int textureWidth  = button.texture.GetWidth();
             int textureHeight = button.texture.GetHeight();
 
-            float iconScale    = static_cast<float>(ICON_SCALE) * scale;
+            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY) ? 0.75f : 1.0f;
+            float iconScale    = static_cast<float>(ICON_SCALE) * scale * iconScaleMult;
             float scaledWidth  = textureWidth * iconScale;
             float scaledHeight = textureHeight * iconScale;
 
@@ -670,65 +1300,94 @@ namespace Dokev
 
         // Draw required resources
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
-                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::HOME ||
-                                 button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2))
+                                 button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::FARM ||
+                                 button.type == BuildingType::HOME || button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2 ||
+                                 button.type == BuildingType::MISSING_TEXTURE || button.type == BuildingType::STREET_LIGHT ||
+                                 button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY ||
+                                 button.type == BuildingType::CASINO || button.type == BuildingType::PENTHOUSE ||
+                                 button.type == BuildingType::PARK))
         {
-            float tooltipWidth  = 180.0f;
-            float tooltipHeight = 60.0f;
+            bool  isPenthouse   = (button.type == BuildingType::PENTHOUSE);
+            float tooltipWidth  = isPenthouse ? 260.0f : 220.0f;
+            float tooltipHeight = isPenthouse ? 110.0f : 80.0f;
 
             // Add space for hotkey display
             std::string hotkey = GetHotkeyForButton(button);
-            if (!hotkey.empty())
+            if (!hotkey.empty() && !isPenthouse)
             {
-                tooltipHeight += 15.0f;
+                tooltipHeight += 20.0f;
             }
 
             Math::fvec2 tooltipPos = Math::fvec2(button.position.x - tooltipWidth - 10.0f, button.position.y);
 
-            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::TOOLTIP_BACKGROUND);
+            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::BLACK);
 
-            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 2.0f, Dokev::ColorPalette::LIGHTGRAY);
+            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 3.0f, Dokev::ColorPalette::WHITE);
 
             if (outlined && resourceMgr && costMgr)
             {
-                // Get cost from JSON
-                BuildingCost cost = costMgr->GetCost(button.type);
+                BuildingCost cost      = costMgr->GetCost(button.type);
+                float        lineScale = 0.40f;
 
                 if (auto nameTexture = outlined->PrintToTexture(button.name, Dokev::ColorPalette::WHITE))
                 {
+                    float nameScale = 0.48f;
+                    float centeredX = tooltipPos.x + (tooltipWidth - nameTexture->GetSize().x * nameScale) / 2.0f;
                     nameTexture->Draw(
-                        Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 12.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }),
+                        Math::TranslationMatrix(Math::vec2{ centeredX, tooltipPos.y + 12.0f }) * Math::ScaleMatrix(Math::vec2{ nameScale, nameScale }),
                         Dokev::ColorPalette::WHITE);
                 }
 
-                if (cost.money > 0)
+                if (isPenthouse)
                 {
-                    std::string moneyText = "Money: " + std::to_string(resourceMgr->totalMoney) + " / " + std::to_string(cost.money);
-                    if (auto textTexture = outlined->PrintToTexture(moneyText, Dokev::ColorPalette::WHITE))
+                    float happiness     = cm ? cm->GetHappiness() : 0.0f;
+                    auto  moneyColor    = (resourceMgr->totalMoney >= 1000) ? Dokev::ColorPalette::GREEN : Dokev::ColorPalette::RED;
+                    auto  popColor      = (humanCount >= 30) ? Dokev::ColorPalette::GREEN : Dokev::ColorPalette::RED;
+                    auto  happyColor    = (happiness >= 80.0f) ? Dokev::ColorPalette::GREEN : Dokev::ColorPalette::RED;
+
+                    auto drawCond = [&](const std::string& text, CS200::RGBA color, float y)
                     {
-                        textTexture->Draw(
-                            Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 30.0f }) * Math::ScaleMatrix(Math::vec2{ 0.3, 0.3 }),
-                            Dokev::ColorPalette::WHITE);
-                    }
+                        if (auto tex = outlined->PrintToTexture(text, color))
+                        {
+                            float cx = tooltipPos.x + (tooltipWidth - tex->GetSize().x * lineScale) / 2.0f;
+                            tex->Draw(Math::TranslationMatrix(Math::vec2{ cx, y }) * Math::ScaleMatrix(Math::vec2{ lineScale, lineScale }), color);
+                        }
+                    };
+
+                    drawCond("Money: " + std::to_string(resourceMgr->totalMoney) + " / 1000", moneyColor, tooltipPos.y + 42.0f);
+                    drawCond("Pop: " + std::to_string(humanCount) + " / 30",                  popColor,   tooltipPos.y + 64.0f);
+                    drawCond("Happiness: " + std::to_string(static_cast<int>(happiness)) + " / 80", happyColor, tooltipPos.y + 86.0f);
                 }
-
-                // Draw hotkey at the bottom
-                if (!hotkey.empty())
+                else
                 {
-                    float hotkeyY = tooltipPos.y + tooltipHeight - 15.0f;
-                    float hotkeyX = tooltipPos.x + 10.0f;
-
-                    // Draw Hotkey:  in white
-                    if (auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE))
+                    if (cost.money > 0)
                     {
-                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::WHITE);
-                        hotkeyX += labelTexture->GetSize().x * 0.25f;
+                        std::string moneyText = "Money: " + std::to_string(resourceMgr->totalMoney) + " / " + std::to_string(cost.money);
+                        if (auto textTexture = outlined->PrintToTexture(moneyText, Dokev::ColorPalette::WHITE))
+                        {
+                            float centeredX = tooltipPos.x + (tooltipWidth - textTexture->GetSize().x * lineScale) / 2.0f;
+                            textTexture->Draw(
+                                Math::TranslationMatrix(Math::vec2{ centeredX, tooltipPos.y + 42.0f }) * Math::ScaleMatrix(Math::vec2{ lineScale, lineScale }),
+                                Dokev::ColorPalette::WHITE);
+                        }
                     }
 
-                    // Draw key in green
-                    if (auto keyTexture = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN))
+                    if (!hotkey.empty())
                     {
-                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::GREEN);
+                        float hotkeyScale = 0.35f;
+                        float hotkeyY     = tooltipPos.y + tooltipHeight - 22.0f;
+
+                        auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE);
+                        auto keyTexture   = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN);
+
+                        if (labelTexture && keyTexture)
+                        {
+                            float totalW  = (labelTexture->GetSize().x + keyTexture->GetSize().x) * hotkeyScale;
+                            float hotkeyX = tooltipPos.x + (tooltipWidth - totalW) / 2.0f;
+                            labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::WHITE);
+                            hotkeyX += labelTexture->GetSize().x * hotkeyScale;
+                            keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::GREEN);
+                        }
                     }
                 }
             }
@@ -736,51 +1395,52 @@ namespace Dokev
         else if (button.isHovered && !button.name.empty())
         {
             std::string tooltipText   = button.name;
-            float       textWidth     = static_cast<float>(tooltipText.length()) * 8.0f;
+            float       textWidth     = static_cast<float>(tooltipText.length()) * 9.0f;
             float       tooltipWidth  = textWidth + 20.0f;
-            float       tooltipHeight = 40.0f;
+            float       tooltipHeight = 38.0f;
 
             // Add space for hotkey display
             std::string hotkey = GetHotkeyForButton(button);
             if (!hotkey.empty())
             {
-                tooltipHeight += 15.0f;
+                tooltipHeight += 18.0f;
             }
 
-            if (tooltipWidth < 140.0f)
+            if (tooltipWidth < 130.0f)
             {
-                tooltipWidth = 140.0f;
+                tooltipWidth = 130.0f;
             }
 
             Math::fvec2 tooltipPos = Math::fvec2(button.position.x - tooltipWidth - 10.0f, button.position.y);
 
-            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::TOOLTIP_BACKGROUND);
-            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 2.0f, Dokev::ColorPalette::LIGHTGRAY);
+            DrawBox(tooltipPos, Math::fvec2(tooltipWidth, tooltipHeight), Dokev::ColorPalette::BLACK);
+            DrawRectangleLinesEx(static_cast<int>(tooltipPos.x), static_cast<int>(tooltipPos.y), static_cast<int>(tooltipWidth), static_cast<int>(tooltipHeight), 3.0f, Dokev::ColorPalette::WHITE);
 
             if (outlined)
             {
                 if (auto nameTexture = outlined->PrintToTexture(tooltipText, Dokev::ColorPalette::WHITE))
                 {
-                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ tooltipPos.x + 10.0f, tooltipPos.y + 15.0f }) * Math::ScaleMatrix(Math::vec2{ 0.35, 0.35 }), Dokev::ColorPalette::WHITE);
+                    float nameScale = 0.48f;
+                    float centeredX = tooltipPos.x + (tooltipWidth - nameTexture->GetSize().x * nameScale) / 2.0f;
+                    nameTexture->Draw(Math::TranslationMatrix(Math::vec2{ centeredX, tooltipPos.y + 8.0f }) * Math::ScaleMatrix(Math::vec2{ nameScale, nameScale }), Dokev::ColorPalette::WHITE);
                 }
 
-                // Draw hotkey at the bottom
+                // Draw hotkey at the bottom (centered)
                 if (!hotkey.empty())
                 {
-                    float hotkeyY = tooltipPos.y + tooltipHeight - 15.0f;
-                    float hotkeyX = tooltipPos.x + 10.0f;
+                    float hotkeyScale = 0.35f;
+                    float hotkeyY     = tooltipPos.y + tooltipHeight - 20.0f;
 
-                    // Draw Hotkey:  in white
-                    if (auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE))
-                    {
-                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::WHITE);
-                        hotkeyX += labelTexture->GetSize().x * 0.25f;
-                    }
+                    auto labelTexture = outlined->PrintToTexture("Hotkey: ", Dokev::ColorPalette::WHITE);
+                    auto keyTexture   = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN);
 
-                    // Draw key in green
-                    if (auto keyTexture = outlined->PrintToTexture(hotkey, Dokev::ColorPalette::GREEN))
+                    if (labelTexture && keyTexture)
                     {
-                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ 0.25, 0.25 }), Dokev::ColorPalette::GREEN);
+                        float totalW  = (labelTexture->GetSize().x + keyTexture->GetSize().x) * hotkeyScale;
+                        float hotkeyX = tooltipPos.x + (tooltipWidth - totalW) / 2.0f;
+                        labelTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::WHITE);
+                        hotkeyX += labelTexture->GetSize().x * hotkeyScale;
+                        keyTexture->Draw(Math::TranslationMatrix(Math::vec2{ hotkeyX, hotkeyY }) * Math::ScaleMatrix(Math::vec2{ hotkeyScale, hotkeyScale }), Dokev::ColorPalette::GREEN);
                     }
                 }
             }
@@ -810,6 +1470,8 @@ namespace Dokev
                 return "W";
             if (button.name == "Road")
                 return "R";
+            if (button.name == "Decoration")
+                return "D";
         }
 
         // Building buttons
@@ -830,11 +1492,20 @@ namespace Dokev
                     return "S";
                 if (button.type == BuildingType::GRANARY)
                     return "G";
+                if (button.type == BuildingType::FARM)
+                    return "F";
             }
             else if (currentCategory == CategoryType::ROAD_CATEGORY)
             {
                 if (button.type == BuildingType::ROAD)
                     return "R";
+            }
+            else if (currentCategory == CategoryType::DECORATION_CATEGORY)
+            {
+                if (button.type == BuildingType::MISSING_TEXTURE)
+                    return "M";
+                if (button.type == BuildingType::STREET_LIGHT)
+                    return "S";
             }
             if (button.name == "Cancel")
                 return "C";
@@ -967,6 +1638,11 @@ namespace Dokev
         if (button.name == "Road")
         {
             return currentCategory == CategoryType::ROAD_CATEGORY;
+        }
+
+        if (button.name == "Decoration")
+        {
+            return currentCategory == CategoryType::DECORATION_CATEGORY;
         }
 
         return false;
