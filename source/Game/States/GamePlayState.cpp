@@ -860,6 +860,14 @@ void GamePlayState::Update(double dt)
     {
         simulationPaused = false;
     }
+    if (uiManager.IsEscSaveClicked())
+    {
+        SaveGame("savegame.json");
+    }
+    if (uiManager.IsEscLoadClicked())
+    {
+        LoadGame("savegame.json");
+    }
     if (uiManager.IsEscSettingsClicked())
     {
         Setting::SetFromGame(true);
@@ -1764,6 +1772,8 @@ void GamePlayState::Draw() const
                 auto bt = b->GetBuildingType();
                 if (bt == BuildingType::HOME || bt == BuildingType::CASINO || bt == BuildingType::PENTHOUSE)
                     popStats.housingCap += static_cast<int>(b->GetMaxCapacity());
+                if (bt == BuildingType::HOME)
+                    popStats.homeCapacity += static_cast<int>(b->GetMaxCapacity());
             }
         }
     }

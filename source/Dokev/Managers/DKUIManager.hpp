@@ -38,6 +38,7 @@ namespace Dokev
         int   unemployed   = 0;
         float avgHappiness = 0.0f;
         float avgEnergy    = 0.0f;
+        int   homeCapacity = 0;     
     };
 
     enum class MenuState
@@ -102,6 +103,8 @@ namespace Dokev
         void SetEscMenuOpen(bool open)   { escMenuOpen = open; escHoveredButton = -1; }
         bool IsEscMenuOpen()         const { return escMenuOpen; }
         bool IsEscResumeClicked()    const { return escResumeClicked; }
+        bool IsEscSaveClicked()      const { return escSaveClicked; }
+        bool IsEscLoadClicked()      const { return escLoadClicked; }
         bool IsEscSettingsClicked()  const { return escSettingsClicked; }
         bool IsEscMainMenuClicked()  const { return escMainMenuClicked; }
         bool IsEscQuitClicked()      const { return escQuitClicked; }
@@ -135,7 +138,7 @@ namespace Dokev
         void        UpdateBuildingMenu(Math::fvec2 mousePos, bool mouseClicked);
         void        DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
         void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time, CityMetrics* cm = nullptr, int humanCount = 0) const;
-        void        DrawResources(ResourceManager* resourceMgr, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const;
+        void        DrawResources(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const;
         void        DrawHappiness(CityMetrics* cm) const;
         void        DrawEscMenu() const;
         void        CloseButtonMenus();
@@ -173,8 +176,10 @@ namespace Dokev
 
         // ESC pause menu
         bool         escMenuOpen           = false;
-        int          escHoveredButton      = -1; // 0=Resume 1=Settings 2=MainMenu 3=Quit
+        int          escHoveredButton      = -1; // 0=Resume 1=Save 2=Load 3=Settings 4=MainMenu 5=Quit
         bool         escResumeClicked      = false;
+        bool         escSaveClicked        = false;
+        bool         escLoadClicked        = false;
         bool         escSettingsClicked    = false;
         bool         escMainMenuClicked    = false;
         bool         escQuitClicked        = false;
