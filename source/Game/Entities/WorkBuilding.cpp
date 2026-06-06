@@ -291,19 +291,23 @@ void WorkBuilding::Update(float dt)
 
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP: resourceManager->AddMoney(amountToProduce); break;
-            case BuildingType::ROCK_WORKSHOP: resourceManager->AddMoney(amountToProduce); break;
-            case BuildingType::STEEL_WORKSHOP: resourceManager->AddMoney(amountToProduce); break;
+            case BuildingType::WOOD_WORKSHOP:  resourceManager->AddNamedIncome("Wood Workshop",  amountToProduce); break;
+            case BuildingType::ROCK_WORKSHOP:  resourceManager->AddNamedIncome("Rock Workshop",  amountToProduce); break;
+            case BuildingType::STEEL_WORKSHOP: resourceManager->AddNamedIncome("Steel Workshop", amountToProduce); break;
             case BuildingType::GRANARY: break;
             case BuildingType::FARM:
                 if (resourceManager->GetFoodCapacity() > 0)
+                {
                     resourceManager->AddFood(amountToProduce);
+                    resourceManager->AddNamedFoodProduction("Farm", amountToProduce);
+                }
                 break;
             case BuildingType::CAFE:
                 if (resourceManager->TrySpendFood(kCafeFoodPerTick))
                 {
                     serviceOperating = true;
-                    resourceManager->AddMoney(kCafeIncomePerTick);
+                    resourceManager->AddNamedIncome("Cafe", kCafeIncomePerTick);
+                    resourceManager->AddNamedFoodConsumption("Cafe", kCafeFoodPerTick);
                 }
                 else
                 {
@@ -314,7 +318,8 @@ void WorkBuilding::Update(float dt)
                 if (resourceManager->TrySpendFood(kRestaurantFoodPerTick))
                 {
                     serviceOperating = true;
-                    resourceManager->AddMoney(kRestaurantIncomePerTick);
+                    resourceManager->AddNamedIncome("Restaurant", kRestaurantIncomePerTick);
+                    resourceManager->AddNamedFoodConsumption("Restaurant", kRestaurantFoodPerTick);
                 }
                 else
                 {

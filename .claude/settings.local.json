@@ -28,7 +28,8 @@
       "Bash(python3 -c \"d=open\\('cs200_fun.js'\\).read\\(\\); i=d.find\\('ASM_CONSTS'\\); print\\(d[i:i+400] if i>0 else 'no ASM_CONSTS'\\)\")",
       "Bash(npx playwright *)",
       "Bash(python3 -m http.server 8765)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8765/cs200_fun.html)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8765/cs200_fun.html)",
+      "Bash(cmake --build build/windows-debug)"
     ],
     "additionalDirectories": [
       "/tmp"

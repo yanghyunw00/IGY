@@ -14,6 +14,7 @@
 class HappinessManager;
 class Human;
 class EventManager;
+class ResourceManager;
 
 struct SimulationControls
 {
@@ -42,7 +43,7 @@ class UserInterfaceEditor
 {
 public:
     UserInterfaceEditor() = default;
-    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr, int hour = 0, int minute = 0, int currentDay = 1, EventManager* eventManager = nullptr, SimulationControls* simControls = nullptr);
+    void DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics = nullptr, int hour = 0, int minute = 0, int currentDay = 1, EventManager* eventManager = nullptr, SimulationControls* simControls = nullptr, ResourceManager* resourceManager = nullptr);
 
     void SetSelectedHuman(Human* human) { selectedHuman = human; }
 

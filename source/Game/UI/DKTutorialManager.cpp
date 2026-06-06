@@ -52,9 +52,9 @@ namespace Dokev
         step2.text           = "Here you can check your money and population";
         step2.completionType = CompletionType::TIME_PASSED;
         step2.duration       = 2.0f;
-        step2.highlightType  = HighlightType::CIRCLE;
-        step2.highlightPos   = Math::fvec2(static_cast<float>(windowSize.x) - 150.0f, static_cast<float>(windowSize.y) - 200.0f);
-        step2.highlightSize  = Math::fvec2(200.0f, 200.0f);
+        step2.highlightType  = HighlightType::RECTANGLE;
+        step2.highlightPos   = Math::fvec2(0.0f, static_cast<float>(windowSize.y) - 50.0f);
+        step2.highlightSize  = Math::fvec2(static_cast<float>(windowSize.x), 50.0f);
         step2.showArrow      = false;
         step2.blockInput     = true;
         steps.push_back(step2);

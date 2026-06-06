@@ -28,6 +28,18 @@ namespace Dokev
 
 namespace Dokev
 {
+    struct PopulationStats
+    {
+        int   total        = 0;
+        int   housed       = 0;
+        int   homeless     = 0;
+        int   housingCap   = 0;
+        int   employed     = 0;
+        int   unemployed   = 0;
+        float avgHappiness = 0.0f;
+        float avgEnergy    = 0.0f;
+    };
+
     enum class MenuState
     {
         MAIN,
@@ -67,7 +79,7 @@ namespace Dokev
         void Initialize();
         void Update(Math::fvec2 mousePos, bool mouseClicked, float dt = 0.016f);
 
-        void Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, BuildingCostManager* costMgr = nullptr, int hour = 0, int minute = 0) const;
+        void Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, const PopulationStats& popStats, BuildingCostManager* costMgr = nullptr, int hour = 0, int minute = 0, int currentDay = 1, int speedIndex = 0, bool simPaused = false) const;
 
         BuildingType GetSelectedBuilding() const
         {
@@ -83,6 +95,9 @@ namespace Dokev
         {
             return currentMenuState != MenuState::MAIN;
         }
+
+        bool IsTimeClicked()  const { return timeClickedThisFrame; }
+        bool IsTimeHovered()  const { return timeHoveredThisFrame; }
 
         bool IsAnyButtonHovered() const
         {
@@ -112,7 +127,7 @@ namespace Dokev
         void        UpdateBuildingMenu(Math::fvec2 mousePos, bool mouseClicked);
         void        DrawBox(Math::fvec2 position, Math::fvec2 size, CS200::RGBA color) const;
         void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time, CityMetrics* cm = nullptr, int humanCount = 0) const;
-        void        DrawResources(ResourceManager* resourceMgr, int humanCount, int hour, int minute) const;
+        void        DrawResources(ResourceManager* resourceMgr, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const;
         void        DrawHappiness(CityMetrics* cm) const;
         void        CloseButtonMenus();
         void        CancelSelection();
@@ -124,6 +139,28 @@ namespace Dokev
         bool        IsBuildingButtonSelected(const BuildingButton& button) const;
         std::string FormatNumber(int value) const;
         std::string GetHotkeyForButton(const BuildingButton& button) const;
+
+        bool         timeHoveredThisFrame   = false;
+        bool         timeClickedThisFrame   = false;
+        float        timeClickAnimTimer     = 0.0f;
+
+        bool         moneyHoveredThisFrame  = false;
+        bool         moneyClickedThisFrame  = false;
+        bool         moneyPopupOpen         = false;
+
+        bool         foodHoveredThisFrame   = false;
+        bool         foodClickedThisFrame   = false;
+        bool         foodPopupOpen          = false;
+
+        bool         popHoveredThisFrame    = false;
+        bool         popClickedThisFrame    = false;
+        bool         popPopupOpen           = false;
+
+        bool         happHoveredThisFrame   = false;
+        bool         happClickedThisFrame   = false;
+        bool         happPopupOpen          = false;
+
+        int          hoveredIconColumn      = -1;
 
         float        totalTime        = 0.0f;
         MenuState    currentMenuState = MenuState::MAIN;
@@ -138,6 +175,12 @@ namespace Dokev
         Texture2D happyIcon;
         Texture2D humanIcon;
         Texture2D deleteIcon;
+
+        Texture2D iconTime;
+        Texture2D iconMoney;
+        Texture2D iconFood;
+        Texture2D iconHuman;
+        Texture2D iconHappiness;
 
         std::unique_ptr<CS230::Font> outlined;
 

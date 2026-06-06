@@ -174,6 +174,7 @@ private:
     Dokev::Texture2D MountainTexture;
     Dokev::Texture2D SnowTexture;
     Dokev::Texture2D Max_Height;
+    Dokev::Texture2D Max_Height_Water;
 
     Dokev::Texture2D IsoMouseAtlas;
 

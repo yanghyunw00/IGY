@@ -133,7 +133,7 @@ private:
     float cloudVisOverride = -1.f;  // -1 = weather-driven
 
     bool        simulationPaused    = false;
-    std::size_t simulationSpeedPresetIndex = 1;
+    std::size_t simulationSpeedPresetIndex = 0;
 
     // Selected NPC (clicked by player)
     Human* selectedNPC = nullptr;

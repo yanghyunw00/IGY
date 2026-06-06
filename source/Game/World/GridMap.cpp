@@ -78,7 +78,8 @@ GridMap::GridMap() : currentView(0), pathFinder(nullptr), showPath(false)
     MountainTexture = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMountains.png").string());
     SnowTexture     = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoPeak.png").string());
 
-    Max_Height    = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
+    Max_Height       = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height.png").string());
+    Max_Height_Water = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Max_Height_Water.png").string());
     IsoMouseAtlas = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/IsoMouseAtlas.png").string());
 
     static const int roadTileNums[] = {1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14};
@@ -471,7 +472,10 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                     {
                         Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                     }
-                    Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    if (current_texture == 0)
+                        Dokev::DrawTexture(Max_Height_Water, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                    else
+                        Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
 
                     if (gameObjMgr)
                     {

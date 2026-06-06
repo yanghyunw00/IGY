@@ -66,8 +66,8 @@ using json = nlohmann::json;
 
 namespace
 {
-    constexpr std::array<double, 4>      kSimulationSpeedPresets = { 0.5, 1.0, 2.0, 4.0 };
-    constexpr std::array<const char*, 4> kSimulationSpeedLabels  = { "0.5x", "1.0x", "2.0x", "4.0x" };
+    constexpr std::array<double, 4>      kSimulationSpeedPresets = { 1.0, 2.0, 5.0, 10.0 };
+    constexpr std::array<const char*, 4> kSimulationSpeedLabels  = { "1x", "2x", "5x", "10x" };
 
     Math::fvec2 ConvertViewTileToGrid(Math::fvec2 tileCoord, int rotationIndex, const GridMap* map)
     {
@@ -584,12 +584,44 @@ void GamePlayState::Update(double dt)
         auto* resMgr    = GetGSComponent<ResourceManager>().get();
         auto& buildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
 
+        auto buildingName = [](BuildingType t) -> const char*
+        {
+            switch (t)
+            {
+                case BuildingType::HOME:                 return "Home";
+                case BuildingType::WOOD_WORKSHOP:        return "Wood Workshop";
+                case BuildingType::ROCK_WORKSHOP:        return "Rock Workshop";
+                case BuildingType::STEEL_WORKSHOP:       return "Steel Workshop";
+                case BuildingType::GRANARY:              return "Granary";
+                case BuildingType::FARM:                 return "Farm";
+                case BuildingType::CAFE:                 return "Cafe";
+                case BuildingType::RESTAURANT2:          return "Restaurant";
+                case BuildingType::CASINO:               return "Casino";
+                case BuildingType::PENTHOUSE:            return "Penthouse";
+                case BuildingType::WORKPLACE3:           return "Fire Station";
+                case BuildingType::DISASTER_OBSERVATORY: return "Observatory";
+                case BuildingType::PARK:                 return "Park";
+                case BuildingType::STREET_LIGHT:         return "Street Light";
+                case BuildingType::ROAD:                 return "Road";
+                default:                                 return "Other";
+            }
+        };
+
         int totalMaintenance = 0;
         for (const auto& b : buildings)
         {
             if (b->GetIsBuilt())
-                totalMaintenance += b->GetMaintenanceCost();
+            {
+                int cost = b->GetMaintenanceCost();
+                if (cost > 0)
+                {
+                    totalMaintenance += cost;
+                    resMgr->AddNamedUpkeep(buildingName(b->GetBuildingType()), cost);
+                }
+            }
         }
+
+        resMgr->RecordDayEnd();
 
         if (totalMaintenance > 0)
         {
@@ -710,21 +742,51 @@ void GamePlayState::Update(double dt)
         lastPlacedFlattenPos           = { -1, -1 };
     }
 
+    auto previousUISelection = uiManager.GetSelectedBuilding();
+
+    // UI must update even when paused (so time-icon click can unpause)
+    {
+        auto        windowSize     = Engine::GetWindow().GetSize();
+        Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
+        mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
+        bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+
+        uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt));
+
+        if (uiManager.IsTimeClicked())
+        {
+            if (simulationPaused)
+            {
+                simulationPaused           = false;
+                simulationSpeedPresetIndex = 0;
+            }
+            else if (simulationSpeedPresetIndex + 1 < kSimulationSpeedPresets.size())
+            {
+                ++simulationSpeedPresetIndex;
+            }
+            else
+            {
+                simulationPaused = true;
+            }
+        }
+    }
+
+    // Camera always updates with real dt (works even when paused)
+    camera.UpdateZoomInterpolation(dt);
+    camera.UpdateShake(dt);
+
+    {
+        const bool tutorialBlockingKeyboard = tutorialManager.IsActive() && tutorialManager.GetCurrentStep() < 3;
+        if (!uiManager.IsMenuActive() && !console.IsOpen() && !tutorialBlockingKeyboard)
+            worldEditor.UpdateInput(dt);  // real dt so WASD speed is unaffected by simulation speed
+    }
+
     if (simulationPaused)
     {
         mouseSelection.SetHasValidPosition(false);
         mouseSelection.SetViewIndex(index);
         Engine::GetLogger().LogEvent("GamePlayState::Update paused");
         return;
-    }
-
-    camera.UpdateZoomInterpolation(simulationDt);
-    camera.UpdateShake(simulationDt);
-
-    const bool tutorialBlockingKeyboard = tutorialManager.IsActive() && tutorialManager.GetCurrentStep() < 3;
-    if (!uiManager.IsMenuActive() && !console.IsOpen() && !tutorialBlockingKeyboard)
-    {
-        worldEditor.UpdateInput(simulationDt);
     }
 
 
@@ -829,16 +891,13 @@ void GamePlayState::Update(double dt)
         achievementManager.Update(static_cast<float>(dt), currentPopulation, buildingCount, cityMetrics->GetHappiness(), maxSingleResource);
     }
 
-    // mouse hovering & building instructure
+    // mouse hovering & building interactions
     auto        windowSize     = Engine::GetWindow().GetSize();
     Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
     mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
     bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
 
-    auto previousUISelection = uiManager.GetSelectedBuilding();
-    uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt));
-
-    // Check if button was clicked
+    // Check if button was clicked (previousUISelection captured before uiManager.Update())
     auto currentSelection = uiManager.GetSelectedBuilding();
     bool selectionChanged = previousUISelection != currentSelection;
     bool buttonClicked    = selectionChanged && (currentSelection != BuildingType::NONE);
@@ -1374,7 +1433,7 @@ void GamePlayState::Draw() const
     GL::Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     // BackGround Color
-    DrawRectangle(-5000, -5000, 10000, 10000, Dokev::ColorPalette::SKYBLUE);
+    DrawRectangle(-50000, -50000, 100000, 100000, Dokev::ColorPalette::SKYBLUE);
 
     auto mapMgr = GetGSComponent<MapManager>();
     mapMgr->GetMap()->IsometricDrawMap(index, selected_renderer, &mouseSelection, GetGSComponent<Dokev::GameObjectManager>().get());
@@ -1519,9 +1578,45 @@ void GamePlayState::Draw() const
     }
 
     renderer2d.BeginScene(ndcMatrixUI);
-    int humanCount = static_cast<int>(GetGSComponent<Dokev::GameObjectManager>()->GetHumans().size());
+    auto& uiHumans    = GetGSComponent<Dokev::GameObjectManager>()->GetHumans();
+    auto& uiBuildings = GetGSComponent<Dokev::GameObjectManager>()->GetBuildings();
+    int   humanCount  = static_cast<int>(uiHumans.size());
+
+    Dokev::PopulationStats popStats;
+    popStats.total = humanCount;
+    {
+        float totalHappy = 0.0f, totalEnergy = 0.0f;
+        for (const auto& h : uiHumans)
+        {
+            if (h->IsHomeless()) ++popStats.homeless;
+            else                 ++popStats.housed;
+            if (h->HasWorkAssignment()) ++popStats.employed;
+            else                        ++popStats.unemployed;
+            totalHappy  += h->GetHappiness();
+            totalEnergy += h->GetStats().energy;
+        }
+        if (humanCount > 0)
+        {
+            popStats.avgHappiness = totalHappy  / static_cast<float>(humanCount);
+            popStats.avgEnergy    = totalEnergy / static_cast<float>(humanCount);
+        }
+        for (const auto& b : uiBuildings)
+        {
+            if (b->GetIsBuilt())
+            {
+                auto bt = b->GetBuildingType();
+                if (bt == BuildingType::HOME || bt == BuildingType::CASINO || bt == BuildingType::PENTHOUSE)
+                    popStats.housingCap += static_cast<int>(b->GetMaxCapacity());
+            }
+        }
+    }
+
     uiManager.Draw(
-        GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(), humanCount, const_cast<BuildingCostManager*>(&buildingCostManager), dayCycle.GetHour(), dayCycle.GetMinute());
+        GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(),
+        humanCount, popStats,
+        const_cast<BuildingCostManager*>(&buildingCostManager),
+        dayCycle.GetHour(), dayCycle.GetMinute(),
+        dayCycle.GetCurrentDay(), static_cast<int>(simulationSpeedPresetIndex), simulationPaused);
     tutorialManager.Draw();
     achievementManager.Draw();
 
@@ -1541,7 +1636,7 @@ void GamePlayState::Draw() const
         int  bannerW = 460;
         int  bannerH = 48;
         int  bx      = cx - bannerW / 2;
-        int  by      = winSz.y - bannerH - 24;   // top-center (y grows upward: y=0 bottom, y=H top)
+        int  by      = winSz.y - bannerH - 68;   // below top bar (bar=50px + 18px gap)
         Dokev::DrawRectangle(bx, by, bannerW, bannerH, 0x660000D0);                  // translucent dark red
         Dokev::DrawRectangleLinesEx(bx, by, bannerW, bannerH, 3.0f, 0xFF3030FF);     // red border
         CS230::FontManager::Instance().DrawText(
@@ -1600,7 +1695,7 @@ void GamePlayState::DrawImGui()
 
         playerUI.DrawUI(
             cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get(), dayCycle.GetHour(), dayCycle.GetMinute(), dayCycle.GetCurrentDay(),
-            &eventManager, &simControls);
+            &eventManager, &simControls, GetGSComponent<ResourceManager>().get());
 
         if (simControls.pauseClicked)
             simulationPaused = !simulationPaused;

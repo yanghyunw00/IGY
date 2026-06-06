@@ -267,7 +267,7 @@ void Human::UpdateWorking(float deltaTime, int currentHour)
     {
         float tax = shiftEarnings * stats.taxRate;
         if (resourceMgr && tax > 0.0f)
-            resourceMgr->AddMoney(static_cast<int>(tax));
+            resourceMgr->AddNamedIncome("Tax", static_cast<int>(tax));
         stats.money  -= tax;
         shiftEarnings = 0.0f;
 
