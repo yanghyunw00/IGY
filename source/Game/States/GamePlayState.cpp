@@ -559,12 +559,69 @@ void GamePlayState::SetSimulationSpeedPreset(std::size_t presetIndex)
     simulationSpeedPresetIndex = std::min(presetIndex, kSimulationSpeedPresets.size() - 1);
 }
 
+void GamePlayState::UpdateCameraFollow(double dt)
+{
+    constexpr double followSpeed = 6.0; 
+
+    if (cameraFollowing && !selectedNPC)
+    {
+        cameraFollowing = false;
+        cameraReturning = true;
+        camera.SetTargetZoom(savedCameraZoom);
+    }
+
+    Math::vec2 target;
+    if (cameraFollowing && selectedNPC)
+    {
+        auto*       map     = GetGSComponent<MapManager>()->GetMap();
+        Math::fvec2 viewPos = map->TransformPathPointForView(selectedNPC->GetGridPosition(), index);
+
+        int        gx     = std::clamp(static_cast<int>(viewPos.x), 0, GRID_SIZE_X - 1);
+        int        gy     = std::clamp(static_cast<int>(viewPos.y), 0, GRID_SIZE_Y - 1);
+        GridCell** view   = map->GetViewArray(index);
+        float      height = static_cast<float>(view[gy * GRID_SIZE_X + gx]->getHeight());
+
+        float screenX = static_cast<float>(map->GetIsoOriginX()) + (viewPos.x - viewPos.y) * TILE_WIDTH_HALF;
+        float screenY = static_cast<float>(map->GetIsoOriginY()) + (viewPos.x + viewPos.y) * TILE_HEIGHT_HALF;
+        float topY    = height - screenY;
+        float cx      = screenX + TILE_WIDTH_HALF;
+        float cy      = topY + TILE_HEIGHT_HALF;
+
+        auto winSize = Engine::GetWindow().GetSize();
+        target       = { 1.0f - cx * 2.0f / static_cast<float>(winSize.x), 1.0f - cy * 2.0f / static_cast<float>(winSize.y) };
+    }
+    else if (cameraReturning)
+    {
+        target = savedCameraPos;
+    }
+    else
+    {
+        return;
+    }
+
+    auto       cur  = camera.GetPosition();
+    float      t    = static_cast<float>(std::min(1.0, dt * followSpeed));
+    Math::vec2 next = { cur.x + (target.x - cur.x) * t, cur.y + (target.y - cur.y) * t };
+    camera.SetPosition(next);
+
+    if (cameraReturning)
+    {
+        double dx = next.x - savedCameraPos.x;
+        double dy = next.y - savedCameraPos.y;
+        if (dx * dx + dy * dy < 1e-8)
+        {
+            camera.SetPosition(savedCameraPos);
+            cameraReturning = false;
+        }
+    }
+}
+
 void GamePlayState::Update(double dt)
 {
     // Engine::GetLogger().LogEvent("GamePlayState::Update start");
     [[maybe_unused]] const auto& environment = Engine::GetWindowEnvironment();
 
-    console.Update(); // must be before UpdateTimeControls so IsOpen() is current
+    console.Update(); 
     UpdateTimeControls();
 
     const double simulationDt = GetSimulationDeltaTime(dt);
@@ -774,6 +831,7 @@ void GamePlayState::Update(double dt)
     // Camera always updates with real dt (works even when paused)
     camera.UpdateZoomInterpolation(dt);
     camera.UpdateShake(dt);
+    UpdateCameraFollow(dt);
 
     {
         const bool tutorialBlockingKeyboard = tutorialManager.IsActive() && tutorialManager.GetCurrentStep() < 3;
@@ -1432,6 +1490,25 @@ void GamePlayState::Update(double dt)
                     selectedNPC = closest;
 
                 playerUI.SetSelectedHuman(selectedNPC);
+
+                constexpr float followZoom = 1.6f; 
+                if (selectedNPC)
+                {
+                    if (!cameraFollowing)
+                    {
+                        savedCameraPos  = camera.GetPosition();    
+                        savedCameraZoom = camera.GetTargetZoom();  
+                        cameraFollowing = true;
+                    }
+                    camera.SetTargetZoom(followZoom);
+                    cameraReturning = false;
+                }
+                else if (cameraFollowing)
+                {
+                    cameraFollowing = false;
+                    cameraReturning = true; 
+                    camera.SetTargetZoom(savedCameraZoom);
+                }
             }
         }
     }

@@ -46,6 +46,16 @@ namespace Dokev
         return zoom;
     }
 
+    void Camera::SetTargetZoom(float newZoom)
+    {
+        targetZoom = newZoom;
+    }
+
+    float Camera::GetTargetZoom() const
+    {
+        return targetZoom;
+    }
+
     void Camera::AdjustZoom(float factor)
     {
         // should translate

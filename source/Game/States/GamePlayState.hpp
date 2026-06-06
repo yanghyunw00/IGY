@@ -137,6 +137,13 @@ private:
     // Selected NPC (clicked by player)
     Human* selectedNPC = nullptr;
 
+    // Camera follow for the selected NPC
+    Math::vec2 savedCameraPos{};         // camera position before following
+    float      savedCameraZoom = 0.8f;   // zoom before following
+    bool       cameraFollowing = false;  // currently tracking selectedNPC
+    bool       cameraReturning = false;  // animating back to saved pos/zoom
+    void       UpdateCameraFollow(double dt);
+
     //Event Manager
     EventManager eventManager;
 
