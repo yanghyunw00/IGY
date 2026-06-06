@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DKAnimationSprite.hpp"
+#include "Dokev/Core/DKUtility.hpp"
 #include "Engine/Matrix.hpp"
 #include "Engine/Vec2.hpp"
 #include <filesystem>
@@ -88,13 +89,13 @@ namespace Dokev
             double angle_variation = 0.0;
             if (spread != 0.0)
             {
-                angle_variation = ((rand() % 1024) / 1024.0) * spread - (spread / 2.0);
+                angle_variation = Dokev::GetRandomFloat(0.0f, 1.0f) * spread - (spread / 2.0);
             }
 
             double speed_factor = 1.0;
             if (speed_variation > 0.0)
             {
-                speed_factor = ((rand() % 1024) / 1024.0) * (2.0 * speed_variation) + (1.0 - speed_variation);
+                speed_factor = Dokev::GetRandomFloat(0.0f, 1.0f) * (2.0 * speed_variation) + (1.0 - speed_variation);
             }
 
             Math::vec2 random_direction = Math::RotationMatrix(angle_variation) * direction * speed_factor;

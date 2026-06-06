@@ -1067,7 +1067,7 @@ Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
     {
         // Intersection - choose randomly
         outFoundRoad    = true;
-        int randomIndex = rand() % nextMoveOptions.size();
+        int randomIndex = Dokev::GetRandomInt(0, static_cast<int>(nextMoveOptions.size()) - 1);
         return nextMoveOptions[randomIndex];
     }
 }
@@ -1150,7 +1150,7 @@ Human Human::CreateImmigrant(const Road* road, const GridMap* map)
     if (road && !road->GetRoadPositions().empty())
     {
         const auto& positions = road->GetRoadPositions();
-        int         idx       = rand() % static_cast<int>(positions.size());
+        int         idx       = Dokev::GetRandomInt(0, static_cast<int>(positions.size()) - 1);
         return Human(positions[idx]);
     }
 

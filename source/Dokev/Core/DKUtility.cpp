@@ -13,6 +13,15 @@
 #include <iostream>
 #include <random>
 
+namespace
+{
+    std::mt19937& RandomEngine()
+    {
+        thread_local std::mt19937 engine{ std::random_device{}() };
+        return engine;
+    }
+}
+
 int Dokev::GetRandomValue(int min, int max)
 {
     if (min < 0 || max == 0 || max > 999999)
@@ -21,22 +30,16 @@ int Dokev::GetRandomValue(int min, int max)
         return 0; // For now, just terminate program.
     }
 
-    std::random_device                 rd;
-    std::mt19937                       gen(rd());
     std::uniform_int_distribution<int> dis(min, max);
 
-    int result = dis(gen);
-
-    return result;
+    return dis(RandomEngine());
 }
 
 bool Dokev::ChanceRoll(float probability)
 {
-    std::random_device                    rd;
-    std::mt19937                          gen(rd());
     std::uniform_real_distribution<float> dis(0.0f, 1.0f);
 
-    return dis(gen) < probability;
+    return dis(RandomEngine()) < probability;
 }
 
 vec2 Dokev::GetRandomGridPosition(int gridWidth, int gridHeight)
@@ -54,9 +57,7 @@ int Dokev::GetRandomInt(int min, int max)
 
 float Dokev::GetRandomFloat(float min, float max)
 {
-    std::random_device                    rd;
-    std::mt19937                          gen(rd());
     std::uniform_real_distribution<float> dis(min, max);
 
-    return dis(gen);
+    return dis(RandomEngine());
 }

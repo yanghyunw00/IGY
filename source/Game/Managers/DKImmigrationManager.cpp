@@ -6,6 +6,7 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKImmigrationManager.hpp"
+#include "Dokev/Core/DKUtility.hpp"
 
 namespace Dokev
 {
@@ -54,8 +55,7 @@ namespace Dokev
 
             float chance = CalculateImmigrationChance(availableHomes, happiness, humanCount, totalResources);
 
-            float random = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-            if (random < chance)
+            if (Dokev::ChanceRoll(chance))
             {
                 return true;
             }

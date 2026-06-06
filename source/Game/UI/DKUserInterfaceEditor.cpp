@@ -22,7 +22,7 @@
 #include <imgui.h>
 
 
-void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute, int currentDay, EventManager* eventManager, SimulationControls* simControls, ResourceManager* /*resourceManager*/)
+void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::ImmigrationManager* immigrationManager, Dokev::GameObjectManager* gameObjectManager, Dokev::CityMetrics* cityMetrics, int hour, int minute, int currentDay, EventManager* eventManager, SimulationControls* simControls)
 {
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;

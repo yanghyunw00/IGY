@@ -1720,7 +1720,7 @@ void GamePlayState::DrawImGui()
 
         playerUI.DrawUI(
             cityMetrics->GetHappinessManager(), cityMetrics->GetImmigrationManager(), gameObjMgr.get(), cityMetrics.get(), dayCycle.GetHour(), dayCycle.GetMinute(), dayCycle.GetCurrentDay(),
-            &eventManager, &simControls, GetGSComponent<ResourceManager>().get());
+            &eventManager, &simControls);
 
         if (simControls.pauseClicked)
             simulationPaused = !simulationPaused;
