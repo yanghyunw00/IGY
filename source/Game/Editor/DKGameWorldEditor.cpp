@@ -199,7 +199,7 @@ namespace Dokev
 
                 if (ImGui::Button("Set Money to 100"))
                 {
-                    resourceManager->totalMoney = 100;
+                    resourceManager->totalMoney = 999999;
                 }
 
                 ImGui::SameLine();

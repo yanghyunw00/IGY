@@ -749,11 +749,36 @@ void GamePlayState::Update(double dt)
         {
             humans[i]->SetResourceManager(resMgr);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
-            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), gameObjMgr.get(), dayCycle.GetHour());
+            humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), gameObjMgr.get(), dayCycle.GetHour(), cityMetrics->GetHappinessManager()->factors.nightSafetyScore);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
         }
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
+
+    // Casino needs night safety to draw gamblers 
+    casinoHintTimer += static_cast<float>(simulationDt);
+    {
+        const int   hour        = dayCycle.GetHour();
+        const float nightSafety = cityMetrics->GetHappinessManager()->factors.nightSafetyScore;
+        if (hour >= 0 && hour < 5 && nightSafety < 70.0f && casinoHintTimer >= 4.0f)
+        {
+            casinoHintTimer = 0.0f;
+            auto* gmap = mapMgr->GetMap();
+            for (const auto& b : gameObjMgr->GetBuildings())
+            {
+                if (b->GetBuildingType() != BuildingType::CASINO || !b->GetIsBuilt())
+                    continue;
+                int        gx      = static_cast<int>(b->GetGrid().x);
+                int        gy      = static_cast<int>(b->GetGrid().y);
+                GridCell** viewArr = gmap->GetViewArray(0);
+                float      cellH   = viewArr ? static_cast<float>(viewArr[gy * GRID_SIZE_X + gx]->getHeight()) : 0.0f;
+                float      rawY    = static_cast<float>(gmap->GetIsoOriginY() + (gx + gy) * TILE_HEIGHT_HALF);
+                float      sx      = static_cast<float>(gmap->GetIsoOriginX() + (gx - gy) * TILE_WIDTH_HALF);
+                float      sy      = cellH - rawY + TILE_HEIGHT_HALF * 3;
+                FloatingTextManager::Instance().Add("Too dark", { sx, sy }, 0xFF8080FF);
+            }
+        }
+    }
 
     GetGSComponent<Dokev::GameObjectManager>()->Refresh();
 

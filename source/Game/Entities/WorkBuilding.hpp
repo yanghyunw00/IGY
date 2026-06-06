@@ -12,6 +12,7 @@
 #include "Building.hpp"
 #include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Managers/DKTimeManager.hpp"
+#include <vector>
 
 class WorkBuilding : public Building
 {
@@ -21,6 +22,9 @@ protected:
     Dokev::Timer           productionTimer;
     class ResourceManager* resourceManager;
     bool                   serviceOperating;
+
+    // current workers
+    std::vector<Human*>    workers;
 
     // Static texture cache to prevent memory leaks
     static Dokev::Texture2D loggingCampTexture;
@@ -84,4 +88,5 @@ public:
     bool  IsFull() const;
     bool  HasWorker() const;
     bool  IsServiceOperating() const;
+    float GetWorkerEfficiency() const;
 };
