@@ -155,8 +155,6 @@ namespace Dokev
         if (currentStepIndex >= static_cast<int>(steps.size()))
             return;
 
-        DrawOverlay();
-
         DrawHighlight();
 
         if (steps[currentStepIndex].showArrow)

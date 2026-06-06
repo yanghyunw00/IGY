@@ -505,6 +505,10 @@ void GamePlayState::UpdateTimeControls()
     if (console.IsOpen())
         return; // don't steal keys while console is open
 
+    // Block all keyboard/scroll input during early tutorial steps (before "build wood workshop")
+    if (tutorialManager.IsActive() && tutorialManager.GetCurrentStep() < 3)
+        return;
+
     const auto& input = Engine::GetInput();
 
     if (input.KeyJustPressed(CS230::Input::Keys::P))
@@ -529,14 +533,14 @@ void GamePlayState::UpdateTimeControls()
     }
 
     // Mouse wheel zoom — finer-grained than Q/E
-    int scroll = mouse.GetScrollDelta();
+    int scroll = Engine::GetWindow().GetScrollDelta();
     if (scroll != 0)
     {
-        constexpr float kWheelFactor = 1.08f;
+        constexpr float kWheelFactor = 1.05f;
         float           factor       = (scroll > 0) ? kWheelFactor : (1.0f / kWheelFactor);
         int             steps        = std::abs(scroll);
         for (int i = 0; i < steps; ++i)
-            camera.AdjustTargetZoom(factor);
+            camera.AdjustTargetZoom(factor, 0.05f, 2.5f);
     }
 }
 
@@ -565,9 +569,12 @@ void GamePlayState::Update(double dt)
 
     const double simulationDt = GetSimulationDeltaTime(dt);
 
-    weatherCycle.Update(static_cast<float>(simulationDt));
-    dayCycle.Update(static_cast<float>(simulationDt));
-    rainTime += static_cast<float>(simulationDt);
+    if (!tutorialManager.IsActive())
+    {
+        weatherCycle.Update(static_cast<float>(simulationDt));
+        dayCycle.Update(static_cast<float>(simulationDt));
+        rainTime += static_cast<float>(simulationDt);
+    }
 
     // Collect maintenance costs on each new day
     if (dayCycle.GetCurrentDay() != previousDay)
@@ -636,7 +643,8 @@ void GamePlayState::Update(double dt)
         eventManager.SetObservatoryCount(obsCount);
     }
 
-    eventManager.EventCycle(dt);
+    if (!tutorialManager.IsActive())
+        eventManager.EventCycle(dt);
 
     // Disaster Observatory early warning: just announce the incoming disaster
     // with a floating text. (No evacuation.)
@@ -713,7 +721,8 @@ void GamePlayState::Update(double dt)
     camera.UpdateZoomInterpolation(simulationDt);
     camera.UpdateShake(simulationDt);
 
-    if (!uiManager.IsMenuActive() && !console.IsOpen())
+    const bool tutorialBlockingKeyboard = tutorialManager.IsActive() && tutorialManager.GetCurrentStep() < 3;
+    if (!uiManager.IsMenuActive() && !console.IsOpen() && !tutorialBlockingKeyboard)
     {
         worldEditor.UpdateInput(simulationDt);
     }
@@ -1390,6 +1399,7 @@ void GamePlayState::Draw() const
     eventManager.Draw(index);
 
     // Cloud patches drawn in world space (same camera transform as the map)
+    if (!tutorialManager.IsActive())
     {
         float vis = (cloudVisOverride >= 0.f) ? cloudVisOverride : weatherCycle.GetCloudShadowOpacity();
         if (vis > 0.f)
@@ -1406,6 +1416,7 @@ void GamePlayState::Draw() const
     renderer2d_IMMEDIATE.EndScene();
 
     // Rain overlay
+    if (!tutorialManager.IsActive())
     {
         float intensity = weatherCycle.GetRainIntensity();
         if (intensity > 0.f && rainShader.Shader != 0)
@@ -1431,10 +1442,10 @@ void GamePlayState::Draw() const
     auto ndcMatrixUI = CS200::build_ndc_matrix(windowSize);
 
     renderer2d.BeginScene(ndcMatrixUI);
-    CS200::RGBA dayOverlay = dayCycle.GetOverlayColor();
+    CS200::RGBA dayOverlay     = tutorialManager.IsActive() ? CS200::CLEAR : dayCycle.GetOverlayColor();
+    CS200::RGBA weatherOverlay = tutorialManager.IsActive() ? CS200::CLEAR : weatherCycle.GetOverlayColor();
     if (dayOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, dayOverlay);
-    CS200::RGBA weatherOverlay = weatherCycle.GetOverlayColor();
     if (weatherOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, weatherOverlay);
 

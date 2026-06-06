@@ -60,6 +60,8 @@ namespace CS230
         void               DisableTextInput();
         const std::string& GetTextInput() const noexcept { return frameTextInput; }
 
+        int GetScrollDelta() const noexcept { return mouse.GetScrollDelta(); }
+
     private:
 
         void setupSDLWindow(std::string_view title);
