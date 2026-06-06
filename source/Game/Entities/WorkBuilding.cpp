@@ -44,11 +44,16 @@ Dokev::AnimatedSprite WorkBuilding::steelWorkshopAnim;
 
 namespace
 {
-    constexpr int kGranaryFoodCapacity      = 200;
+    constexpr int kGranaryFoodCapacity      = 150;
     constexpr int kCafeFoodPerTick          = 1;
     constexpr int kRestaurantFoodPerTick    = 2;
     constexpr int kCafeIncomePerTick        = 3;
     constexpr int kRestaurantIncomePerTick  = 7;
+
+    constexpr int woodWorkshopMoneyMultiplier  = 2;
+    constexpr int rockWorkshopMoneyMultiplier  = 6;
+    constexpr int steelWorkshopMoneyMultiplier = 12;
+    constexpr int farmFoodMultiplier           = 2;
 
     CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
     {
@@ -58,6 +63,20 @@ namespace
     bool IsFoodService(BuildingType buildingType)
     {
         return buildingType == BuildingType::CAFE || buildingType == BuildingType::RESTAURANT2;
+    }
+
+    int JobPriorityFor(BuildingType buildingType)
+    {
+        switch (buildingType)
+        {
+            case BuildingType::FARM:           return 3; // food production
+            case BuildingType::CAFE:
+            case BuildingType::RESTAURANT2:    return 2; // food service
+            case BuildingType::WOOD_WORKSHOP:
+            case BuildingType::ROCK_WORKSHOP:
+            case BuildingType::STEEL_WORKSHOP: return 1; // income
+            default:                           return 0;
+        }
     }
 }
 
@@ -183,7 +202,7 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
 
         case BuildingType::FARM:
             texture         = farmTexture;
-            max_capacity    = 2;
+            max_capacity    = 1;
             cost            = 0;
             maintenanceCost = 10;
             break;
@@ -247,32 +266,49 @@ WorkBuilding::~WorkBuilding()
 
 void WorkBuilding::OnConstructed()
 {
-    // Granary is pure storage, not a workplace: only expand food capacity, no jobs.
     if (buildingType == BuildingType::GRANARY)
     {
         if (resourceManager != nullptr)
             resourceManager->AddFoodCapacity(kGranaryFoodCapacity);
-        return;
     }
 
     if (buildingType == BuildingType::WORKPLACE3)
         return;
 
+    // no Gathering jobs at daytime
+    if (buildingType == BuildingType::CASINO)
+        return;
+
+    const int jobPriority = JobPriorityFor(buildingType);
     for (unsigned int i = 0; i < max_capacity; ++i)
-        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
+        WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this, jobPriority);
 }
 
 void WorkBuilding::OnWorkerArrived(Human* human)
 {
-    (void)human;
+    if (human != nullptr)
+        workers.push_back(human);
     AddWorker(1);
 }
 
 void WorkBuilding::OnWorkerLeft(Human* human)
 {
-    (void)human;
+    auto it = std::find(workers.begin(), workers.end(), human);
+    if (it != workers.end())
+        workers.erase(it);
     RemoveWorker(1);
-    WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this);
+    WorkManager::GetInstance().AddJob(WorkType::Gathering, gridPosition, this, JobPriorityFor(buildingType));
+}
+
+float WorkBuilding::GetWorkerEfficiency() const
+{
+    if (workers.empty())
+        return 1.0f;
+
+    float total = 0.0f;
+    for (const Human* w : workers)
+        total += (w->GetEnergy() / 100.0f) * (w->GetHappiness() / 100.0f);
+    return total / static_cast<float>(workers.size());
 }
 
 void WorkBuilding::Update(float dt)
@@ -289,18 +325,18 @@ void WorkBuilding::Update(float dt)
     {
         int amountToProduce = static_cast<int>(current_capacity * productionRate);
 
+        // scaled by worker wellbeing
+        const float efficiency = GetWorkerEfficiency();
+
         switch (buildingType)
         {
-            case BuildingType::WOOD_WORKSHOP:  resourceManager->AddNamedIncome("Wood Workshop",  amountToProduce); break;
-            case BuildingType::ROCK_WORKSHOP:  resourceManager->AddNamedIncome("Rock Workshop",  amountToProduce); break;
-            case BuildingType::STEEL_WORKSHOP: resourceManager->AddNamedIncome("Steel Workshop", amountToProduce); break;
+            case BuildingType::WOOD_WORKSHOP: resourceManager->AddMoney(static_cast<int>(amountToProduce * woodWorkshopMoneyMultiplier * efficiency)); break;
+            case BuildingType::ROCK_WORKSHOP: resourceManager->AddMoney(static_cast<int>(amountToProduce * rockWorkshopMoneyMultiplier * efficiency)); break;
+            case BuildingType::STEEL_WORKSHOP: resourceManager->AddMoney(static_cast<int>(amountToProduce * steelWorkshopMoneyMultiplier * efficiency)); break;
             case BuildingType::GRANARY: break;
             case BuildingType::FARM:
                 if (resourceManager->GetFoodCapacity() > 0)
-                {
-                    resourceManager->AddFood(amountToProduce);
-                    resourceManager->AddNamedFoodProduction("Farm", amountToProduce);
-                }
+                    resourceManager->AddFood(amountToProduce * farmFoodMultiplier);
                 break;
             case BuildingType::CAFE:
                 if (resourceManager->TrySpendFood(kCafeFoodPerTick))

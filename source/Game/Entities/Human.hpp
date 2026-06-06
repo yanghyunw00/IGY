@@ -29,6 +29,7 @@ enum class HumanState
     FindingDestination, // Deciding where to go next
     Working,            // work
     Resting,            // resting at home after fatigue
+    Gambling,           // gambling at a casino through the night
     Firefighting,       // dispatched to fight a fire
 };
 
@@ -38,7 +39,7 @@ struct HumanStats
     float energy    = 100.0f; // 0-100: Energy level
     float walkSpeed = 1.0f;   // Movement speed
     float money     = 0.0f;   // Personal wallet
-    float hourlyWage = 10.0f; // Money earned per game-hour worked
+    float hourlyWage = 40.0f; // 20% taxed to the city
     float taxRate    = 0.2f;  // Fraction of daily earnings taken as tax at end of shift
 };
 
@@ -85,6 +86,14 @@ struct HumanAI
     Math::fvec2 targetCafePosition = { -1.0f, -1.0f };
     bool  isSeekingCafe         = false;
 
+    //gambling at a casino
+    Math::fvec2 targetCasinoPosition = { -1.0f, -1.0f };
+    bool        isSeekingCasino      = false;
+    Building*   assignedCasino       = nullptr;
+    bool        gambleRolledTonight  = false; // rolled once per night
+    float       gambleBetTimer       = 0.0f;  // time since last bet
+    float       gambleSessionTimer   = 0.0f;  // time spent gambling this visit
+
     bool  isHomeless            = false; // Evening with no available home to return to
 
     // Road following
@@ -115,7 +124,7 @@ public:
     }
 
     // CORE UPDATE & DRAW
-    void Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr = nullptr, int currentHour = 12);
+    void Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr = nullptr, int currentHour = 12, float nightSafety = 100.0f);
     void Draw(int viewIndex, const GridMap* map) const;
 
 
@@ -142,6 +151,10 @@ public:
 
     bool HasWorkAssignment() const { return ai.assignedJobId != -1; }
     void CancelWork(); // Cancel the work when some situation happened
+
+    // Sever any raw pointer this human holds to a building that is about to be freed
+    // (e.g. destroyed by an earthquake) so it never dereferences dangling memory.
+    void OnBuildingDestroyed(Building* building);
 
     void DispatchToFire(Math::fvec2 fireCenter, GridMap* map);
     void CancelFirefighting();
@@ -190,6 +203,11 @@ public:
         return stats.happiness;
     }
 
+    float GetEnergy() const
+    {
+        return stats.energy;
+    }
+
     float GetMoney() const
     {
         return stats.money;
@@ -221,11 +239,12 @@ private:
     // INTERNAL UPDATE FUNCTIONS
     void UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr = nullptr);
     void UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr);
-    void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr);
+    void UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr, float nightSafety);
     void ChangeState(HumanState newState);
 
     void UpdateWorking(float deltaTime, int currentHour);
     void UpdateResting(float deltaTime);
+    void UpdateGambling(float deltaTime, int currentHour, GridMap* map);
     void UpdateFirefighting();
 
     void StartEmigrating();

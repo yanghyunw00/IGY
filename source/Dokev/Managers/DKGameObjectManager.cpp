@@ -37,17 +37,27 @@ namespace Dokev
 
     void GameObjectManager::RemoveBuilding(int gridX, int gridY)
     {
-        m_buildings.erase(
-            std::remove_if(
-                m_buildings.begin(), m_buildings.end(),
-                [gridX, gridY](const auto& building)
-                {
-                    auto buildingGrid = building->GetGrid();
-                    int  buildingX    = static_cast<int>(std::round(buildingGrid.x));
-                    int  buildingY    = static_cast<int>(std::round(buildingGrid.y));
-                    return buildingX == gridX && buildingY == gridY;
-                }),
-            m_buildings.end());
+        for (auto it = m_buildings.begin(); it != m_buildings.end();)
+        {
+            auto buildingGrid = (*it)->GetGrid();
+            int  buildingX    = static_cast<int>(std::round(buildingGrid.x));
+            int  buildingY    = static_cast<int>(std::round(buildingGrid.y));
+
+            if (buildingX == gridX && buildingY == gridY)
+            {
+                // Sever any raw pointers humans hold to this building before the
+                // unique_ptr frees it; otherwise (e.g. earthquake) they dangle.
+                Building* dying = it->get();
+                for (auto& human : m_humans)
+                    human->OnBuildingDestroyed(dying);
+
+                it = m_buildings.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
     }
 
     void GameObjectManager::CheckHp(Building* building)

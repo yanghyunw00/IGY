@@ -14,12 +14,14 @@ struct Job
     WorkType    type;
     Math::fvec2 position;
     Building* targetBuilding;
-    
+
+    int    priority; // higher = filled first
+
     bool   isAssigned;
     Human* assignedWorker;
 
-    Job(int id, WorkType t, Math::fvec2 pos, Building* b)
-        : jobId(id), type(t), position(pos), targetBuilding(b), isAssigned(false), assignedWorker(nullptr) {}
+    Job(int id, WorkType t, Math::fvec2 pos, Building* b, int prio = 0)
+        : jobId(id), type(t), position(pos), targetBuilding(b), priority(prio), isAssigned(false), assignedWorker(nullptr) {}
 };
 
 class WorkManager
@@ -38,30 +40,38 @@ public:
     }
 
     // Called by Building
-    void AddJob(WorkType type, Math::fvec2 position, Building* building)
+    void AddJob(WorkType type, Math::fvec2 position, Building* building, int priority = 0)
     {
-        jobList.push_back(Job(nextJobId++, type, position, building));
+        jobList.push_back(Job(nextJobId++, type, position, building, priority));
     }
 
     // Called by Human
     bool RequestJob(Human* requester, Math::fvec2 humanPos, int& outJobId, Math::fvec2& outJobPos, WorkType& outType, float maxRadius = 20.0f)
     {
-        float minDistSq = maxRadius * maxRadius; 
-        int   bestIndex = -1;
+        const float maxDistSq = maxRadius * maxRadius;
+        int   bestIndex    = -1;
+        int   bestPriority = -1;
+        float bestDistSq   = maxDistSq;
 
         for (int i = 0; i < (int)jobList.size(); ++i)
         {
-            if (!jobList[i].isAssigned)
-            {
-                float dx     = jobList[i].position.x - humanPos.x;
-                float dy     = jobList[i].position.y - humanPos.y;
-                float distSq = (dx * dx) + (dy * dy);
+            if (jobList[i].isAssigned)
+                continue;
 
-                if (distSq < minDistSq)
-                {
-                    minDistSq = distSq;
-                    bestIndex = i;
-                }
+            float dx     = jobList[i].position.x - humanPos.x;
+            float dy     = jobList[i].position.y - humanPos.y;
+            float distSq = (dx * dx) + (dy * dy);
+
+            if (distSq >= maxDistSq)
+                continue; // out of search range
+
+            // priority first, then nearest
+            if (jobList[i].priority > bestPriority ||
+                (jobList[i].priority == bestPriority && distSq < bestDistSq))
+            {
+                bestPriority = jobList[i].priority;
+                bestDistSq   = distSq;
+                bestIndex    = i;
             }
         }
 

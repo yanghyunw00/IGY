@@ -14,6 +14,7 @@
 #include "../Managers/ResourceManager.hpp"
 #include "../World/GridMap.hpp"
 #include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Core/DKUtility.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "Game/Managers/WorkManager.hpp"
@@ -28,6 +29,17 @@
 #include <iostream>
 #include <queue>
 #include <unordered_map>
+
+namespace
+{
+    // night gambling tuning (city is the house, with an edge)
+    constexpr int   gamblePercent     = 40;   // % who gamble each night
+    constexpr int   gambleLoss        = 15;   // citizen loses, city gains
+    constexpr int   gambleWin         = 10;   // citizen wins, city pays
+    constexpr float gambleHappiness   = 3.0f; // happiness swing per bet
+    constexpr float gambleBetInterval = 4.0f; // seconds between bets
+    constexpr float gambleMinSafety   = 70.0f; // only gamble if night safety >= this
+}
 
 
 Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false), color(Dokev::ColorPalette::BLUE)
@@ -66,6 +78,30 @@ void Human::CancelWork()
     if (state == HumanState::Walking || state == HumanState::Working)
     {
         ChangeState(HumanState::Idle);
+    }
+}
+
+void Human::OnBuildingDestroyed(Building* building)
+{
+    if (ai.assignedHome == building)
+    {
+        ai.assignedHome  = nullptr;
+        ai.isHeadingHome = false;
+        if (ai.assignedWorkType == WorkType::REST)
+            ai.assignedWorkType = WorkType::None;
+
+        // If the human was resting in this home, send it back to Idle to find a new one.
+        if (state == HumanState::Resting)
+            ChangeState(HumanState::Idle);
+    }
+
+    // drop a freed casino we were gambling at
+    if (ai.assignedCasino == building)
+    {
+        ai.assignedCasino  = nullptr;
+        ai.isSeekingCasino = false;
+        if (state == HumanState::Gambling)
+            ChangeState(HumanState::Idle);
     }
 }
 
@@ -179,15 +215,18 @@ void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManag
                      static_cast<int>(currentGridPos.y) == static_cast<int>(ai.targetCafePosition.y))
             {
                 ai.isSeekingCafe = false;
-                bool cafeIsOperating = false;
+                bool         cafeIsOperating = false;
+                BuildingType arrivedType     = BuildingType::CAFE;
                 if (gameObjMgr)
                 {
                     for (const auto& building : gameObjMgr->GetBuildings())
                     {
-                        if (building->GetBuildingType() == BuildingType::CAFE && building->GetIsBuilt() &&
+                        BuildingType bt = building->GetBuildingType();
+                        if ((bt == BuildingType::CAFE || bt == BuildingType::RESTAURANT2) && building->GetIsBuilt() &&
                             static_cast<int>(building->GetGrid().x) == static_cast<int>(ai.targetCafePosition.x) &&
                             static_cast<int>(building->GetGrid().y) == static_cast<int>(ai.targetCafePosition.y))
                         {
+                            arrivedType = bt;
                             if (auto* cafe = dynamic_cast<WorkBuilding*>(building.get()))
                             {
                                 cafeIsOperating = cafe->IsServiceOperating();
@@ -196,6 +235,10 @@ void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManag
                         }
                     }
                 }
+
+                // restaurant restores more than cafe
+                const bool  isRestaurant = (arrivedType == BuildingType::RESTAURANT2);
+                const float energyGain   = isRestaurant ? 40.0f : 20.0f;
 
                 if (map)
                 {
@@ -208,19 +251,31 @@ void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManag
                     float sy     = cellH - rawY + TILE_HEIGHT_HALF * 3;
                     if (cafeIsOperating)
                     {
-                        FloatingTextManager::Instance().Add("+10 Happiness (Cafe)", { sx, sy }, 0xFFDD44FF);
+                        const char* msg = isRestaurant ? "+10 Happiness (Restaurant)" : "+10 Happiness (Cafe)";
+                        FloatingTextManager::Instance().Add(msg, { sx, sy }, 0xFFDD44FF);
                     }
                     else
                     {
-                        FloatingTextManager::Instance().Add("Cafe closed: need food", { sx, sy }, 0xFF8080FF);
+                        const char* msg = isRestaurant ? "Restaurant closed: need food" : "Cafe closed: need food";
+                        FloatingTextManager::Instance().Add(msg, { sx, sy }, 0xFF8080FF);
                     }
                 }
                 if (cafeIsOperating)
                 {
-                    stats.energy    = std::min(100.0f, stats.energy + 50.0f);
+                    stats.energy    = std::min(100.0f, stats.energy + energyGain);
                     stats.happiness = std::min(100.0f, stats.happiness + 10.0f);
                 }
                 ChangeState(HumanState::Idle);
+            }
+            else if (ai.isSeekingCasino &&
+                     static_cast<int>(currentGridPos.x) == static_cast<int>(ai.targetCasinoPosition.x) &&
+                     static_cast<int>(currentGridPos.y) == static_cast<int>(ai.targetCasinoPosition.y))
+            {
+                // settle in to gamble
+                ai.isSeekingCasino    = false;
+                ai.gambleSessionTimer = 0.0f;
+                ai.gambleBetTimer     = gambleBetInterval; // bet on the first frame
+                ChangeState(HumanState::Gambling);
             }
             else
             {
@@ -295,6 +350,54 @@ void Human::UpdateResting(float deltaTime)
     }
 }
 
+void Human::UpdateGambling(float deltaTime, int currentHour, GridMap* map)
+{
+    (void)currentHour;
+
+    constexpr float gambleSessionLength = 7.0f; // stay ~7s at the casino
+
+    ai.gambleSessionTimer += deltaTime;
+    if (ai.gambleSessionTimer >= gambleSessionLength)
+    {
+        if (auto* casino = dynamic_cast<WorkBuilding*>(ai.assignedCasino))
+            casino->RemoveWorker(1);
+        ai.assignedCasino     = nullptr;
+        ai.gambleBetTimer     = 0.0f;
+        ai.gambleSessionTimer = 0.0f;
+        ai.isHeadingHome      = true;
+        ChangeState(HumanState::FindingDestination);
+        return;
+    }
+
+    ai.gambleBetTimer += deltaTime;
+    if (ai.gambleBetTimer < gambleBetInterval)
+        return;
+    ai.gambleBetTimer = 0.0f;
+
+    // 1/3 win, tie, lose
+    const int roll = Dokev::GetRandomInt(0, 2);
+    if (roll == 0) // win
+    {
+        stats.money    += gambleWin;
+        stats.happiness = std::min(100.0f, stats.happiness + gambleHappiness);
+        if (resourceMgr)
+            resourceMgr->TrySpend(gambleWin); // city pays the winner
+        SpawnFloatingStatus("+$" + std::to_string(gambleWin), 0x55FF55FF, map);
+    }
+    else if (roll == 1) // tie
+    {
+        SpawnFloatingStatus("Tie", 0xCCCCCCFF, map);
+    }
+    else // lose
+    {
+        stats.money     = std::max(0.0f, stats.money - static_cast<float>(gambleLoss));
+        stats.happiness = std::max(0.0f, stats.happiness - gambleHappiness);
+        if (resourceMgr)
+            resourceMgr->AddMoney(gambleLoss); // city collects
+        SpawnFloatingStatus("-$" + std::to_string(gambleLoss), 0xFF5555FF, map);
+    }
+}
+
 void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* gameObjMgr)
 {
     if (ai.isHomeless)
@@ -339,14 +442,23 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
             Math::fvec2 cafePos = { -1.0f, -1.0f };
             if (gameObjMgr)
             {
-                for (const auto& building : gameObjMgr->GetBuildings())
+                // Randomly prefer a Cafe or a Restaurant 50%
+                BuildingType preferredType = (Dokev::GetRandomInt(0, 1) == 0) ? BuildingType::CAFE : BuildingType::RESTAURANT2;
+                BuildingType fallbackType  = (preferredType == BuildingType::CAFE) ? BuildingType::RESTAURANT2 : BuildingType::CAFE;
+
+                for (BuildingType wantedType : { preferredType, fallbackType })
                 {
-                    auto* cafe = dynamic_cast<WorkBuilding*>(building.get());
-                    if (building->GetBuildingType() == BuildingType::CAFE && building->GetIsBuilt() && cafe && cafe->IsServiceOperating())
+                    for (const auto& building : gameObjMgr->GetBuildings())
                     {
-                        cafePos = building->GetGrid();
-                        break;
+                        auto* cafe = dynamic_cast<WorkBuilding*>(building.get());
+                        if (building->GetBuildingType() == wantedType && building->GetIsBuilt() && cafe && cafe->IsServiceOperating())
+                        {
+                            cafePos = building->GetGrid();
+                            break;
+                        }
                     }
+                    if (cafePos.x >= 0.0f)
+                        break;
                 }
             }
 
@@ -371,6 +483,59 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
             else
             {
                 ai.isSeekingCafe = false;
+            }
+            return;
+        }
+
+        if (ai.isSeekingCasino)
+        {
+            Math::fvec2   casinoPos   = { -1.0f, -1.0f };
+            WorkBuilding* foundCasino = nullptr;
+            if (gameObjMgr)
+            {
+                for (const auto& building : gameObjMgr->GetBuildings())
+                {
+                    if (building->GetBuildingType() == BuildingType::CASINO && building->GetIsBuilt() && !building->IsFull())
+                    {
+                        if (auto* casino = dynamic_cast<WorkBuilding*>(building.get()))
+                        {
+                            casinoPos   = building->GetGrid();
+                            foundCasino = casino;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (!foundCasino)
+            {
+                ai.isSeekingCasino = false;
+                return;
+            }
+
+            ai.assignedCasino = foundCasino;
+            foundCasino->AddWorker(1); // occupy a slot
+
+            if (map)
+            {
+                map->ClearPath();
+                map->FindPath(static_cast<int>(currentGridPos.x), static_cast<int>(currentGridPos.y),
+                              static_cast<int>(casinoPos.x), static_cast<int>(casinoPos.y));
+                auto path_ = map->GetCurrentPath();
+
+                if (!path_.empty() && path_.size() > 1)
+                {
+                    std::cout << "[GAMBLE] " << name << " walking to casino" << std::endl;
+                    ai.targetCasinoPosition = casinoPos;
+                    FollowPath(path_);
+                    ChangeState(HumanState::Walking);
+                }
+                else
+                {
+                    std::cout << "[GAMBLE] " << name << " no path to casino, gambling in place" << std::endl;
+                    ai.isSeekingCasino = false;
+                    ChangeState(HumanState::Gambling);
+                }
             }
             return;
         }
@@ -428,7 +593,7 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
     }
 }
 
-void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr)
+void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* road, int currentHour, Dokev::GameObjectManager* gameObjMgr, float nightSafety)
 {
     (void)deltaTime;
 
@@ -437,8 +602,40 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
 
     bool outsideHours = (currentHour < 9 || currentHour >= 18);
 
+    // reset the gambling
+    if (!outsideHours)
+        ai.gambleRolledTonight = false;
+
     if (outsideHours)
     {
+        if (!ai.gambleRolledTonight)
+        {
+            ai.gambleRolledTonight = true;
+
+            bool casinoSlotFree = false;
+            if (gameObjMgr)
+            {
+                for (const auto& b : gameObjMgr->GetBuildings())
+                {
+                    if (b->GetBuildingType() == BuildingType::CASINO && b->GetIsBuilt() && !b->IsFull())
+                    {
+                        casinoSlotFree = true;
+                        break;
+                    }
+                }
+            }
+
+            const int rollv = Dokev::GetRandomInt(0, 99);
+            std::cout << "[GAMBLE] " << name << " hr=" << currentHour << " safety=" << nightSafety
+                      << " casinoFree=" << casinoSlotFree << " roll=" << rollv << std::endl;
+            if (casinoSlotFree && nightSafety >= gambleMinSafety && rollv < gamblePercent)
+            {
+                ai.isSeekingCasino = true;
+                ChangeState(HumanState::Idle);
+                return;
+            }
+        }
+
         bool availableHomeExists = false;
         if (gameObjMgr)
         {
@@ -478,7 +675,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
             return;
         }
     }
-    else if (stats.energy <= 0.0f)
+    else if (stats.energy <= 15.0f)
     {
         ai.isSeekingCafe = true;
         ChangeState(HumanState::Idle);
@@ -561,7 +758,7 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     ai.idleTimer = ai.maxIdleTime - 0.5f;
 }
 
-void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr, int currentHour)
+void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameObjectManager* gameObjMgr, int currentHour, float nightSafety)
 {
     // Emigration: citizens who are completely unhappy, or who remained homeless
     // through the night until daytime, pack up and leave the city.
@@ -596,7 +793,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
 
             if (!isMoving)
             {
-                if (state == HumanState::Working || state == HumanState::Resting)
+                if (state == HumanState::Working || state == HumanState::Resting || state == HumanState::Gambling)
                     return;
 
                 ChangeState(HumanState::FindingDestination);
@@ -609,7 +806,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
     }
     else if (state == HumanState::FindingDestination)
     {
-        UpdateFindingDestination(deltaTime, map, road, currentHour, gameObjMgr);
+        UpdateFindingDestination(deltaTime, map, road, currentHour, gameObjMgr, nightSafety);
     }
     else if (state == HumanState::Working)
     {
@@ -618,6 +815,10 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
     else if (state == HumanState::Resting)
     {
         UpdateResting(deltaTime);
+    }
+    else if (state == HumanState::Gambling)
+    {
+        UpdateGambling(deltaTime, currentHour, map);
     }
     else if (state == HumanState::Firefighting)
     {
@@ -678,11 +879,15 @@ void Human::StartEmigrating()
         ai.assignedHome     = nullptr;
         ai.assignedWorkType = WorkType::None;
     }
+    if (auto* casino = dynamic_cast<WorkBuilding*>(ai.assignedCasino))
+        casino->RemoveWorker(1);
+    ai.assignedCasino = nullptr;
 
-    ai.isHeadingHome = false;
-    ai.isSeekingCafe = false;
-    ai.isHomeless    = false;
-    isEmigrating     = true;
+    ai.isHeadingHome   = false;
+    ai.isSeekingCafe   = false;
+    ai.isSeekingCasino = false;
+    ai.isHomeless      = false;
+    isEmigrating       = true;
 
     // Walk far off the map; UpdateMovement destroys us on arrival.
     std::vector<Math::fvec2> exitPath;
@@ -711,7 +916,8 @@ void Human::SpawnFloatingStatus(const std::string& text, CS200::RGBA color, Grid
 
 void Human::Draw(int viewIndex, const GridMap* map) const
 {
-    if (state == HumanState::Working)
+    // Hidden while inside a building
+    if (state == HumanState::Working || state == HumanState::Resting || state == HumanState::Gambling)
     {
         return;
     }

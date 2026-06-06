@@ -118,6 +118,7 @@ private:
     // Day/night cycle
     DayCycleManager dayCycle;
     int             previousDay = 1;
+    float           casinoHintTimer = 0.0f;
 
     // Weather cycle
     WeatherCycleManager    weatherCycle;

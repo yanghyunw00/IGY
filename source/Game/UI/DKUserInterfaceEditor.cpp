@@ -242,6 +242,13 @@ void UserInterfaceEditor::DrawHappinessSection(HappinessManager* happinessManage
         ImGui::TextColored(ImVec4(1, 1, 0, 1), "%.0f%%", factors.nightSafetyScore);
     else
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "%.0f%%", factors.nightSafetyScore);
+
+    // casino needs night safety >= 70
+    if (factors.nightSafetyScore >= 70.0f)
+        ImGui::TextDisabled("  Casino draws night gamblers (>=70)");
+    else
+        ImGui::TextColored(ImVec4(1, 0.5f, 0.2f, 1), "  Casino idle: needs >=70 (street lights)");
+
 }
 
 void UserInterfaceEditor::DrawImmigrationSection(Dokev::ImmigrationManager* immigrationManager, HappinessManager* happinessManager, int availableHomes, int totalResources, int humanCount)
@@ -433,6 +440,7 @@ void UserInterfaceEditor::DrawNPCInfoPanel()
     ImGui::TextColored(happyColor, "%.0f%%", happiness);
     ImGui::ProgressBar(happiness / 100.0f, ImVec2(-1, 6));
 
+    // Money
     float money = selectedHuman->GetMoney();
     ImGui::Text("Money:     $%.0f", money);
 
