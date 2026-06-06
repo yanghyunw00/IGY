@@ -54,7 +54,57 @@ namespace Dokev
         pixels[y * width + x] = color;
     }
 
-    Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale)
+    namespace
+    {
+        // fractal stacking params 
+        constexpr int   noiseLayers     = 5;
+        constexpr float noiseLacunarity = 2.0f;
+        constexpr float noiseGain       = 0.5f;
+
+        float gradientNoise(float x, float y, float z)
+        {
+            return Dokev::DKMath::PerlinNoise(x, y, z, 0, 0, 0);
+        }
+
+        // averaged octave sum of |noise|, always positive
+        float turbulence(float x, float y, float z)
+        {
+            float value = 0.0f, amp = 1.0f, freq = 1.0f, total = 0.0f;
+            for (int i = 0; i < noiseLayers; i++)
+            {
+                value += amp * std::fabs(gradientNoise(x * freq, y * freq, z * freq));
+                total += amp;
+                freq *= noiseLacunarity;
+                amp *= noiseGain;
+            }
+            return value / total;
+        }
+
+        // returns a [0,1] grayscale value for the requested pattern
+        float SampleNoise(float nx, float ny, NoisePattern pattern)
+        {
+            switch (pattern)
+            {
+                case NoisePattern::Turbulence: return turbulence(nx, ny, 0.0f);
+                case NoisePattern::Wood:
+                {
+                    float wood = gradientNoise(nx, ny, 0.0f) * 5.0f;
+                    return wood - std::floor(wood); // fract
+                }
+                case NoisePattern::Marble:
+                {
+                    constexpr float freq      = 2.0f;
+                    constexpr float amplitude = 1.3f;
+                    float           marble    = std::cos((nx + turbulence(nx, ny, 0.0f) * amplitude) * freq);
+                    return marble * 0.5f + 0.5f;
+                }
+                case NoisePattern::Perlin:
+                default: return gradientNoise(nx, ny, 0.0f) * 0.5f + 0.5f;
+            }
+        }
+    }
+
+    Image GenImageNoise(int width, int height, int offsetX, int offsetY, float scale, NoisePattern pattern)
     {
         Image img(width, height);
 
@@ -65,9 +115,7 @@ namespace Dokev
                 float nx = (x + offsetX) * scale;
                 float ny = (y + offsetY) * scale;
 
-                float noiseValue = Dokev::DKMath::PerlinNoise(nx, ny, 0.0f, 0, 0, 0);
-
-                noiseValue = (noiseValue + 1.0f) * 0.5f;
+                float noiseValue = SampleNoise(nx, ny, pattern);
 
                 noiseValue = std::max(0.0f, std::min(1.0f, noiseValue));
 
@@ -79,6 +127,11 @@ namespace Dokev
         }
 
         return img;
+    }
+
+    Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale)
+    {
+        return GenImageNoise(width, height, offsetX, offsetY, scale, NoisePattern::Perlin);
     }
 
     Image GenImageColor(int width, int height, CS200::RGBA color)

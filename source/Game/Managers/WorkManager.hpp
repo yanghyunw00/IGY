@@ -53,7 +53,7 @@ public:
         int   bestPriority = -1;
         float bestDistSq   = maxDistSq;
 
-        for (int i = 0; i < (int)jobList.size(); ++i)
+        for (int i = 0; i < static_cast<int>(jobList.size()); ++i)
         {
             if (jobList[i].isAssigned)
                 continue;
@@ -93,7 +93,7 @@ public:
     // Remove job from list without notifying the assigned worker (use when worker has already arrived)
     void EraseJob(int jobId)
     {
-        for (int i = 0; i < (int)jobList.size(); ++i)
+        for (int i = 0; i < static_cast<int>(jobList.size()); ++i)
         {
             if (jobList[i].jobId == jobId)
             {

@@ -54,7 +54,7 @@ namespace Dokev
 
             float chance = CalculateImmigrationChance(availableHomes, happiness, humanCount, totalResources);
 
-            float random = static_cast<float>(rand()) / RAND_MAX;
+            float random = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
             if (random < chance)
             {
                 return true;

@@ -413,7 +413,7 @@ namespace Dokev
         if (ImGui::TreeNode("WORK MANAGER"))
         {
             const auto& jobs = WorkManager::GetInstance().GetJobs();
-            ImGui::Text("Active Jobs: %d", (int)jobs.size());
+            ImGui::Text("Active Jobs: %d", static_cast<int>(jobs.size()));
 
             ImGui::Spacing();
 

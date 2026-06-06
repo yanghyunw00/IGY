@@ -15,6 +15,14 @@
 namespace Dokev
 {
 
+    enum class NoisePattern
+    {
+        Perlin = 0,
+        Turbulence,
+        Wood,
+        Marble
+    };
+
     class Image
     {
     public:
@@ -62,6 +70,7 @@ namespace Dokev
 
         // PerlinNoise
         friend Image        GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale);
+        friend Image        GenImageNoise(int width, int height, int offsetX, int offsetY, float scale, NoisePattern pattern);
         friend CS200::RGBA* LoadImageColors(const Image& image);
         friend CS200::RGBA  GetImageColor(const Image& image, int x, int y);
         friend void         ImageVerticalFlip(Image& image);
@@ -70,6 +79,8 @@ namespace Dokev
     // ===== Image Generation Functions =====
 
     Image GenImagePerlinNoise(int width, int height, int offsetX, int offsetY, float scale);
+
+    Image GenImageNoise(int width, int height, int offsetX, int offsetY, float scale, NoisePattern pattern);
 
     Image GenImageColor(int width, int height, CS200::RGBA color);
 

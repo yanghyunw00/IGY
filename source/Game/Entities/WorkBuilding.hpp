@@ -85,7 +85,7 @@ public:
     int   GetProduction() const;
     float GetProductionRate() const;
     void SetProductionRate(float rate);
-    bool  IsFull() const;
+    bool  IsFull() const override;
     bool  HasWorker() const;
     bool  IsServiceOperating() const;
     float GetWorkerEfficiency() const;

@@ -280,7 +280,6 @@ private:
 
 
     // RENDERING
-    CS200::RGBA color;
     bool        debugMode = false;
     // bool isVisible = true;
     Dokev::Texture2D humanTexture;

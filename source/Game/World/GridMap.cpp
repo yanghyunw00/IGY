@@ -39,23 +39,38 @@ namespace
             case MapVariant::WaterHeavy:
                 return MapGenerationProfile{
                     MapVariant::WaterHeavy, TerrainThresholds{ 170.0, 210.0, 235.0 },
-                     0.08f, "Water Heavy"
+                     0.08f, "Water Heavy", Dokev::NoisePattern::Perlin
+                };
+            case MapVariant::Turbulence:
+                return MapGenerationProfile{
+                    MapVariant::Turbulence, TerrainThresholds{ 60.0, 120.0, 190.0 },
+                     0.06f, "Turbulence", Dokev::NoisePattern::Turbulence
+                };
+            case MapVariant::Wood:
+                return MapGenerationProfile{
+                    MapVariant::Wood, TerrainThresholds{ 80.0, 150.0, 210.0 },
+                     0.05f, "Wood", Dokev::NoisePattern::Wood
+                };
+            case MapVariant::Marble:
+                return MapGenerationProfile{
+                    MapVariant::Marble, TerrainThresholds{ 80.0, 150.0, 210.0 },
+                     0.05f, "Marble", Dokev::NoisePattern::Marble
                 };
             case MapVariant::PlainsHeavy:
                 return MapGenerationProfile{
                     MapVariant::PlainsHeavy, TerrainThresholds{ 50.0, 235.0, 255.0 },
-                     0.12f, "Plains Heavy"
+                     0.12f, "Plains Heavy", Dokev::NoisePattern::Perlin
                 };
             case MapVariant::MountainHeavy:
                 return MapGenerationProfile{
                     MapVariant::MountainHeavy, TerrainThresholds{ 70.0, 130.0, 180.0 },
-                     0.09f, "Mountain Heavy"
+                     0.09f, "Mountain Heavy", Dokev::NoisePattern::Perlin
                 };
             case MapVariant::Balanced:
             default:
                 return MapGenerationProfile{
                     MapVariant::Balanced, TerrainThresholds{ 80.0, 155.0, 210.0 },
-                     0.1f, "Balanced"
+                     0.1f, "Balanced", Dokev::NoisePattern::Perlin
                 };
         }
     }
@@ -146,11 +161,6 @@ void GridMap::ReGenerateMap()
     ResetIsoGridMapArray();
 }
 
-namespace
-{
-    constexpr int MOUSE_ATLAS_WIDTH  = 1200;
-    constexpr int MOUSE_ATLAS_HEIGHT = 800;
-}
 
 void GridMap::EnsureMouseAtlasInitialized() const
 {
@@ -570,15 +580,6 @@ void GridMap::IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_ren
                 }*/
 
 
-                int current_texture = 3;
-                if (height < mapProfile.thresholds.mountainMax)
-                    current_texture = 2;
-                if (height < mapProfile.thresholds.plainsMax)
-                    current_texture = 1;
-                if (height < mapProfile.thresholds.waterMax)
-                    current_texture = 0;
-
-
                 std::array<float, 4> result;
                 result[0] = static_cast<float>(x) / (GRID_SIZE_X - 1);
                 result[1] = static_cast<float>(y) / (GRID_SIZE_Y - 1);
@@ -600,7 +601,7 @@ void GridMap::ResetPerlinTexture()
     int   seedX        = Dokev::GetRandomValue(1, 10000);
     int   seedY        = Dokev::GetRandomValue(1, 10000);
     float noiseScale   = mapProfile.noiseScale <= 0.0f ? 0.1f : mapProfile.noiseScale;
-    PerlinNoiseImage   = Dokev::GenImagePerlinNoise(GRID_SIZE_X, GRID_SIZE_Y, seedX, seedY, noiseScale);
+    PerlinNoiseImage   = Dokev::GenImageNoise(GRID_SIZE_X, GRID_SIZE_Y, seedX, seedY, noiseScale, mapProfile.pattern);
     PerlinNoiseTexture = LoadTextureFromImage(PerlinNoiseImage);
 
     ExportImage(PerlinNoiseImage, "PerlinNoise.png");
@@ -766,7 +767,7 @@ void GridMap::DrawCurrentPathIsometric(CS200::RGBA color, int viewIndex)
 
             Math::fvec2 nextPos = Dokev::Grid::WorldToIsometric(static_cast<float>(nextX), static_cast<float>(nextY), nextHeight, originX, originY, TILE_WIDTH_HALF, TILE_HEIGHT_HALF);
 
-            Dokev::DrawLineEx({ (float)worPos.x, (float)worPos.y }, { (float)nextPos.x, (float)nextPos.y }, 2.0f, color);
+            Dokev::DrawLineEx({ static_cast<float>(worPos.x), static_cast<float>(worPos.y) }, { static_cast<float>(nextPos.x), static_cast<float>(nextPos.y) }, 2.0f, color);
         }
     }
 }

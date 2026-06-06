@@ -56,7 +56,7 @@ public:
     void          Update(double dt) override;
     void          Unload() override;
     void          Draw() const override;
-    void          DrawImGui();
+    void          DrawImGui() override;
     gsl::czstring GetName() const override;
     void          SaveGame(const std::string& filename);
     void          LoadGame(const std::string& filename);
@@ -90,8 +90,6 @@ private:
 
     // World editor
     Dokev::GameWorldEditor worldEditor;
-    bool                   saveGameRequested = false;
-    bool                   loadGameRequested = false;
 
     // UI Manager
     Dokev::UIManager uiManager;

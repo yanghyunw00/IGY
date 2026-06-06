@@ -7,7 +7,7 @@
  * \copyright DigiPen Institute of Technology
  */
 
-#include "PathFinding.hpp"
+#include "pathFinding.hpp"
 #include "GridCell.hpp"
 #include <algorithm>
 #include <iostream>
@@ -55,7 +55,7 @@ void PathFinding::SetHeightMap(const std::vector<double>& heights)
     {
         for (int x = 0; x < gridSizeX; x++)
         {
-            if (y * gridSizeX + x < heights.size())
+            if (static_cast<size_t>(y * gridSizeX + x) < heights.size())
             {
                 heightMap[y][x] = static_cast<float>(heights[y * gridSizeX + x]);
             }
@@ -81,7 +81,7 @@ void PathFinding::SetCostMap(const std::vector<float>& costs)
     {
         for (int x = 0; x < gridSizeX; x++)
         {
-            if (y * gridSizeX + x < costs.size())
+            if (static_cast<size_t>(y * gridSizeX + x) < costs.size())
             {
                 costMap[y][x] = costs[y * gridSizeX + x];
             }

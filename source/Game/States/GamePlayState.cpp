@@ -1818,7 +1818,7 @@ void GamePlayState::SaveGame(const std::string& filename)
                     {         "Height",                         building->GetHeight() },
                     {        "IsBuilt",                        building->GetIsBuilt() },
                     {       "Progress",                       building->GetProgress() },
-                    { "CurrentWorkers",           (int)building->GetCurrentCapacity() }
+                    { "CurrentWorkers",           static_cast<int>(building->GetCurrentCapacity()) }
             });
         }
 

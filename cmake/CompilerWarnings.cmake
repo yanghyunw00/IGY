@@ -60,10 +60,11 @@ function(set_project_warnings project_name)
       $<$<COMPILE_LANGUAGE:CXX>:-Woverloaded-virtual> # warn if you overload (not override) a virtual
                            # function
       -Wpedantic # warn if non-standard C++ is used
-      -Wconversion # warn on type conversions that may lose data
-      -Wsign-conversion # warn on sign conversions
+    #   -Wconversion # warn on type conversions that may lose data (disabled: too noisy for game math)
+    #   -Wsign-conversion # warn on sign conversions (disabled: too noisy for container indexing)
+      -Wno-implicit-int-float-conversion # disabled: too noisy (int->float in game math); on-by-default so silenced explicitly
       -Wnull-dereference # warn if a null dereference is detected
-      -Wdouble-promotion # warn if float is implicit promoted to double
+    #   -Wdouble-promotion # warn if float is implicit promoted to double (disabled: too noisy)
       -Wformat=2 # warn on security issues around functions that format output
                  # (ie printf)
     #   -Wno-gnu-anonymous-struct # allow anonymous-struct

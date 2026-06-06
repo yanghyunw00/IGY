@@ -102,7 +102,7 @@ namespace Dokev
     }
 
     SpriteSheet::SpriteSheet(Texture2D texture, Math::ivec2 frameSize, std::vector<Math::ivec2> framePositions, Math::vec2 hotSpot)
-        : texture(texture), frameSize(frameSize), framePositions(std::move(framePositions)), hotSpot(hotSpot)
+        : texture(texture), hotSpot(hotSpot), frameSize(frameSize), framePositions(std::move(framePositions))
     {
         if (this->hotSpot.x == 0 && this->hotSpot.y == 0)
         {

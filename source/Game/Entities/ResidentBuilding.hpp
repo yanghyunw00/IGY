@@ -47,5 +47,5 @@ public:
     void  RemoveResident(int count);
     int   GetTaxIncome() const;
     float GetSatisfaction() const;
-    bool  IsFull() const;
+    bool  IsFull() const override;
 };

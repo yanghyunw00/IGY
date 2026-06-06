@@ -25,8 +25,8 @@ void Fire::OnStart()
     for (const auto& b : gameObjectManager->GetBuildings())
     {
         auto  pos = b->GetGrid();
-        float dx  = pos.x - cx;
-        float dy  = pos.y - cy;
+        float dx  = pos.x - static_cast<float>(cx);
+        float dy  = pos.y - static_cast<float>(cy);
 
         if (dx * dx + dy * dy <= radius * radius)
         {
