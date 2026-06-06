@@ -7,6 +7,7 @@
 #include "AchievementManager.hpp"
 
 #include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Core/DKUtility.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/FontManager.hpp"
@@ -91,15 +92,13 @@ void AchievementManager::SpawnConfetti()
     {
         ConfettiPiece piece;
 
-        // Spread across the entire top of the screen, just above the visible area
-        piece.pos.x = static_cast<float>(rand() % windowSize.x);
-        piece.pos.y = static_cast<float>(windowSize.y) + static_cast<float>(rand() % 60);
+        piece.pos.x = static_cast<float>(Dokev::GetRandomInt(0, windowSize.x - 1));
+        piece.pos.y = static_cast<float>(windowSize.y) + static_cast<float>(Dokev::GetRandomInt(0, 59));
 
-        // Fall downward (y decreases = toward bottom in UI space), with horizontal drift
-        piece.vel.x = static_cast<float>((rand() % 160) - 80);
-        piece.vel.y = -(static_cast<float>(120 + rand() % 200)); // negative = falling down
+        piece.vel.x = static_cast<float>(Dokev::GetRandomInt(0, 159) - 80);
+        piece.vel.y = -(static_cast<float>(120 + Dokev::GetRandomInt(0, 199))); // negative = falling down
 
-        piece.color = confettiColors[rand() % colorCount];
+        piece.color = confettiColors[Dokev::GetRandomInt(0, colorCount - 1)];
 
         confetti.push_back(piece);
     }

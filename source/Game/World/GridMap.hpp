@@ -27,15 +27,19 @@ enum class MapVariant
     Balanced = 0,
     WaterHeavy,
     PlainsHeavy,
-    MountainHeavy
+    Turbulence,
+    Wood,
+    Marble,
+    MountainHeavy // legacy, demo states only
 };
 
 struct MapGenerationProfile
 {
-    MapVariant        variant    = MapVariant::Balanced;
-    TerrainThresholds thresholds = DefaultTerrainThresholds();
-    float             noiseScale = 0.1f;
-    const char*       label      = "Balanced";
+    MapVariant         variant    = MapVariant::Balanced;
+    TerrainThresholds  thresholds = DefaultTerrainThresholds();
+    float              noiseScale = 0.1f;
+    const char*        label      = "Balanced";
+    Dokev::NoisePattern pattern   = Dokev::NoisePattern::Perlin;
 };
 
 MapGenerationProfile GetMapProfile(MapVariant variant);
@@ -177,9 +181,6 @@ private:
     Dokev::Texture2D Max_Height_Water;
 
     Dokev::Texture2D IsoMouseAtlas;
-
-    int mapOriginX = 0;
-    int mapOriginY = 0;
 
     int isoOriginX = 0;
     int isoOriginY = 0;

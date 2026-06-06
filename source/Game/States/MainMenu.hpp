@@ -121,9 +121,6 @@ private:
     ////////////////////
     // Text Alignment //
     ////////////////////
-    int Text_dist_x = 100;
-    int Text_dist_y = 75;
-
     int Padding_x                    = 200;
     int Padding_y_Top                = 200;
     int Padding_y_Title_to_Menu      = 100;
@@ -134,14 +131,6 @@ private:
 
     Math::ivec2 window_size = Engine::GetWindow().GetSize();
     int         center_x    = (window_size.x) / 2;
-    int         center_y    = (window_size.y) / 2;
-
-    int PlayIGY_x   = (window_size.x) / 2; // 1
-    int PlayIGY_y   = (window_size.y) / 2 + Text_dist_y;
-    int MapSelect_x = (window_size.x) / 2; // 2
-    int MapSelect_y = (window_size.y) / 2;
-    int Exit_x      = (window_size.x) / 2; // 3
-    int Exit_y      = (window_size.y) / 2 - Text_dist_y;
 
     Math::vec2 Text_Position_Center_Bottom = { static_cast<double>(center_x), 0.0 + static_cast<double>(Padding_y_Bottom) };
     Math::vec2 Text_Position_Left_Bottom   = { static_cast<double>(window_size.x) - Padding_x, 0.0 + static_cast<double>(Padding_y_Bottom) };

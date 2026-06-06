@@ -30,13 +30,6 @@ namespace Dokev
         float averageHappiness    = 100.0f; // Average satisfaction level
         float happinessChangeRate = 0.0f;   // Rate of change per second (deprecated)
 
-        float environmentalPollution; // Environmental pollution (0-100)
-        float financialBalance;       // Financial balance
-        float populationDensity;      // Population density (population/residences)
-
-        int totalResidentialBuildings;
-        int totalPopulation;
-
         // Win condition
         int winConditionPopulation = 20;
 

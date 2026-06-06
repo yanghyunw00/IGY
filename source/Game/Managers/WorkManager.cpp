@@ -3,7 +3,7 @@
 
 void WorkManager::RemoveJob(int jobId)
 {
-    for (int i = 0; i < (int)jobList.size(); ++i)
+    for (int i = 0; i < static_cast<int>(jobList.size()); ++i)
     {
         if (jobList[i].jobId == jobId)
         {
@@ -14,7 +14,7 @@ void WorkManager::RemoveJob(int jobId)
             if (worker)
                 worker->CancelWork();
 
-            for (int j = 0; j < (int)jobList.size(); ++j)
+            for (int j = 0; j < static_cast<int>(jobList.size()); ++j)
             {
                 if (jobList[j].jobId == jobId)
                 {
@@ -38,7 +38,7 @@ void WorkManager::RemoveAllJobsForBuilding(Building* building)
     }
 
     // Erase jobs first so CancelWork can't call back into the dying building
-    for (int i = (int)jobList.size() - 1; i >= 0; --i)
+    for (int i = static_cast<int>(jobList.size()) - 1; i >= 0; --i)
     {
         if (jobList[i].targetBuilding == building)
         {

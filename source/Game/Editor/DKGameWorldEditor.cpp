@@ -8,6 +8,7 @@
 #include "DKGameWorldEditor.hpp"
 #include "../Managers/EventManager.hpp"
 #include "Dokev/Core/DKSystemInfo.hpp"
+#include "Dokev/Core/DKUtility.hpp"
 #include "Dokev/Graphics/DKCamera.hpp"
 #include "Dokev/Managers/DKGameObjectManager.hpp"
 #include "Dokev/Managers/DKMapManager.hpp"
@@ -235,15 +236,15 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
+                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
 
                     for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
                     {
-                        int gridX = rand() % GRID_SIZE_X;
-                        int gridY = rand() % GRID_SIZE_Y;
+                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
+                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
 
                         GridCell** viewArray = map->GetViewArray(1);
                         GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
@@ -265,15 +266,15 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
+                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
 
                     for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
                     {
-                        int gridX = rand() % GRID_SIZE_X;
-                        int gridY = rand() % GRID_SIZE_Y;
+                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
+                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
 
                         GridCell** viewArray = map->GetViewArray(1);
                         GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
@@ -294,15 +295,15 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
+                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
 
                     for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
                     {
-                        int gridX = rand() % GRID_SIZE_X;
-                        int gridY = rand() % GRID_SIZE_Y;
+                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
+                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
 
                         GridCell** viewArray = map->GetViewArray(1);
                         GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
@@ -323,15 +324,15 @@ namespace Dokev
                 {
                     auto map = mapManager->GetMap();
 
-                    vec2 pos = vec2(static_cast<float>(rand() % (GRID_SIZE_X - 1)), static_cast<float>(rand() % (GRID_SIZE_Y - 1)));
+                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
 
                     const int maxAttemps = 100;
                     bool      isfound    = false;
 
                     for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
                     {
-                        int gridX = rand() % GRID_SIZE_X;
-                        int gridY = rand() % GRID_SIZE_Y;
+                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
+                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
 
                         GridCell** viewArray = map->GetViewArray(1);
                         GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
@@ -413,7 +414,7 @@ namespace Dokev
         if (ImGui::TreeNode("WORK MANAGER"))
         {
             const auto& jobs = WorkManager::GetInstance().GetJobs();
-            ImGui::Text("Active Jobs: %d", (int)jobs.size());
+            ImGui::Text("Active Jobs: %d", static_cast<int>(jobs.size()));
 
             ImGui::Spacing();
 

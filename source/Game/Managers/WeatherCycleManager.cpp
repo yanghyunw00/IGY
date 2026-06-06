@@ -5,12 +5,12 @@
  */
 #include "WeatherCycleManager.hpp"
 #include "Dokev/Core/DKColor.hpp"
+#include "Dokev/Core/DKUtility.hpp"
 #include <algorithm>
-#include <cstdlib>
 
 static float RandFloat()
 {
-    return static_cast<float>(std::rand()) / static_cast<float>(RAND_MAX);
+    return Dokev::GetRandomFloat(0.0f, 1.0f);
 }
 
 static CS200::RGBA TargetOverlay(WeatherType w)

@@ -417,10 +417,24 @@ void MainMenu::Draw() const
 
 void MainMenu::CycleMapVariant(int direction)
 {
-    constexpr int variantCount = 4;
-    int           currentIndex = static_cast<int>(selectedVariant);
-    currentIndex               = (currentIndex + direction + variantCount) % variantCount;
-    selectedVariant            = static_cast<MapVariant>(currentIndex);
+    static const MapVariant variants[] = {
+        MapVariant::Balanced, MapVariant::PlainsHeavy,
+        MapVariant::Turbulence, MapVariant::Wood, MapVariant::Marble
+    };
+    constexpr int variantCount = static_cast<int>(sizeof(variants) / sizeof(variants[0]));
+
+    int currentIndex = 0;
+    for (int i = 0; i < variantCount; ++i)
+    {
+        if (variants[i] == selectedVariant)
+        {
+            currentIndex = i;
+            break;
+        }
+    }
+
+    currentIndex    = (currentIndex + direction + variantCount) % variantCount;
+    selectedVariant = variants[currentIndex];
     SetupBackground();
 }
 

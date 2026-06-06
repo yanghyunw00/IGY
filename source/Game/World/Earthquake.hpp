@@ -15,8 +15,6 @@ private:
     GridMap*                  gridMap;
 
     Dokev::AnimatedSprite sprite;
-    int drawX = 0;
-    int drawY = 0;
     int cx    = 0;
     int cy    = 0;
 

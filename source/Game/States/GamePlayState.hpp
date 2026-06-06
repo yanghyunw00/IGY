@@ -56,7 +56,7 @@ public:
     void          Update(double dt) override;
     void          Unload() override;
     void          Draw() const override;
-    void          DrawImGui();
+    void          DrawImGui() override;
     gsl::czstring GetName() const override;
     void          SaveGame(const std::string& filename);
     void          LoadGame(const std::string& filename);
@@ -90,8 +90,6 @@ private:
 
     // World editor
     Dokev::GameWorldEditor worldEditor;
-    bool                   saveGameRequested = false;
-    bool                   loadGameRequested = false;
 
     // UI Manager
     Dokev::UIManager uiManager;
@@ -138,6 +136,13 @@ private:
 
     // Selected NPC (clicked by player)
     Human* selectedNPC = nullptr;
+
+    // Camera follow for the selected NPC
+    Math::vec2 savedCameraPos{};         // camera position before following
+    float      savedCameraZoom = 0.8f;   // zoom before following
+    bool       cameraFollowing = false;  // currently tracking selectedNPC
+    bool       cameraReturning = false;  // animating back to saved pos/zoom
+    void       UpdateCameraFollow(double dt);
 
     //Event Manager
     EventManager eventManager;

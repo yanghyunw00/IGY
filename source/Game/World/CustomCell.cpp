@@ -23,16 +23,16 @@ CustomCell::~CustomCell()
 
 void CustomCell::Import_Image_To_CustomCell_Infra_DataList(Image import_image)
 {
-    unsigned int import_image_width  = import_image.width;
-    unsigned int import_image_height = import_image.height;
+    unsigned int import_image_width  = static_cast<unsigned int>(import_image.width);
+    unsigned int import_image_height = static_cast<unsigned int>(import_image.height);
 
     CustomCell_Infra_Data CustomCellInfra{ import_image_width, import_image_height };
     CustomCellInfra.pixels.resize(import_image_width * import_image_height); // reserve memory for the pixel array to avoid multiple allocations
 
 
-    for (unsigned int y = 0; y < import_image_height; y++)
+    for (int y = 0; y < static_cast<int>(import_image_height); y++)
     {
-        for (unsigned int x = 0; x < import_image_width; x++) // done this way to avoid cache misses -_-;;
+        for (int x = 0; x < static_cast<int>(import_image_width); x++) // done this way to avoid cache misses -_-;;
         {
             CS200::RGBA C = GetImageColor(import_image, x, y);
 

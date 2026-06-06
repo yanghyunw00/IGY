@@ -97,9 +97,9 @@ namespace Dokev
         mach_port = mach_host_self();
         count = sizeof(vm_stats) / sizeof(natural_t);
         if (host_page_size(mach_port, &page_size) == KERN_SUCCESS &&
-            host_statistics64(mach_port, HOST_VM_INFO, (host_info64_t)&vm_stats, &count) == KERN_SUCCESS)
+            host_statistics64(mach_port, HOST_VM_INFO, reinterpret_cast<host_info64_t>(&vm_stats), &count) == KERN_SUCCESS)
         {
-            uint64_t free_memory = (uint64_t)vm_stats.free_count * (uint64_t)page_size;
+            uint64_t free_memory = static_cast<uint64_t>(vm_stats.free_count) * static_cast<uint64_t>(page_size);
             info.availablePhysical = free_memory;
             info.usedPhysical = info.totalPhysical - free_memory;
         }
@@ -108,7 +108,7 @@ namespace Dokev
         struct task_basic_info t_info;
         mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
 
-        if (task_info(mach_task_self(), TASK_BASIC_INFO, (task_info_t)&t_info, &t_info_count) == KERN_SUCCESS)
+        if (task_info(mach_task_self(), TASK_BASIC_INFO, reinterpret_cast<task_info_t>(&t_info), &t_info_count) == KERN_SUCCESS)
         {
             info.processUsed = t_info.resident_size;
         }

@@ -42,7 +42,7 @@ namespace
 }
 
 
-Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false), color(Dokev::ColorPalette::BLUE)
+Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false)
 {
     startPosition  = currentGridPos;
     actualPosition = currentGridPos;
@@ -156,8 +156,8 @@ void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManag
         /// debugging mode
         if (debugMode && map)
         {
-            int gridX = (int)currentGridPos.x;
-            int gridY = (int)currentGridPos.y;
+            int gridX = static_cast<int>(currentGridPos.x);
+            int gridY = static_cast<int>(currentGridPos.y);
 
             if (gridX >= 0 && gridX < GRID_SIZE_X && gridY >= 0 && gridY < GRID_SIZE_Y)
             {
@@ -294,7 +294,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManag
 
             if (debugMode)
             {
-                std::cout << "  -> Next Tile: (" << (int)targetGridPos.x << ", " << (int)targetGridPos.y << ")" << std::endl;
+                std::cout << "  -> Next Tile: (" << static_cast<int>(targetGridPos.x) << ", " << static_cast<int>(targetGridPos.y) << ")" << std::endl;
             }
         }
     }
@@ -525,14 +525,12 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
 
                 if (!path_.empty() && path_.size() > 1)
                 {
-                    std::cout << "[GAMBLE] " << name << " walking to casino" << std::endl;
                     ai.targetCasinoPosition = casinoPos;
                     FollowPath(path_);
                     ChangeState(HumanState::Walking);
                 }
                 else
                 {
-                    std::cout << "[GAMBLE] " << name << " no path to casino, gambling in place" << std::endl;
                     ai.isSeekingCasino = false;
                     ChangeState(HumanState::Gambling);
                 }
@@ -626,8 +624,6 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
             }
 
             const int rollv = Dokev::GetRandomInt(0, 99);
-            std::cout << "[GAMBLE] " << name << " hr=" << currentHour << " safety=" << nightSafety
-                      << " casinoFree=" << casinoSlotFree << " roll=" << rollv << std::endl;
             if (casinoSlotFree && nightSafety >= gambleMinSafety && rollv < gamblePercent)
             {
                 ai.isSeekingCasino = true;
@@ -1071,7 +1067,7 @@ Math::fvec2 Human::FindNextRoadTile(const Road* road, bool& outFoundRoad) const
     {
         // Intersection - choose randomly
         outFoundRoad    = true;
-        int randomIndex = rand() % nextMoveOptions.size();
+        int randomIndex = Dokev::GetRandomInt(0, static_cast<int>(nextMoveOptions.size()) - 1);
         return nextMoveOptions[randomIndex];
     }
 }
@@ -1154,7 +1150,7 @@ Human Human::CreateImmigrant(const Road* road, const GridMap* map)
     if (road && !road->GetRoadPositions().empty())
     {
         const auto& positions = road->GetRoadPositions();
-        int         idx       = rand() % static_cast<int>(positions.size());
+        int         idx       = Dokev::GetRandomInt(0, static_cast<int>(positions.size()) - 1);
         return Human(positions[idx]);
     }
 
@@ -1212,7 +1208,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
                 if (dist < closestDist)
                 {
                     closestDist = dist;
-                    closestTile = Math::fvec2((float)x, (float)y);
+                    closestTile = Math::fvec2(static_cast<float>(x), static_cast<float>(y));
                 }
             }
         }
@@ -1232,7 +1228,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
                 if (dist < closestDist)
                 {
                     closestDist = dist;
-                    closestTile = Math::fvec2((float)x, (float)y);
+                    closestTile = Math::fvec2(static_cast<float>(x), static_cast<float>(y));
                 }
             }
         }
@@ -1254,7 +1250,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
                 if (dist < closestDist)
                 {
                     closestDist = dist;
-                    closestTile = Math::fvec2((float)x, (float)y);
+                    closestTile = Math::fvec2(static_cast<float>(x), static_cast<float>(y));
                 }
             }
         }
@@ -1274,7 +1270,7 @@ Math::fvec2 Human::FindClosestWalkableTile(GridMap* map) const
                 if (dist < closestDist)
                 {
                     closestDist = dist;
-                    closestTile = Math::fvec2((float)x, (float)y);
+                    closestTile = Math::fvec2(static_cast<float>(x), static_cast<float>(y));
                 }
             }
         }
