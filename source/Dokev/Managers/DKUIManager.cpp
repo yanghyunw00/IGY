@@ -26,6 +26,32 @@
 namespace
 {
     constexpr int kGranaryWarningThresholdPercent = 90;
+
+    struct EscMenuLayout
+    {
+        float panelX, panelY, panelW, panelH;
+        float btnX,   btnW,   btnH;
+        float titleY;
+        float btnY[4];
+    };
+
+    EscMenuLayout GetEscMenuLayout(int winW, int winH)
+    {
+        EscMenuLayout l;
+        l.panelW  = 280.0f;
+        l.panelH  = 330.0f;
+        l.panelX  = winW * 0.5f - l.panelW * 0.5f;
+        l.panelY  = winH * 0.5f - l.panelH * 0.5f;
+        l.btnW    = 240.0f;
+        l.btnH    = 48.0f;
+        l.btnX    = winW * 0.5f - l.btnW * 0.5f;
+        l.titleY  = l.panelY + 28.0f;
+        float start  = l.panelY + 82.0f;
+        float stride = l.btnH + 13.0f;
+        for (int i = 0; i < 4; ++i)
+            l.btnY[i] = start + stride * i;
+        return l;
+    }
 }
 
 namespace Dokev
@@ -371,6 +397,40 @@ namespace Dokev
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked, float dt)
     {
         totalTime += dt;
+
+        // Reset ESC menu click flags every frame
+        escResumeClicked   = false;
+        escSettingsClicked = false;
+        escMainMenuClicked = false;
+        escQuitClicked     = false;
+
+        if (escMenuOpen)
+        {
+            auto ws = Engine::GetWindow().GetSize();
+            auto  l = GetEscMenuLayout(ws.x, ws.y);
+            escHoveredButton = -1;
+            for (int i = 0; i < 4; ++i)
+            {
+                if (mousePos.x >= l.btnX && mousePos.x <= l.btnX + l.btnW &&
+                    mousePos.y >= l.btnY[i] && mousePos.y <= l.btnY[i] + l.btnH)
+                {
+                    escHoveredButton = i;
+                    break;
+                }
+            }
+            if (mouseClicked && escHoveredButton >= 0)
+            {
+                switch (escHoveredButton)
+                {
+                    case 0: escResumeClicked   = true; escMenuOpen = false; break;
+                    case 1: escSettingsClicked = true; break;
+                    case 2: escMainMenuClicked = true; break;
+                    case 3: escQuitClicked     = true; break;
+                }
+            }
+            return; // block all other UI input while ESC menu is open
+        }
+
         // Keyboard shortcuts
         const auto& input = Engine::GetInput();
 
@@ -729,6 +789,9 @@ namespace Dokev
                 }
                 break;
         }
+
+        if (escMenuOpen)
+            DrawEscMenu();
     }
 
     void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const
@@ -1221,6 +1284,58 @@ namespace Dokev
                                                                      "! Add street lights";
             if (auto t = outlined->PrintToTexture(tip, 0xFF8800FF))
                 t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.85f, ts * 0.85f }), 0xFF8800FF);
+        }
+    }
+
+    void UIManager::DrawEscMenu() const
+    {
+        if (!outlined)
+            return;
+
+        auto ws = Engine::GetWindow().GetSize();
+        auto  l = GetEscMenuLayout(ws.x, ws.y);
+
+        // Fullscreen dim overlay
+        Dokev::DrawRectangle(0, 0, ws.x, ws.y, 0x00000099);
+
+        // Panel background + border
+        Dokev::DrawRectangle(static_cast<int>(l.panelX), static_cast<int>(l.panelY),
+                             static_cast<int>(l.panelW), static_cast<int>(l.panelH), 0x12122AEE);
+        Dokev::DrawRectangleLinesEx(static_cast<int>(l.panelX), static_cast<int>(l.panelY),
+                                    static_cast<int>(l.panelW), static_cast<int>(l.panelH), 2.0f, 0xFFFFFFCC);
+
+        // Title
+        constexpr double ts = 1.0;
+        float cx = ws.x * 0.5f;
+        if (auto t = outlined->PrintToTexture("PAUSED", 0xFFFFFFFF))
+            t->Draw(Math::TranslationMatrix(Math::vec2{ cx - t->GetSize().x * ts * 0.5, l.titleY })
+                  * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0xFFFFFFFF);
+
+        // Separator
+        float sepY = l.panelY + 68.0f;
+        Dokev::DrawRectangle(static_cast<int>(l.panelX + 12), static_cast<int>(sepY),
+                             static_cast<int>(l.panelW - 24), 1, 0xFFFFFF55);
+
+        // Buttons
+        static const char* labels[4] = { "Resume", "Settings", "Main Menu", "Quit" };
+
+        for (int i = 0; i < 4; ++i)
+        {
+            bool        hov = (escHoveredButton == i);
+            CS200::RGBA bg  = hov ? 0x3A3A5AFF : 0x22223ACC;
+            Dokev::DrawRectangle(static_cast<int>(l.btnX), static_cast<int>(l.btnY[i]),
+                                 static_cast<int>(l.btnW), static_cast<int>(l.btnH), bg);
+            Dokev::DrawRectangleLinesEx(static_cast<int>(l.btnX), static_cast<int>(l.btnY[i]),
+                                        static_cast<int>(l.btnW), static_cast<int>(l.btnH), 1.5f,
+                                        hov ? 0xFFFFFFFF : 0xFFFFFF66);
+
+            if (auto t = outlined->PrintToTexture(labels[i], 0xFFFFFFFF))
+            {
+                float tx = cx - static_cast<float>(t->GetSize().x) * static_cast<float>(ts) * 0.5f;
+                float ty = l.btnY[i] + (l.btnH - static_cast<float>(t->GetSize().y) * static_cast<float>(ts)) * 0.5f;
+                t->Draw(Math::TranslationMatrix(Math::vec2{ tx, ty })
+                      * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0xFFFFFFFF);
+            }
         }
     }
 

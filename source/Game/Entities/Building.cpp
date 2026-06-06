@@ -150,8 +150,17 @@ void Building::UpdateLightTimer(float dt)
 Math::ivec2 Building::GetLightPos(int viewIndex, const GridMap* map) const
 {
     auto p = CalculateScreenPosition(viewIndex, map);
-    float yFrac = (buildingType == BuildingType::STREET_LIGHT) ? 0.06f : 0.5f;
-    return { p.x + texture.GetWidth() / 2, p.y - static_cast<int>(texture.GetHeight() * yFrac) };
+
+    if (buildingType == BuildingType::STREET_LIGHT)
+    {
+        // Street light draw offset (matches ResidentBuilding::Draw)
+        int drawX = p.x + TILE_WIDTH_HALF / 2;
+        int drawY = p.y - TILE_HEIGHT_HALF;
+        // texture.Draw(x,y) uses y as top of texture in y-up coords, so pixel y=34 from top = drawY - 34
+        return { drawX + 23, drawY - 34 };
+    }
+
+    return { p.x + texture.GetWidth() / 2, p.y - texture.GetHeight() / 2 };
 }
 
 void Building::DrawProgressBar(int viewIndex, const GridMap* map) const

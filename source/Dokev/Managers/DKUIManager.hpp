@@ -99,6 +99,14 @@ namespace Dokev
         bool IsTimeClicked()  const { return timeClickedThisFrame; }
         bool IsTimeHovered()  const { return timeHoveredThisFrame; }
 
+        void SetEscMenuOpen(bool open)   { escMenuOpen = open; escHoveredButton = -1; }
+        bool IsEscMenuOpen()         const { return escMenuOpen; }
+        bool IsEscResumeClicked()    const { return escResumeClicked; }
+        bool IsEscSettingsClicked()  const { return escSettingsClicked; }
+        bool IsEscMainMenuClicked()  const { return escMainMenuClicked; }
+        bool IsEscQuitClicked()      const { return escQuitClicked; }
+        void DrawEscMenuOverlay()    const { if (escMenuOpen) DrawEscMenu(); }
+
         bool IsAnyButtonHovered() const
         {
             for (const auto& b : mainButtons)
@@ -129,6 +137,7 @@ namespace Dokev
         void        DrawBuildingButton(const BuildingButton& button, ResourceManager* resourceMgr, BuildingCostManager* costMgr, float time, CityMetrics* cm = nullptr, int humanCount = 0) const;
         void        DrawResources(ResourceManager* resourceMgr, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const;
         void        DrawHappiness(CityMetrics* cm) const;
+        void        DrawEscMenu() const;
         void        CloseButtonMenus();
         void        CancelSelection();
         void        UpdateHoverStates(Math::fvec2 mousePos);
@@ -161,6 +170,14 @@ namespace Dokev
         bool         happPopupOpen          = false;
 
         int          hoveredIconColumn      = -1;
+
+        // ESC pause menu
+        bool         escMenuOpen           = false;
+        int          escHoveredButton      = -1; // 0=Resume 1=Settings 2=MainMenu 3=Quit
+        bool         escResumeClicked      = false;
+        bool         escSettingsClicked    = false;
+        bool         escMainMenuClicked    = false;
+        bool         escQuitClicked        = false;
 
         float        totalTime        = 0.0f;
         MenuState    currentMenuState = MenuState::MAIN;

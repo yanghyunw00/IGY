@@ -1,15 +1,25 @@
 #include "Setting.hpp"
+#include "Dokev/Graphics/DKShapes.hpp"
 #include "Engine/AudioManager.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/GameStateManager.hpp"
 #include "Engine/Window.hpp"
 #include "GamePlayState.hpp"
 #include "MainMenu.hpp"
+#include <SDL.h>
+
+bool Setting::s_uiHidden  = false;
+bool Setting::s_buildMode = false;
+bool Setting::s_fromGame  = false;
+bool Setting::s_isOpen    = false;
 
 void Setting::Load()
 {
     CS200::RenderingAPI::SetClearColor(CS200::WHITE);
-    volume = CS230::AudioManager::Instance().GetVolumeLevel();
+    volume  = CS230::AudioManager::Instance().GetVolumeLevel();
+    current = Setting_Keys::Volume;
+    s_isOpen = true;
+    mouse.Update(); // consume any held-button state from before entering Setting
 
     try
     {
@@ -36,10 +46,22 @@ void Setting::Update(double dt)
     mouse.Update();
 
     // Highlight selected item
-    TextColor_Volume = (current == Setting_Keys::Volume) ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
-    TextColor_Back   = (current == Setting_Keys::Back) ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
+    TextColor_Volume    = (current == Setting_Keys::Volume)    ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
+    TextColor_VSync     = (current == Setting_Keys::VSync)     ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
+    TextColor_UIToggle  = (current == Setting_Keys::UIToggle)  ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
+    TextColor_BuildMode = (current == Setting_Keys::BuildMode) ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
+    TextColor_Back      = (current == Setting_Keys::Back)      ? Dokev::ColorPalette::HOTPINK : Dokev::ColorPalette::BLACK;
 
     const auto& input = Engine::GetInput();
+
+    if (input.KeyJustPressed(CS230::Input::Keys::Escape))
+    {
+        Engine::GetGameStateManager().PopState();
+        if (!s_fromGame)
+            Engine::GetGameStateManager().PushState<MainMenu>();
+        s_fromGame = false;
+        return;
+    }
 
     if (input.KeyJustPressed(CS230::Input::Keys::Down) || input.KeyJustPressed(CS230::Input::Keys::S))
     {
@@ -65,6 +87,9 @@ void Setting::Update(double dt)
             SetVolume(v < volume_min ? volume_max : v);
             return;
         }
+        else if (current == Setting_Keys::VSync)     { vsyncOn   = false; SDL_GL_SetSwapInterval(0); return; }
+        else if (current == Setting_Keys::UIToggle)  { s_uiHidden  = false; return; }
+        else if (current == Setting_Keys::BuildMode) { s_buildMode = false; return; }
     }
 
     if (input.KeyJustPressed(CS230::Input::Keys::D) || input.KeyJustPressed(CS230::Input::Keys::Right))
@@ -75,6 +100,9 @@ void Setting::Update(double dt)
             SetVolume(v > volume_max ? volume_min : v);
             return;
         }
+        else if (current == Setting_Keys::VSync)     { vsyncOn   = true; SDL_GL_SetSwapInterval(1); return; }
+        else if (current == Setting_Keys::UIToggle)  { s_uiHidden  = true; return; }
+        else if (current == Setting_Keys::BuildMode) { s_buildMode = true; return; }
     }
 
     // Mouse hover
@@ -92,7 +120,10 @@ void Setting::Update(double dt)
             if (Dokev::PointInRect(renderMp, rectPos, { hitW, hitH }))
                 current = key;
         };
-        hoverCheck(Text_Position_Volume, Setting_Keys::Volume);
+        hoverCheck(Text_Position_Volume,    Setting_Keys::Volume);
+        hoverCheck(Text_Position_VSync,     Setting_Keys::VSync);
+        hoverCheck(Text_Position_UIToggle,  Setting_Keys::UIToggle);
+        hoverCheck(Text_Position_BuildMode, Setting_Keys::BuildMode);
         hoverCheck(Text_Position_Center_Bottom, Setting_Keys::Back);
     }
 
@@ -104,7 +135,9 @@ void Setting::Update(double dt)
         {
             case Setting_Keys::Back:
                 Engine::GetGameStateManager().PopState();
-                Engine::GetGameStateManager().PushState<MainMenu>();
+                if (!s_fromGame)
+                    Engine::GetGameStateManager().PushState<MainMenu>();
+                s_fromGame = false;
                 return;
             case Setting_Keys::Volume:
                 {
@@ -112,6 +145,16 @@ void Setting::Update(double dt)
                     SetVolume(v > volume_max ? volume_min : v);
                     return;
                 }
+            case Setting_Keys::VSync:
+                vsyncOn = !vsyncOn;
+                SDL_GL_SetSwapInterval(vsyncOn ? 1 : 0);
+                return;
+            case Setting_Keys::UIToggle:
+                s_uiHidden = !s_uiHidden;
+                return;
+            case Setting_Keys::BuildMode:
+                s_buildMode = !s_buildMode;
+                return;
             default: break;
         }
     }
@@ -119,6 +162,7 @@ void Setting::Update(double dt)
 
 void Setting::Unload()
 {
+    s_isOpen = false;
 }
 
 gsl::czstring Setting::GetName() const
@@ -139,11 +183,20 @@ void Setting::Draw() const
 
     DrawText(text_Volume, Text_Position_Volume, *Font_outlined, TextColor_Volume, TextScale_Volume);
 
-    ////////////////////////////////
-    //         volume_num         //
-    ////////////////////////////////
+    // Volume slider (below Volume label)
+    DrawSlider(center_x, static_cast<int>(Text_Position_Volume.y) - 52, volume, volume_max);
 
-    DrawText(std::to_string(volume), Text_Position_volume_num, *Font_simple, TextColor_volume_num, TextScale_volume_num);
+    // VSync
+    DrawText(text_VSync, Text_Position_VSync, *Font_outlined, TextColor_VSync, TextScale_VSync);
+    DrawToggleBox(center_x, static_cast<int>(Text_Position_VSync.y), vsyncOn);
+
+    // UI Toggle
+    DrawText(text_UIToggle, Text_Position_UIToggle, *Font_outlined, TextColor_UIToggle, TextScale_UIToggle);
+    DrawToggleBox(center_x, static_cast<int>(Text_Position_UIToggle.y), s_uiHidden);
+
+    // Build Mode
+    DrawText(text_BuildMode, Text_Position_BuildMode, *Font_outlined, TextColor_BuildMode, TextScale_BuildMode);
+    DrawToggleBox(center_x, static_cast<int>(Text_Position_BuildMode.y), s_buildMode);
 
     ////////////////////////////////
     //           Back             //
@@ -152,6 +205,58 @@ void Setting::Draw() const
     DrawText(text_Back, Text_Position_Center_Bottom, *Font_outlined, TextColor_Back, TextScale_Back);
 
     renderer2d.EndScene();
+}
+
+void Setting::DrawSlider(int cx, int centerY, int value, int maxVal) const
+{
+    const int   sliderW = 300;
+    const int   sliderH = 16;
+    const int   x       = cx - sliderW / 2;
+    const int   y       = centerY - sliderH / 2;  // bottom of rect in y-up
+    const float fill    = (maxVal > 0) ? static_cast<float>(value) / static_cast<float>(maxVal) : 0.0f;
+
+    // Track
+    Dokev::DrawRectangle(x, y, sliderW, sliderH, 0xDDDDDDFF);
+    // Fill
+    int fillW = static_cast<int>(sliderW * fill);
+    if (fillW > 0)
+        Dokev::DrawRectangle(x, y, fillW, sliderH, 0x4488FFFF);
+    // Border
+    Dokev::DrawRectangleLinesEx(x, y, sliderW, sliderH, 2.0f, 0x555555FF);
+    // Knob
+    int knobX = x + fillW - 5;
+    Dokev::DrawRectangle(knobX, y - 4, 10, sliderH + 8, 0x1155CCFF);
+    // Tick marks
+    for (int i = 0; i <= maxVal; ++i)
+    {
+        int tx = x + static_cast<int>(sliderW * i / static_cast<float>(maxVal)) - 1;
+        Dokev::DrawRectangle(tx, y - 2, 2, sliderH + 4, 0x888888FF);
+    }
+}
+
+void Setting::DrawToggleBox(int cx, int itemCenterY, bool on) const
+{
+    const int boxW = 60;
+    const int boxH = 28;
+    const int bx   = cx + 190;
+    const int by   = itemCenterY - boxH / 2;
+
+    CS200::RGBA bg  = on ? 0x33AA33FF : 0x888888AA;
+    CS200::RGBA brd = on ? 0x22882299 : 0x55555599;
+    Dokev::DrawRectangle(bx, by, boxW, boxH, bg);
+    Dokev::DrawRectangleLinesEx(bx, by, boxW, boxH, 1.5f, brd);
+
+    if (Font_simple)
+    {
+        const char* label = on ? "ON" : "OFF";
+        if (auto t = Font_simple->PrintToTexture(label, 0xFFFFFFFF))
+        {
+            float ts = 0.55f;
+            float tx = static_cast<float>(bx + boxW / 2) - t->GetSize().x * ts * 0.5f;
+            float ty = static_cast<float>(by + boxH / 2) - t->GetSize().y * ts * 0.5f;
+            t->Draw(Math::TranslationMatrix(Math::vec2{ tx, ty }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0xFFFFFFFF);
+        }
+    }
 }
 
 void Setting::SetVolume(int scale)

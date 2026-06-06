@@ -393,7 +393,7 @@ void Human::UpdateGambling(float deltaTime, int currentHour, GridMap* map)
         stats.money     = std::max(0.0f, stats.money - static_cast<float>(gambleLoss));
         stats.happiness = std::max(0.0f, stats.happiness - gambleHappiness);
         if (resourceMgr)
-            resourceMgr->AddMoney(gambleLoss); // city collects
+            resourceMgr->AddNamedIncome("Casino", gambleLoss);
         SpawnFloatingStatus("-$" + std::to_string(gambleLoss), 0xFF5555FF, map);
     }
 }

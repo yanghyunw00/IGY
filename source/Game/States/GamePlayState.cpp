@@ -45,6 +45,7 @@
 #include "../Managers/ResourceManager.hpp"
 #include "../Managers/WorkManager.hpp"
 #include "MainMenu.hpp"
+#include "Setting.hpp"
 
 
 #include "OpenGL/GL.hpp"
@@ -248,6 +249,8 @@ void GamePlayState::Load()
 
     // Initialize Tutorial Manager
     tutorialManager.Initialize(&uiManager);
+    if (Setting::IsUIHidden())
+        tutorialManager.Skip();
 
     // Load building costs from JSON
     buildingCostManager.LoadFromFile("Assets/resources/building_costs.json");
@@ -511,6 +514,17 @@ void GamePlayState::UpdateTimeControls()
 
     const auto& input = Engine::GetInput();
 
+    if (input.KeyJustPressed(CS230::Input::Keys::Escape))
+    {
+        uiManager.SetEscMenuOpen(!uiManager.IsEscMenuOpen());
+    }
+
+    if (uiManager.IsEscMenuOpen())
+    {
+        simulationPaused = true;
+        return;
+    }
+
     if (input.KeyJustPressed(CS230::Input::Keys::P))
     {
         simulationPaused = !simulationPaused;
@@ -530,6 +544,16 @@ void GamePlayState::UpdateTimeControls()
     if (input.KeyJustPressed(CS230::Input::Keys::Right) && simulationSpeedPresetIndex + 1 < kSimulationSpeedPresets.size())
     {
         ++simulationSpeedPresetIndex;
+    }
+
+    // Build mode: keep money plentiful
+    if (Setting::IsBuildMode())
+    {
+        if (auto resMgr = GetGSComponent<ResourceManager>())
+        {
+            if (resMgr->totalMoney < 100000)
+                resMgr->totalMoney = 100000;
+        }
     }
 
     // Mouse wheel zoom — finer-grained than Q/E
@@ -732,6 +756,9 @@ void GamePlayState::Update(double dt)
         worldEditor.ClearLoadRequest();
     }
 
+    if (Setting::IsOpen())
+        return; // Setting이 열려있는 동안 GamePlayState 입력 처리 차단
+
     mouse.Update();
 
     bool ismouseheld = mouse.MouseDown(Dokev::Mouse::Button::Left);
@@ -769,6 +796,34 @@ void GamePlayState::Update(double dt)
                 simulationPaused = true;
             }
         }
+    }
+
+    // ESC menu button results
+    if (uiManager.IsEscResumeClicked())
+    {
+        simulationPaused = false;
+    }
+    if (uiManager.IsEscSettingsClicked())
+    {
+        Setting::SetFromGame(true);
+        uiManager.SetEscMenuOpen(false);
+        simulationPaused = false;
+        Engine::GetGameStateManager().PushState<Setting>();
+        return;
+    }
+    if (uiManager.IsEscMainMenuClicked())
+    {
+        auto& gsm = Engine::GetGameStateManager();
+        gsm.PopState();
+        gsm.PushState<MainMenu>();
+        return;
+    }
+    if (uiManager.IsEscQuitClicked())
+    {
+        SDL_Event e{};
+        e.type         = SDL_WINDOWEVENT;
+        e.window.event = SDL_WINDOWEVENT_CLOSE;
+        SDL_PushEvent(&e);
     }
 
     // Camera always updates with real dt (works even when paused)
@@ -1571,7 +1626,7 @@ void GamePlayState::Draw() const
                 float ny                     = lp.y * 2.0f / H - 1.0f;
                 lightPos[lightCount * 2]     = (zoom * (nx + cpx) + 1.0f) * W * 0.5f;
                 lightPos[lightCount * 2 + 1] = (zoom * (ny + cpy) + 1.0f) * H * 0.5f;
-                lightRadius[lightCount]      = isStreetLight ? 80.0f : 90.0f;
+                lightRadius[lightCount]      = (isStreetLight ? 80.0f : 90.0f) * zoom;
                 ++lightCount;
             }
 
@@ -1636,14 +1691,21 @@ void GamePlayState::Draw() const
         }
     }
 
-    uiManager.Draw(
-        GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(),
-        humanCount, popStats,
-        const_cast<BuildingCostManager*>(&buildingCostManager),
-        dayCycle.GetHour(), dayCycle.GetMinute(),
-        dayCycle.GetCurrentDay(), static_cast<int>(simulationSpeedPresetIndex), simulationPaused);
-    tutorialManager.Draw();
-    achievementManager.Draw();
+    if (!Setting::IsUIHidden())
+    {
+        uiManager.Draw(
+            GetGSComponent<ResourceManager>().get(), GetGSComponent<CityMetrics>().get(),
+            humanCount, popStats,
+            const_cast<BuildingCostManager*>(&buildingCostManager),
+            dayCycle.GetHour(), dayCycle.GetMinute(),
+            dayCycle.GetCurrentDay(), static_cast<int>(simulationSpeedPresetIndex), simulationPaused);
+        tutorialManager.Draw();
+        achievementManager.Draw();
+    }
+    else
+    {
+        uiManager.DrawEscMenuOverlay(); // ESC 메뉴는 UI 숨김 상태에서도 항상 표시
+    }
 
     // Disaster banner: while any disaster is active, announce it in red at top-center
     if (eventManager.GetEventCount() > 0)
@@ -1670,6 +1732,16 @@ void GamePlayState::Draw() const
     }
 
     console.Draw(); // drawn last so it sits on top of everything
+
+    {
+        float flashAlpha = Engine::GetFlashAlpha();
+        if (flashAlpha > 0.0f)
+        {
+            CS200::RGBA fc = 0xFFFFFF00u | static_cast<uint32_t>(flashAlpha * 255.0f);
+            Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, fc);
+        }
+    }
+
     renderer2d.EndScene();
     // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
 
@@ -1736,6 +1808,7 @@ void GamePlayState::DrawImGui()
             return;
         }
     }
+
 }
 
 void GamePlayState::Unload()

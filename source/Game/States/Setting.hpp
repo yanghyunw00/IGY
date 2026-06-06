@@ -28,7 +28,14 @@ public:
     void                  DrawImGui() override;
     void                  DrawText(const std::string& text, const Math::vec2& position, CS230::Font& font, CS200::RGBA color, Math::vec2 textscale) const;
 
+    static bool IsUIHidden()        { return s_uiHidden; }
+    static bool IsBuildMode()       { return s_buildMode; }
+    static void SetFromGame(bool v) { s_fromGame = v; }
+    static bool IsOpen()            { return s_isOpen; }
+
 private:
+    void DrawSlider(int cx, int centerY, int value, int maxVal) const;
+    void DrawToggleBox(int cx, int itemCenterY, bool on) const;
 
     std::unique_ptr<CS230::Font> Font_simple;
     std::unique_ptr<CS230::Font> Font_outlined;
@@ -39,6 +46,9 @@ private:
     enum class Setting_Keys
     {
         Volume,
+        VSync,
+        UIToggle,
+        BuildMode,
         Back,
         Count
     };
@@ -47,14 +57,20 @@ private:
     //////////////////////
     //   Setting Text   //
     //////////////////////
-    const std::string text_Volume = "Volume";
-    const std::string text_Back   = "Back";
+    const std::string text_Volume   = "Volume";
+    const std::string text_VSync    = "VSync";
+    const std::string text_UIToggle = "UI Toggle";
+    const std::string text_BuildMode= "Build Mode";
+    const std::string text_Back     = "Back";
 
     ////////////////////
     //   Text Color   //
     ////////////////////
     CS200::RGBA TextColor_Volume     = Dokev::ColorPalette::BLACK;
     CS200::RGBA TextColor_volume_num = Dokev::ColorPalette::BLACK;
+    CS200::RGBA TextColor_VSync      = Dokev::ColorPalette::BLACK;
+    CS200::RGBA TextColor_UIToggle   = Dokev::ColorPalette::BLACK;
+    CS200::RGBA TextColor_BuildMode  = Dokev::ColorPalette::BLACK;
     CS200::RGBA TextColor_Back       = Dokev::ColorPalette::BLACK;
 
     ////////////////////
@@ -67,9 +83,12 @@ private:
     double TextScale_Back_x       = 1.7;
     double TextScale_Back_y       = 1.7;
 
-    Math::vec2 TextScale_Volume     = { TextScale_Volume_x, TextScale_Volume_y };
-    Math::vec2 TextScale_volume_num = { TextScale_volume_num_x, TextScale_volume_num_y };
-    Math::vec2 TextScale_Back       = { TextScale_Back_x, TextScale_Back_y };
+    Math::vec2 TextScale_Volume      = { TextScale_Volume_x, TextScale_Volume_y };
+    Math::vec2 TextScale_volume_num  = { TextScale_volume_num_x, TextScale_volume_num_y };
+    Math::vec2 TextScale_VSync       = { 1.7, 1.7 };
+    Math::vec2 TextScale_UIToggle    = { 1.7, 1.7 };
+    Math::vec2 TextScale_BuildMode   = { 1.7, 1.7 };
+    Math::vec2 TextScale_Back        = { TextScale_Back_x, TextScale_Back_y };
 
     ////////////////////
     // Text Alignment //
@@ -92,12 +111,23 @@ private:
     Math::vec2 Text_Position_Back = { static_cast<double>(center_x), static_cast<double>(window_size.y) - static_cast<double>(Padding_y_Top) - padding_y_Middle* static_cast<int>(Setting_Keys::Back) };
 
 
+    // Positions for new items (fixed offsets from top, y-up coords)
+    Math::vec2 Text_Position_VSync     = { static_cast<double>(center_x), static_cast<double>(window_size.y) - 310.0 };
+    Math::vec2 Text_Position_UIToggle  = { static_cast<double>(center_x), static_cast<double>(window_size.y) - 395.0 };
+    Math::vec2 Text_Position_BuildMode = { static_cast<double>(center_x), static_cast<double>(window_size.y) - 480.0 };
+
     /////////////////////
     //      Volume     //
     /////////////////////
-    int volume     = 1;
-    int volume_min = 0;
-    int volume_max = 5;
+    int  volume    = 1;
+    int  volume_min = 0;
+    int  volume_max = 5;
+    bool vsyncOn   = true;
+
+    static bool s_uiHidden;
+    static bool s_buildMode;
+    static bool s_fromGame;
+    static bool s_isOpen;
 
 
     // Helper func
