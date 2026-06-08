@@ -53,7 +53,7 @@ namespace
     constexpr int woodWorkshopMoneyMultiplier  = 2;
     constexpr int rockWorkshopMoneyMultiplier  = 6;
     constexpr int steelWorkshopMoneyMultiplier = 12;
-    constexpr int farmFoodMultiplier           = 2;
+    constexpr float farmFoodMultiplier         = 1.5f;
 
     CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
     {
@@ -336,7 +336,7 @@ void WorkBuilding::Update(float dt)
             case BuildingType::GRANARY: break;
             case BuildingType::FARM:
                 if (resourceManager->GetFoodCapacity() > 0)
-                    resourceManager->AddFood(amountToProduce * farmFoodMultiplier);
+                    resourceManager->AddFood(static_cast<int>(amountToProduce * farmFoodMultiplier));
                 break;
             case BuildingType::CAFE:
                 if (resourceManager->TrySpendFood(kCafeFoodPerTick))

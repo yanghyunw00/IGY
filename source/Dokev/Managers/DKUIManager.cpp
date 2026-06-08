@@ -26,6 +26,34 @@
 namespace
 {
     constexpr int kGranaryWarningThresholdPercent = 90;
+
+    constexpr int kEscButtonCount = 6;
+
+    struct EscMenuLayout
+    {
+        float panelX, panelY, panelW, panelH;
+        float btnX,   btnW,   btnH;
+        float titleY;
+        float btnY[kEscButtonCount];
+    };
+
+    EscMenuLayout GetEscMenuLayout(int winW, int winH)
+    {
+        EscMenuLayout l;
+        l.panelW  = 280.0f;
+        l.btnH    = 46.0f;
+        float start  = 82.0f;          // first button offset from panel top
+        float stride = l.btnH + 11.0f;
+        l.panelH  = start + stride * (kEscButtonCount - 1) + l.btnH + 22.0f;
+        l.panelX  = winW * 0.5f - l.panelW * 0.5f;
+        l.panelY  = winH * 0.5f - l.panelH * 0.5f;
+        l.btnW    = 240.0f;
+        l.btnX    = winW * 0.5f - l.btnW * 0.5f;
+        l.titleY  = l.panelY + 28.0f;
+        for (int i = 0; i < kEscButtonCount; ++i)
+            l.btnY[i] = l.panelY + start + stride * i;
+        return l;
+    }
 }
 
 namespace Dokev
@@ -371,6 +399,44 @@ namespace Dokev
     void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked, float dt)
     {
         totalTime += dt;
+
+        // Reset ESC menu click flags every frame
+        escResumeClicked   = false;
+        escSaveClicked     = false;
+        escLoadClicked     = false;
+        escSettingsClicked = false;
+        escMainMenuClicked = false;
+        escQuitClicked     = false;
+
+        if (escMenuOpen)
+        {
+            auto ws = Engine::GetWindow().GetSize();
+            auto  l = GetEscMenuLayout(ws.x, ws.y);
+            escHoveredButton = -1;
+            for (int i = 0; i < kEscButtonCount; ++i)
+            {
+                if (mousePos.x >= l.btnX && mousePos.x <= l.btnX + l.btnW &&
+                    mousePos.y >= l.btnY[i] && mousePos.y <= l.btnY[i] + l.btnH)
+                {
+                    escHoveredButton = i;
+                    break;
+                }
+            }
+            if (mouseClicked && escHoveredButton >= 0)
+            {
+                switch (escHoveredButton)
+                {
+                    case 0: escResumeClicked   = true; escMenuOpen = false; break;
+                    case 1: escSaveClicked     = true; break;
+                    case 2: escLoadClicked     = true; break;
+                    case 3: escSettingsClicked = true; break;
+                    case 4: escMainMenuClicked = true; break;
+                    case 5: escQuitClicked     = true; break;
+                }
+            }
+            return; // block all other UI input while ESC menu is open
+        }
+
         // Keyboard shortcuts
         const auto& input = Engine::GetInput();
 
@@ -691,7 +757,7 @@ namespace Dokev
 
     void UIManager::Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, const PopulationStats& popStats, BuildingCostManager* costMgr, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const
     {
-        DrawResources(resourceMgr, humanCount, popStats, hour, minute, currentDay, speedIndex, simPaused);
+        DrawResources(resourceMgr, cm, humanCount, popStats, hour, minute, currentDay, speedIndex, simPaused);
         DrawHappiness(cm);
 
         switch (currentMenuState)
@@ -729,9 +795,12 @@ namespace Dokev
                 }
                 break;
         }
+
+        if (escMenuOpen)
+            DrawEscMenu();
     }
 
-    void UIManager::DrawResources(ResourceManager* resourceMgr, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const
+    void UIManager::DrawResources(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, const PopulationStats& popStats, int hour, int minute, int currentDay, int speedIndex, bool simPaused) const
     {
         if (!resourceMgr || !outlined)
             return;
@@ -751,7 +820,7 @@ namespace Dokev
         constexpr float iconGap  = 36.0f;
         constexpr float iconYOff = 4.0f;
 
-        // Pulsing icon draw — oscillates small↔big when hovered
+        // Pulsing icon draw 
         auto drawIcon = [&](const Texture2D& tex, float bx, float by, int col)
         {
             if (!tex.IsValid()) return;
@@ -853,19 +922,22 @@ namespace Dokev
                 Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
                                             static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0xFFD700FF);
 
+                // NDC is y-up; mirror each row so the breakdown reads top-to-bottom.
+                auto flipY = [&](float v) { return 2.0f * popY + popH - lineH - v; };
+
                 auto printLine = [&](const std::string& label, int val, float ly, CS200::RGBA col, bool indent)
                 {
                     std::string sign = (val >= 0) ? "+" : "";
                     std::string txt  = label + "  " + sign + std::to_string(val);
                     float       lx   = popX + (indent ? indentX : 8.0f);
                     if (auto t = outlined->PrintToTexture(txt, col))
-                        t->Draw(Math::TranslationMatrix(Math::vec2{ lx, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ lx, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
                 };
 
                 auto printHeader = [&](const std::string& txt, float ly, CS200::RGBA col)
                 {
                     if (auto t = outlined->PrintToTexture(txt, col))
-                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.9f, ts * 0.9f }), col);
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts * 0.9f, ts * 0.9f }), col);
                 };
 
                 auto drawSection = [&](const ResourceManager::DayStats& s, float startY, CS200::RGBA titleColor,
@@ -873,7 +945,7 @@ namespace Dokev
                 {
                     float ly = startY;
                     if (auto t = outlined->PrintToTexture(title, titleColor))
-                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), titleColor);
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), titleColor);
                     ly += lineH;
 
                     if (!s.income.empty())
@@ -889,7 +961,7 @@ namespace Dokev
 
                     if (!s.upkeep.empty())
                     {
-                        Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                        Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(flipY(ly + 2) + lineH),
                                              static_cast<int>(popW - 16), 1, 0xFFFFFF33);
                         ly += 6.0f;
                         printHeader("Upkeep:", ly, 0xFFAAAAFF);
@@ -901,7 +973,7 @@ namespace Dokev
                         }
                     }
 
-                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(flipY(ly + 2) + lineH),
                                          static_cast<int>(popW - 16), 1, 0xFFFFFF55);
                     ly += 8.0f;
                     int         net      = s.TotalIncome() - s.TotalUpkeep();
@@ -915,7 +987,7 @@ namespace Dokev
                 ly = drawSection(ld,  ly, Dokev::ColorPalette::WHITE, "[ Yesterday ]");
 
                 // Separator between sections
-                Dokev::DrawRectangle(static_cast<int>(popX + 4), static_cast<int>(ly + 2),
+                Dokev::DrawRectangle(static_cast<int>(popX + 4), static_cast<int>(flipY(ly + 2) + lineH),
                                      static_cast<int>(popW - 8), 2, 0xFFD70066);
                 ly += 10.0f;
 
@@ -980,18 +1052,20 @@ namespace Dokev
                 Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
                                             static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0x44CC44FF);
 
+                auto flipY = [&](float v) { return 2.0f * popY + popH - lineH - v; };
+
                 auto printLine = [&](const std::string& label, int val, float ly, CS200::RGBA col, bool indent)
                 {
                     std::string sign = (val >= 0) ? "+" : "";
                     std::string txt2 = label + "  " + sign + std::to_string(val);
                     float       lx   = popX + (indent ? 18.0f : 8.0f);
                     if (auto t = outlined->PrintToTexture(txt2, col))
-                        t->Draw(Math::TranslationMatrix(Math::vec2{ lx, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ lx, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
                 };
                 auto printSubHeader = [&](const std::string& txt2, float ly, CS200::RGBA col)
                 {
                     if (auto t = outlined->PrintToTexture(txt2, col))
-                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.9f, ts * 0.9f }), col);
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts * 0.9f, ts * 0.9f }), col);
                 };
 
                 auto drawFoodSection = [&](const ResourceManager::FoodDayStats& s, float startY,
@@ -999,7 +1073,7 @@ namespace Dokev
                 {
                     float ly = startY;
                     if (auto t = outlined->PrintToTexture(title, titleColor))
-                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), titleColor);
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 8.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), titleColor);
                     ly += lineH;
 
                     if (!s.production.empty())
@@ -1014,7 +1088,7 @@ namespace Dokev
                     }
                     if (!s.consumption.empty())
                     {
-                        Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                        Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(flipY(ly + 2) + lineH),
                                              static_cast<int>(popW - 16), 1, 0xFFFFFF33);
                         ly += 6.0f;
                         printSubHeader("Consumed:", ly, 0xFFAAAAFF);
@@ -1025,7 +1099,7 @@ namespace Dokev
                             ly += lineH;
                         }
                     }
-                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(flipY(ly + 2) + lineH),
                                          static_cast<int>(popW - 16), 1, 0xFFFFFF55);
                     ly += 8.0f;
                     int         net      = s.TotalProduction() - s.TotalConsumption();
@@ -1037,7 +1111,7 @@ namespace Dokev
 
                 float ly = popY + 6.0f;
                 ly = drawFoodSection(lf,  ly, Dokev::ColorPalette::WHITE, "[ Yesterday ]");
-                Dokev::DrawRectangle(static_cast<int>(popX + 4), static_cast<int>(ly + 2),
+                Dokev::DrawRectangle(static_cast<int>(popX + 4), static_cast<int>(flipY(ly + 2) + lineH),
                                      static_cast<int>(popW - 8), 2, 0x44CC4466);
                 ly += 10.0f;
                 drawFoodSection(tfd, ly, 0xAAFFAAFF, "[ Today ]");
@@ -1059,29 +1133,32 @@ namespace Dokev
                 constexpr float ts    = 0.37f;
                 constexpr float lineH = 23.0f;
                 float popX = x - 10.0f;
-                float popH = lineH * 9.0f + 32.0f; // title + 8 data rows + 3 dividers
+                // title + 8 stat rows + 3 dividers, then (if cm) immigration (hdr+3) + casino (hdr+1) + 2 dividers
+                float popH = cm ? lineH * 14.0f + 5 * 8.0f + 18.0f
+                                : lineH * 9.0f + 32.0f;
                 float popY = barY - popH - 6.0f;
 
                 Dokev::DrawRectangle(static_cast<int>(popX), static_cast<int>(popY),
                                      static_cast<int>(popW), static_cast<int>(popH), 0x000000EE);
                 Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
                                             static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0x88AAFFFF);
-
+                                            
+                auto flipY = [&](float v) { return 2.0f * popY + popH - lineH - v; };
                 auto pline = [&](const std::string& label, const std::string& val, float ly, CS200::RGBA col)
                 {
                     if (auto t = outlined->PrintToTexture(label + "  " + val, col))
-                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
                 };
                 auto divider = [&](float ly)
                 {
-                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly),
+                    Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(flipY(ly) + lineH),
                                          static_cast<int>(popW - 16), 1, 0xFFFFFF33);
                 };
 
                 float ly = popY + 6.0f;
 
                 if (auto t = outlined->PrintToTexture("[ Population ]", Dokev::ColorPalette::WHITE))
-                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), Dokev::ColorPalette::WHITE);
+                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), Dokev::ColorPalette::WHITE);
                 ly += lineH;
 
                 pline("Total:", std::to_string(popStats.total), ly, Dokev::ColorPalette::WHITE);
@@ -1116,6 +1193,50 @@ namespace Dokev
                 pline("Avg Happy:", happyBuf, ly, happyColor);
                 ly += lineH;
                 pline("Avg Energy:", energyBuf, ly, energyColor);
+                ly += lineH;
+
+                // ---- Immigration & Casino conditions (need city metrics) ----
+                if (cm)
+                {
+                    auto header = [&](const std::string& label, float hy)
+                    {
+                        if (auto t = outlined->PrintToTexture(label, 0x88CCFFFF))
+                            t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(hy) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0x88CCFFFF);
+                    };
+
+                    const float happiness     = cm->GetHappiness();
+                    const int   availableHomes = popStats.homeCapacity - popStats.total;
+                    const int   totalResources = resourceMgr->GetTotalResources();
+                    auto*       immi           = cm->GetImmigrationManager();
+                    const float chance         = immi->CalculateImmigrationChance(availableHomes, happiness, humanCount, totalResources);
+                    const float nextCheck      = immi->GetNextImmigrationTime();
+
+                    divider(ly); ly += 8.0f;
+                    header("[ Immigration ]", ly); ly += lineH;
+
+                    char chanceBuf[40];
+                    std::snprintf(chanceBuf, sizeof(chanceBuf), "%.0f%%  (next %.0fs)", chance * 100.0f, nextCheck);
+                    CS200::RGBA chanceColor = (chance >= 0.6f) ? 0x44FF44FF :
+                                              (chance >= 0.3f) ? 0xFFDD44FF : 0xFF4444FF;
+                    pline("Chance:", chanceBuf, ly, chanceColor); ly += lineH;
+
+                    if (availableHomes > 0)
+                        pline("Housing:", std::to_string(availableHomes) + " free", ly, 0x44FF44FF);
+                    else
+                        pline("Housing:", "Full!", ly, 0xFF4444FF);
+                    ly += lineH;
+
+                    const char* happLabel = (happiness >= 60.f) ? "Good" : (happiness >= 40.f) ? "Low" : "Critical";
+                    CS200::RGBA happLblColor = (happiness >= 60.f) ? 0x44FF44FF : (happiness >= 40.f) ? 0xFFDD44FF : 0xFF4444FF;
+                    pline("Happiness:", happLabel, ly, happLblColor); ly += lineH;
+
+                    // ---- Casino ----
+                    divider(ly); ly += 8.0f;
+                    header("[ Casino ]", ly); ly += lineH;
+
+                    if (auto t = outlined->PrintToTexture("Needs night safety >= 70%", 0xFFDD44FF))
+                        t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0xFFDD44FF);
+                }
             }
         }
     }
@@ -1170,6 +1291,8 @@ namespace Dokev
             Dokev::DrawRectangleLinesEx(static_cast<int>(popX), static_cast<int>(popY),
                                         static_cast<int>(popW), static_cast<int>(popH), 2.0f, 0xFFDD44FF);
 
+            auto flipY = [&](float v) { return 2.0f * popY + popH - lineH - v; };
+
             auto scoreColor = [](float s) -> CS200::RGBA {
                 return (s >= 80.f) ? 0x44FF44FF : (s >= 50.f) ? 0xFFDD44FF : 0xFF4444FF;
             };
@@ -1185,24 +1308,24 @@ namespace Dokev
 
                 std::string weightStr = "x" + std::to_string(static_cast<int>(weight * 100)) + "%  ";
                 if (auto t = outlined->PrintToTexture(label + "  " + buf, col))
-                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
+                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), col);
                 if (auto t = outlined->PrintToTexture(weightStr, 0xAAAAAAFF))
-                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + popW - 70.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.8f, ts * 0.8f }), 0xAAAAAAFF);
+                    t->Draw(Math::TranslationMatrix(Math::vec2{ popX + popW - 70.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts * 0.8f, ts * 0.8f }), 0xAAAAAAFF);
             };
 
             float ly = popY + 6.0f;
 
             if (auto t = outlined->PrintToTexture("[ Happiness ]", Dokev::ColorPalette::WHITE))
-                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), Dokev::ColorPalette::WHITE);
+                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), Dokev::ColorPalette::WHITE);
             ly += lineH;
 
             char overallBuf[16];
             std::snprintf(overallBuf, sizeof(overallBuf), "%.0f%%", happiness);
             if (auto t = outlined->PrintToTexture(std::string("Overall:  ") + overallBuf, happColor))
-                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), happColor);
+                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts, ts }), happColor);
             ly += lineH;
 
-            Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+            Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(flipY(ly + 2) + lineH),
                                  static_cast<int>(popW - 16), 1, 0xFFFFFF33);
             ly += 10.0f;
 
@@ -1210,7 +1333,7 @@ namespace Dokev
             pline("Employment ", factors.employmentScore,  0.40f, ly); ly += lineH;
             pline("Night Safe ", factors.nightSafetyScore, 0.20f, ly); ly += lineH;
 
-            Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(ly + 2),
+            Dokev::DrawRectangle(static_cast<int>(popX + 8), static_cast<int>(flipY(ly + 2) + lineH),
                                  static_cast<int>(popW - 16), 1, 0xFFFFFF33);
             ly += 10.0f;
 
@@ -1220,7 +1343,59 @@ namespace Dokev
                               (worst == factors.employmentScore)   ? "! Build more workshops"  :
                                                                      "! Add street lights";
             if (auto t = outlined->PrintToTexture(tip, 0xFF8800FF))
-                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, ly }) * Math::ScaleMatrix(Math::vec2{ ts * 0.85f, ts * 0.85f }), 0xFF8800FF);
+                t->Draw(Math::TranslationMatrix(Math::vec2{ popX + 14.0f, flipY(ly) }) * Math::ScaleMatrix(Math::vec2{ ts * 0.85f, ts * 0.85f }), 0xFF8800FF);
+        }
+    }
+
+    void UIManager::DrawEscMenu() const
+    {
+        if (!outlined)
+            return;
+
+        auto ws = Engine::GetWindow().GetSize();
+        auto  l = GetEscMenuLayout(ws.x, ws.y);
+
+        // Fullscreen dim overlay
+        Dokev::DrawRectangle(0, 0, ws.x, ws.y, 0x00000099);
+
+        // Panel background + border
+        Dokev::DrawRectangle(static_cast<int>(l.panelX), static_cast<int>(l.panelY),
+                             static_cast<int>(l.panelW), static_cast<int>(l.panelH), 0x12122AEE);
+        Dokev::DrawRectangleLinesEx(static_cast<int>(l.panelX), static_cast<int>(l.panelY),
+                                    static_cast<int>(l.panelW), static_cast<int>(l.panelH), 2.0f, 0xFFFFFFCC);
+
+        // Title
+        constexpr double ts = 1.0;
+        float cx = ws.x * 0.5f;
+        if (auto t = outlined->PrintToTexture("PAUSED", 0xFFFFFFFF))
+            t->Draw(Math::TranslationMatrix(Math::vec2{ cx - t->GetSize().x * ts * 0.5, l.titleY })
+                  * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0xFFFFFFFF);
+
+        // Separator
+        float sepY = l.panelY + 68.0f;
+        Dokev::DrawRectangle(static_cast<int>(l.panelX + 12), static_cast<int>(sepY),
+                             static_cast<int>(l.panelW - 24), 1, 0xFFFFFF55);
+
+        // Buttons
+        static const char* labels[kEscButtonCount] = { "Resume", "Save", "Load", "Settings", "Main Menu", "Quit" };
+
+        for (int i = 0; i < kEscButtonCount; ++i)
+        {
+            bool        hov = (escHoveredButton == i);
+            CS200::RGBA bg  = hov ? 0x3A3A5AFF : 0x22223ACC;
+            Dokev::DrawRectangle(static_cast<int>(l.btnX), static_cast<int>(l.btnY[i]),
+                                 static_cast<int>(l.btnW), static_cast<int>(l.btnH), bg);
+            Dokev::DrawRectangleLinesEx(static_cast<int>(l.btnX), static_cast<int>(l.btnY[i]),
+                                        static_cast<int>(l.btnW), static_cast<int>(l.btnH), 1.5f,
+                                        hov ? 0xFFFFFFFF : 0xFFFFFF66);
+
+            if (auto t = outlined->PrintToTexture(labels[i], 0xFFFFFFFF))
+            {
+                float tx = cx - static_cast<float>(t->GetSize().x) * static_cast<float>(ts) * 0.5f;
+                float ty = l.btnY[i] + (l.btnH - static_cast<float>(t->GetSize().y) * static_cast<float>(ts)) * 0.5f;
+                t->Draw(Math::TranslationMatrix(Math::vec2{ tx, ty })
+                      * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0xFFFFFFFF);
+            }
         }
     }
 

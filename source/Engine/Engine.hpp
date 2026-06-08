@@ -214,6 +214,7 @@ public:
      * - Support for different texture formats and properties
      */
     static CS230::TextureManager& GetTextureManager();
+    static float GetFlashAlpha(); // 0 = no flash, 1 = full white
 
 
 public:

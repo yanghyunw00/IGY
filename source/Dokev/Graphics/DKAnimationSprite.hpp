@@ -29,6 +29,14 @@ namespace Dokev
 
         AnimatedSprite(Texture2D texture, Math::ivec2 frameSize);
 
+        // currentAnimation points into the animations map, so copies/moves must
+        // rebind it to the new map instead of leaving a dangling pointer.
+        AnimatedSprite(const AnimatedSprite& other);
+        AnimatedSprite& operator=(const AnimatedSprite& other);
+        AnimatedSprite(AnimatedSprite&& other) noexcept;
+        AnimatedSprite& operator=(AnimatedSprite&& other) noexcept;
+        ~AnimatedSprite() = default;
+
 
         void AddAnimation(const std::string& name, Animation animation);
 
@@ -49,6 +57,9 @@ namespace Dokev
             int posX, int posY, CS200::RGBA tint = CS200::WHITE, Math::vec2 scale = { 1.0, 1.0 },
             Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 
+        // Draws the current frame with its top-left exactly at (posX, posY)
+        void DrawTopLeft(int posX, int posY) const;
+
         const std::string& GetCurrentAnimationName() const;
         bool               IsAnimationComplete() const;
 
@@ -67,6 +78,10 @@ namespace Dokev
 
     private:
         Math::vec4 GetCurrentFrameUV() const;
+
+        // Re-points currentAnimation at the entry in animations named by
+        // currentAnimationName (used after a copy/move rebuilds the map).
+        void RebindCurrentAnimation();
 
         SpriteSheet                      spriteSheet;
         std::map<std::string, Animation> animations;

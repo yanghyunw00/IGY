@@ -66,13 +66,11 @@ set(SOURCE_CODE
     Dokev/Managers/DKUIManager.hpp Dokev/Managers/DKUIManager.cpp
     Dokev/Managers/DKTimeManager.hpp Dokev/Managers/DKTimeManager.cpp
     Dokev/Managers/DKTileManager.hpp Dokev/Managers/DKTileManager.cpp
-    Dokev/Managers/DKJobsystemManager.hpp
 
     # Dokev Framework - GameObject
     Dokev/GameObject/DKGameObject.hpp
     Dokev/GameObject/DKGameObjectTypes.hpp
     Dokev/GameObject/DKComponent.hpp
-    Dokev/GameObject/DKJobsystem.hpp Dokev/GameObject/DKJobsystem.cpp
 
     # Dokev Framework - Graphics
     Dokev/Graphics/DKCamera.hpp Dokev/Graphics/DKCamera.cpp

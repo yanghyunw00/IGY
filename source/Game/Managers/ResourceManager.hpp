@@ -16,7 +16,7 @@
 class ResourceManager : public IComponent
 {
 public:
-    int totalMoney = 1000;
+    int totalMoney = 99999;
     int totalFood = 0;
     int foodCapacity = 0;
 

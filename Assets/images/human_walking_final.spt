@@ -1,0 +1,12 @@
+Assets/images/human_walking_final.png   # 텍스처 경로
+HotSpot 32 16          # 중심점 (pivot point)
+FrameSize 64 32        # 각 프레임 크기 (width height)
+Frame 0 0              # 프레임 0
+Frame 64 0             # 프레임 1
+Frame 128 0            # 프레임 2
+Frame 192 0            # 프레임 3
+Frame 256 0            # 프레임 4
+Frame 320 0            # 프레임 5
+Frame 384 0            # 프레임 6
+Frame 448 0            # 프레임 7
+Anim Assets/images/human_walking_final.anm

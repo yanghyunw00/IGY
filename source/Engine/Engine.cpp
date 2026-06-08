@@ -25,8 +25,15 @@
 #include "Timer.hpp"
 #include "Window.hpp"
 
+#include "Dokev/Graphics/DKShapes.hpp"
 #include <SDL_ttf.h>
+#include <GL/glew.h>
+#include <stb_image_write.h>
+#include <algorithm>
 #include <chrono>
+#include <ctime>
+#include <filesystem>
+#include <vector>
 
 // Pimpl implementation class
 class Engine::Impl
@@ -55,6 +62,9 @@ public:
     CS200::InstancedRenderer2D InstancedRenderer2D{};
     CS200::ImmediateRenderer2D ImmediateRenderer2D{};
     CS230::TextureManager      textureManager{};
+
+    float flashTimer                    = 0.0f;
+    static constexpr float flashDuration = 0.2f;
 };
 
 Engine& Engine::Instance()
@@ -92,6 +102,13 @@ CS230::TextureManager& Engine::GetTextureManager()
 {
     return Instance().impl->textureManager;
 }
+float Engine::GetFlashAlpha()
+{
+    const float t = Instance().impl->flashTimer;
+    if (t <= 0.0f) return 0.0f;
+    return std::min(1.0f, t / Impl::flashDuration);
+}
+
 CS200::IRenderer2D& Engine::GetRenderer2D(Dokev::RenderState selection)
 {
     switch (selection)
@@ -141,6 +158,40 @@ void Engine::Stop()
     impl->logger.LogEvent("Engine Stopped");
 }
 
+static void TakeScreenshot()
+{
+    auto              winSz = Engine::GetWindow().GetSize();
+    int               w     = winSz.x;
+    int               h     = winSz.y;
+    std::vector<unsigned char> pixels(static_cast<size_t>(w) * h * 4);
+
+    glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+    // OpenGL y-up → flip vertically
+    for (int y = 0; y < h / 2; ++y)
+    {
+        unsigned char* top = pixels.data() + y * w * 4;
+        unsigned char* bot = pixels.data() + (h - 1 - y) * w * 4;
+        for (int x = 0; x < w * 4; ++x)
+            std::swap(top[x], bot[x]);
+    }
+
+    std::filesystem::create_directories("screenshots");
+
+    std::time_t  t  = std::time(nullptr);
+    std::tm      tm = {};
+#if defined(_WIN32)
+    localtime_s(&tm, &t);
+#else
+    localtime_r(&t, &tm);
+#endif
+    char buf[64];
+    std::strftime(buf, sizeof(buf), "screenshots/screenshot_%Y%m%d_%H%M%S.png", &tm);
+
+    stbi_write_png(buf, w, h, 4, pixels.data(), w * 4);
+    Engine::GetLogger().LogEvent(std::string("Screenshot saved: ") + buf);
+}
+
 void Engine::Update()
 {
     updateEnvironment();
@@ -152,9 +203,22 @@ void Engine::Update()
     const Math::ivec2 viewport_size = { viewport.width, viewport.height };
     CS200::RenderingAPI::SetViewport(viewport_size, { viewport.x, viewport.y });
     state_manager.Draw();
+
     impl->viewport = ImGuiHelper::Begin();
     state_manager.DrawImGui();
     ImGuiHelper::End();
+
+    // Tick the flash timer; actual rendering is done inside GamePlayState::Draw()
+    // via Engine::GetFlashAlpha() so it uses the same renderer pass as weather overlays.
+    if (impl->flashTimer > 0.0f)
+        impl->flashTimer -= static_cast<float>(impl->environment.DeltaTime);
+
+    if (impl->input.KeyJustPressed(CS230::Input::Keys::F12))
+    {
+        TakeScreenshot();
+        impl->flashTimer = Impl::flashDuration;
+    }
+
     CS230::Font::IncrementFrame();
 }
 
