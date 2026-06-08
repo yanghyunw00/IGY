@@ -942,12 +942,23 @@ void GamePlayState::Update(double dt)
         const float parkDrainMult = std::max(0.5f, 1.0f - 0.015f * static_cast<float>(cityMetrics->GetParkCount()));
         Human::SetParkHappinessDrainMult(parkDrainMult);
 
+        GridCell** humanView = mapMgr->GetMap()->GetViewArray(0);
+
         for (size_t i = 0; i < humans.size(); ++i)
         {
             humans[i]->SetResourceManager(resMgr);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
             humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), gameObjMgr.get(), dayCycle.GetHour(), cityMetrics->GetHappinessManager()->factors.nightSafetyScore);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
+
+            // Edge case: a human that ended up on a water tile is invalid
+            Math::fvec2 gp = humans[i]->GetGridPosition();
+            int         gx = static_cast<int>(gp.x);
+            int         gy = static_cast<int>(gp.y);
+            if (humanView && gx >= 0 && gx < GRID_SIZE_X && gy >= 0 && gy < GRID_SIZE_Y && humanView[gy * GRID_SIZE_X + gx]->getHeight() < 75.0)
+            {
+                humans[i]->Destroy();
+            }
         }
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
