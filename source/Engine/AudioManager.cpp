@@ -6,13 +6,22 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <algorithm>
+#include <cctype>
 #include <exception>
+#include <random>
 
 namespace
 {
     std::string normalizeKey(const std::filesystem::path& path)
     {
         return path.lexically_normal().string();
+    }
+
+    bool isAudioFile(const std::filesystem::path& path)
+    {
+        auto extension = path.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        return extension == ".mp3" || extension == ".ogg" || extension == ".wav";
     }
 }
 
@@ -72,6 +81,7 @@ namespace CS230
             return;
         }
 
+        StopLayeredMusic();
         StopMusic();
 
         for (auto& entry : sfxCache)
@@ -104,6 +114,7 @@ namespace CS230
         {
             return;
         }
+        StopLayeredMusic();
         if (muted || volumeLevel == 0)
         {
             StopMusic();
@@ -159,6 +170,168 @@ namespace CS230
         currentMusicKey.clear();
     }
 
+    void AudioManager::PlayLayeredMusic(const std::vector<std::filesystem::path>& layerFolders)
+    {
+        if (!initialized && !Init())
+        {
+            return;
+        }
+
+        StopMusic();
+        StopLayeredMusic();
+
+        std::vector<LayeredMusicLayer> newLayers;
+        newLayers.reserve(layerFolders.size());
+
+        for (const auto& folder : layerFolders)
+        {
+            std::filesystem::path folderPath;
+            try
+            {
+                folderPath = assets::locate_asset(folder);
+            }
+            catch (const std::exception& e)
+            {
+                Engine::GetLogger().LogError(std::string("Layered music folder not found: ") + e.what());
+                continue;
+            }
+
+            if (!std::filesystem::is_directory(folderPath))
+            {
+                Engine::GetLogger().LogError("Layered music path is not a folder: " + folderPath.string());
+                continue;
+            }
+
+            LayeredMusicLayer layer;
+            layer.name = folderPath.filename().string();
+
+            for (const auto& entry : std::filesystem::directory_iterator(folderPath))
+            {
+                if (entry.is_regular_file() && isAudioFile(entry.path()))
+                {
+                    layer.playlist.push_back(entry.path());
+                }
+            }
+
+            std::sort(layer.playlist.begin(), layer.playlist.end());
+            if (!layer.playlist.empty())
+            {
+                newLayers.push_back(std::move(layer));
+            }
+            else
+            {
+                Engine::GetLogger().LogError("No audio files found for layered music: " + folderPath.string());
+            }
+        }
+
+        std::random_device randomDevice;
+        std::mt19937       rng(randomDevice());
+        std::shuffle(newLayers.begin(), newLayers.end(), rng);
+        for (auto& layer : newLayers)
+        {
+            std::shuffle(layer.playlist.begin(), layer.playlist.end(), rng);
+        }
+
+        layeredMusic = std::move(newLayers);
+        Mix_ReserveChannels(static_cast<int>(layeredMusic.size()));
+
+        if (!muted && volumeLevel > 0)
+        {
+            UpdateLayeredMusic();
+        }
+    }
+
+    void AudioManager::UpdateLayeredMusic()
+    {
+        if (!initialized && !Init())
+        {
+            return;
+        }
+
+        if (muted || volumeLevel == 0)
+        {
+            haltLayeredMusicChannels();
+            return;
+        }
+
+        for (std::size_t i = 0; i < layeredMusic.size(); ++i)
+        {
+            auto& layer = layeredMusic[i];
+            if (layer.playlist.empty())
+            {
+                continue;
+            }
+
+            if (layer.channel >= 0 && Mix_Playing(layer.channel))
+            {
+                continue;
+            }
+
+            if (layer.nextTrack >= layer.playlist.size())
+            {
+                std::random_device randomDevice;
+                std::mt19937       rng(randomDevice());
+                std::shuffle(layer.playlist.begin(), layer.playlist.end(), rng);
+                layer.nextTrack = 0;
+            }
+
+            const auto trackPath = layer.playlist[layer.nextTrack++];
+            const auto key       = normalizeKey(trackPath);
+
+            Mix_Chunk* chunk = nullptr;
+            auto       it    = sfxCache.find(key);
+            if (it != sfxCache.end())
+            {
+                chunk = it->second;
+            }
+            else
+            {
+                chunk = Mix_LoadWAV(key.c_str());
+                if (!chunk)
+                {
+                    Engine::GetLogger().LogError(std::string("Failed to load layered music: ") + key + " - " + Mix_GetError());
+                    layer.currentTrack.clear();
+                    layer.channel = -1;
+                    continue;
+                }
+                sfxCache[key] = chunk;
+            }
+
+            const int channel = static_cast<int>(i);
+            if (Mix_PlayChannel(channel, chunk, 0) == -1)
+            {
+                Engine::GetLogger().LogError(std::string("Failed to play layered music: ") + key + " - " + Mix_GetError());
+                layer.currentTrack.clear();
+                layer.channel = -1;
+                continue;
+            }
+
+            layer.channel      = channel;
+            layer.currentTrack = trackPath.filename().string();
+        }
+    }
+
+    void AudioManager::StopLayeredMusic()
+    {
+        haltLayeredMusicChannels();
+        Mix_ReserveChannels(0);
+        layeredMusic.clear();
+    }
+
+    std::vector<std::string> AudioManager::GetLayeredMusicDebugText() const
+    {
+        std::vector<std::string> debugText;
+        debugText.reserve(layeredMusic.size());
+
+        for (const auto& layer : layeredMusic)
+        {
+            const std::string trackName = layer.currentTrack.empty() ? "(stopped)" : layer.currentTrack;
+            debugText.push_back(layer.name + ": " + trackName);
+        }
+
+        return debugText;
+    }
+
     void AudioManager::PlaySFX(const std::filesystem::path& path, int loops)
     {
         if (!initialized && !Init())
@@ -211,6 +384,7 @@ namespace CS230
         if (muted)
         {
             Mix_HaltMusic();
+            haltLayeredMusicChannels();
             Mix_HaltChannel(-1);
         }
         applyVolumes();
@@ -224,6 +398,7 @@ namespace CS230
         if (volumeLevel == 0)
         {
             Mix_HaltMusic();
+            haltLayeredMusicChannels();
             Mix_HaltChannel(-1);
         }
     }
@@ -233,6 +408,19 @@ namespace CS230
         const int scaled = (muted || volumeLevel == 0) ? 0 : static_cast<int>(std::lround(static_cast<double>(volumeLevel) * MIX_MAX_VOLUME / volumeMax));
         Mix_VolumeMusic(scaled);
         Mix_Volume(-1, scaled);
+    }
+
+    void AudioManager::haltLayeredMusicChannels()
+    {
+        for (auto& layer : layeredMusic)
+        {
+            if (layer.channel >= 0)
+            {
+                Mix_HaltChannel(layer.channel);
+            }
+            layer.channel = -1;
+            layer.currentTrack.clear();
+        }
     }
 
 }

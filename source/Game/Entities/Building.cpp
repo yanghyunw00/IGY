@@ -124,7 +124,7 @@ Math::ivec2 Building::CalculateScreenPosition(int viewIndex, const GridMap* map)
         return { 0, 0 };
     }
 
-    float m_height = static_cast<float>(cell->getHeight());
+    float m_height = static_cast<float>(cell->getHeight() + map->GetTileVisualOffset(cell->x, cell->y));
 
     int originX = map->GetIsoOriginX();
     int originY = map->GetIsoOriginY();

@@ -186,7 +186,7 @@ void GamePlayState::Load()
     noiseTexture2 = Dokev::LoadTextureFromImage(perlin2);
 
     CS230::FontManager::Instance().Load("MainFont", assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
-    CS230::AudioManager::Instance().PlayMusic("Assets/sounds/BGM.mp3", true);
+    CS230::AudioManager::Instance().PlayLayeredMusic({ "Assets/red", "Assets/yellow", "Assets/blue" });
     roadBuildSoundCount = 0;
 
     // Initialize MapManager component
@@ -623,6 +623,7 @@ void GamePlayState::Update(double dt)
 
     console.Update(); 
     UpdateTimeControls();
+    CS230::AudioManager::Instance().UpdateLayeredMusic();
 
     const double simulationDt = GetSimulationDeltaTime(dt);
 
@@ -1005,7 +1006,7 @@ void GamePlayState::Update(double dt)
     ///////////////////////////////////////////////////////////
 
     auto selectBuildingType = uiManager.GetSelectedBuilding();
-    bool uiConsumedClick    = uiManager.IsAnyButtonHovered();
+    bool uiConsumedClick    = uiManager.IsAnyButtonHovered() || ImGui::GetIO().WantCaptureMouse;
     bool shouldplace =
         (!uiConsumedClick && mouseClicked) || (ismouseheld && (selectBuildingType == BuildingType::ROAD || selectBuildingType == BuildingType::FLATTEN) && !blockRoadPlacementUntilRelease);
 
@@ -1416,6 +1417,11 @@ void GamePlayState::Update(double dt)
 
                     if (placed)
                     {
+                        if (selectedBuild != BuildingType::ROAD && selectedBuild != BuildingType::DELETE && selectedBuild != BuildingType::FLATTEN)
+                        {
+                            map->TriggerTileRipple(gridX, gridY);
+                        }
+
                         mouseSelection.SetHasValidPosition(false);
 
                         {
@@ -1764,6 +1770,23 @@ void GamePlayState::DrawImGui()
     // Developer UI
     worldEditor.DrawImGui();
 
+    if (ImGui::Begin("BGM Debug"))
+    {
+        const auto tracks = CS230::AudioManager::Instance().GetLayeredMusicDebugText();
+        if (tracks.empty())
+        {
+            ImGui::TextDisabled("Layered BGM is not active");
+        }
+        else
+        {
+            for (const auto& track : tracks)
+            {
+                ImGui::TextUnformatted(track.c_str());
+            }
+        }
+    }
+    ImGui::End();
+
     // Player UI
     auto cityMetrics = GetGSComponent<CityMetrics>();
     auto gameObjMgr  = GetGSComponent<Dokev::GameObjectManager>();
@@ -1817,6 +1840,7 @@ void GamePlayState::DrawImGui()
 
 void GamePlayState::Unload()
 {
+    CS230::AudioManager::Instance().StopLayeredMusic();
     WorkManager::GetInstance().ClearAllJobs();
     selectedNPC = nullptr;
     if (auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>())

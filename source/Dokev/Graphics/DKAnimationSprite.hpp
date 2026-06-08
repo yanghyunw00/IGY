@@ -42,7 +42,12 @@ namespace Dokev
 
         // Same positioning semantics as DrawTexture(posX, posY):
         // places the frame with its top-left at (posX, posY)
-        void DrawAtPosition(int posX, int posY) const;
+        void DrawAtPosition(
+            int posX, int posY, CS200::RGBA tint = CS200::WHITE, Math::vec2 scale = { 1.0, 1.0 },
+            Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
+        void DrawAtTexturePosition(
+            int posX, int posY, CS200::RGBA tint = CS200::WHITE, Math::vec2 scale = { 1.0, 1.0 },
+            Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 
         const std::string& GetCurrentAnimationName() const;
         bool               IsAnimationComplete() const;

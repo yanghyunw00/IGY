@@ -101,6 +101,8 @@ namespace Dokev
 
         bool IsAnyButtonHovered() const
         {
+            if (timeHoveredThisFrame || moneyHoveredThisFrame || foodHoveredThisFrame || popHoveredThisFrame || happHoveredThisFrame)
+                return true;
             for (const auto& b : mainButtons)
                 if (b.isHovered) return true;
             for (const auto& b : categoryButtons)

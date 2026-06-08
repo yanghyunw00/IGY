@@ -355,6 +355,8 @@ static int maskToTileIndex(int mask)
 
 namespace
 {
+    constexpr double kClickRippleLifetime = 2.6;
+
     struct BuildingDrawTrigger
     {
         int  originalX = 0;
@@ -393,6 +395,67 @@ namespace
 
         return result;
     }
+}
+
+void GridMap::TriggerTileRipple(int gridX, int gridY)
+{
+    if (gridX < 0 || gridX >= GRID_SIZE_X || gridY < 0 || gridY >= GRID_SIZE_Y)
+    {
+        return;
+    }
+
+    const double now = Engine::GetWindowEnvironment().ElapsedTime;
+    tileRipples.erase(
+        std::remove_if(tileRipples.begin(), tileRipples.end(), [now](const TileRipple& ripple) { return now - ripple.startTime > kClickRippleLifetime; }),
+        tileRipples.end());
+    tileRipples.push_back({ gridX, gridY, now });
+}
+
+double GridMap::GetTileVisualOffset(int gridX, int gridY) const
+{
+    if (gridX < 0 || gridX >= GRID_SIZE_X || gridY < 0 || gridY >= GRID_SIZE_Y)
+    {
+        return 0.0;
+    }
+
+    return CalculateTileAnimationOffset(gridX, gridY, m_gridCells[gridY][gridX].getWater());
+}
+
+double GridMap::CalculateTileAnimationOffset(int gridX, int gridY, bool isWater) const
+{
+    const double time = Engine::GetWindowEnvironment().ElapsedTime;
+
+    const double fromTopLeft  = std::hypot(static_cast<double>(gridX), static_cast<double>(gridY));
+    const double fromBottom   = static_cast<double>(GRID_SIZE_Y - 1 - gridY);
+    const double fromRight    = static_cast<double>(GRID_SIZE_X - 1 - gridX);
+    const double edgeRippleA  = std::sin(time * 2.15 - fromTopLeft * 0.30);
+    const double edgeRippleB  = std::sin(time * 1.75 - fromBottom * 0.34 + static_cast<double>(gridX) * 0.08);
+    const double edgeRippleC  = std::sin(time * 1.95 - fromRight * 0.28 + static_cast<double>(gridY) * 0.06);
+    const double ambientScale = isWater ? 4.2 : 1.25;
+    double       offset       = (edgeRippleA * 0.55 + edgeRippleB * 0.30 + edgeRippleC * 0.25) * ambientScale;
+
+    for (const auto& ripple : tileRipples)
+    {
+        const double age = time - ripple.startTime;
+        if (age < 0.0 || age > kClickRippleLifetime)
+        {
+            continue;
+        }
+
+        const double dist      = std::hypot(static_cast<double>(gridX - ripple.gridX), static_cast<double>(gridY - ripple.gridY));
+        const double waveFront = age * 18.0 - dist;
+        if (waveFront < 0.0 || waveFront > 14.0)
+        {
+            continue;
+        }
+
+        const double fade      = std::max(0.0, 1.0 - age / kClickRippleLifetime);
+        const double envelope  = std::exp(-waveFront * 0.13) * fade;
+        const double amplitude = isWater ? 16.0 : 10.0;
+        offset += std::sin(waveFront * 1.15) * envelope * amplitude;
+    }
+
+    return offset;
 }
 
 void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, const Dokev::MouseSelection* mouseSelection, Dokev::GameObjectManager* gameObjMgr) const
@@ -448,15 +511,12 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                 if (height < mapProfile.thresholds.waterMax)
                     current_texture = 0;
 
+                const bool isWaterTile = current_texture == 0;
+                renderHeight           = height + CalculateTileAnimationOffset(originalX, originalY, isWaterTile);
+                topY                   = static_cast<int>(std::round(renderHeight)) - screenY;
+
                 if (tileType == Dokev::TileType::ROAD)
                 {
-                    if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
-                    {
-                        renderHeight += GetWaterWaveOffset(originalX, originalY);
-                    }
-                    topY = static_cast<int>(renderHeight) - screenY;
-
-
                     int rawMask     = roadConnectionMask[originalY][originalX];
                     int rotatedMask = rotateMask4(rawMask < 0 ? 0 : rawMask, currentView);
                     int tileIdx     = maskToTileIndex(rotatedMask);
@@ -466,24 +526,16 @@ void GridMap::IsometricDrawMap(int index, Dokev::RenderState selected_renderer, 
                 }
                 else
                 {
-                    // Only apply wave height animation on non-water-heavy variants to avoid visual overlap with buildings/roads.
-                    // if (current_texture == 0 && mapVariant != MapVariant::WaterHeavy)
-                    // {
-                    //     renderHeight += GetWaterWaveOffset(originalX, originalY);
-                    // }
-
-                    topY = static_cast<int>(renderHeight) - screenY;
-
                     if (current_texture == 0 && waterAnimation.GetSpriteSheet().IsValid())
                     {
-                        waterAnimation.DrawAtPosition(screenX, topY);
+                        waterAnimation.DrawAtTexturePosition(screenX, topY, Dokev::ColorAlpha(Dokev::ColorPalette::WHITE, 0.68f), { 1.0, 1.0 }, selected_renderer);
                     }
                     else
                     {
                         Dokev::DrawTexture(IsoGridTexture[current_texture], screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
                     }
                     if (current_texture == 0)
-                        Dokev::DrawTexture(Max_Height_Water, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
+                        Dokev::DrawTexture(Max_Height_Water, screenX, topY, Dokev::ColorAlpha(Dokev::ColorPalette::WHITE, 0.62f), selected_renderer);
                     else
                         Dokev::DrawTexture(Max_Height, screenX, topY, Dokev::ColorPalette::WHITE, selected_renderer);
 
