@@ -1455,13 +1455,13 @@ namespace Dokev
 
         DrawRectangleLinesEx(static_cast<int>(scaledPos.x), static_cast<int>(scaledPos.y), static_cast<int>(scaledSize.x), static_cast<int>(scaledSize.y), 3.0f, borderColor);
 
-        // Draw Building Texture.
+        // Draw Building Texture
         if (button.texture.IsValid())
         {
             int textureWidth  = button.texture.GetWidth();
             int textureHeight = button.texture.GetHeight();
 
-            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY) ? 0.75f : 1.0f;
+            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY || button.type == BuildingType::PARK) ? 0.75f : 1.0f;
             float iconScale    = static_cast<float>(ICON_SCALE) * scale * iconScaleMult;
             float scaledWidth  = textureWidth * iconScale;
             float scaledHeight = textureHeight * iconScale;
