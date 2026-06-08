@@ -89,7 +89,7 @@ namespace
 
     Math::ivec2 GetBuildingFootprint(BuildingType type)
     {
-        if (type == BuildingType::GRANARY || type == BuildingType::FARM)
+        if (type == BuildingType::GRANARY || type == BuildingType::FARM || type == BuildingType::PARK)
         {
             return { 2, 2 };
         }
@@ -937,6 +937,10 @@ void GamePlayState::Update(double dt)
     if (!humans.empty())
     {
         auto* resMgr = GetGSComponent<ResourceManager>().get();
+
+        const float parkDrainMult = std::max(0.5f, 1.0f - 0.015f * static_cast<float>(cityMetrics->GetParkCount()));
+        Human::SetParkHappinessDrainMult(parkDrainMult);
+
         for (size_t i = 0; i < humans.size(); ++i)
         {
             humans[i]->SetResourceManager(resMgr);
@@ -1136,6 +1140,32 @@ void GamePlayState::Update(double dt)
 
                     GridCell*         clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
                     const Math::ivec2 footprint   = GetBuildingFootprint(selectedBuild);
+
+                    // Multi-tile buildings: let the player click any covered tile, not just the
+                    // top-left anchor. Pick the first anchor whose footprint contains the clicked
+                    // tile and is fully valid (clicked-as-top-left is preferred to keep old feel).
+                    if ((footprint.x > 1 || footprint.y > 1) && selectedBuild != BuildingType::FLATTEN && selectedBuild != BuildingType::DELETE)
+                    {
+                        auto* road     = mapMgr->GetRoad();
+                        bool  resolved = false;
+                        for (int dy = 0; dy < footprint.y && !resolved; ++dy)
+                        {
+                            for (int dx = 0; dx < footprint.x && !resolved; ++dx)
+                            {
+                                int ax = gridX - dx;
+                                int ay = gridY - dy;
+                                if (ax < 0 || ay < 0 || ax + footprint.x > GRID_SIZE_X || ay + footprint.y > GRID_SIZE_Y)
+                                    continue;
+                                if (!AreaHasOnlyBuildableCells(map, ax, ay, footprint.x, footprint.y) || !tileMgr->CanPlaceArea(ax, ay, footprint.x, footprint.y))
+                                    continue;
+                                if (selectedBuild != BuildingType::ROAD && !AreaIsAdjacentToRoad(road, ax, ay, footprint.x, footprint.y))
+                                    continue;
+                                gridX    = ax;
+                                gridY    = ay;
+                                resolved = true;
+                            }
+                        }
+                    }
 
                     if (selectedBuild == BuildingType::FLATTEN)
                     {
@@ -1370,9 +1400,12 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::PARK))
                                     break;
 
-                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::PARK);
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 0, BuildingType::PARK);
                                 gameObjMgr->AddBuilding(building);
-                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::RESIDENTIAL);
                                 placed = true;
                                 break;
                             }

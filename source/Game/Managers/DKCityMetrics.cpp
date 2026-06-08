@@ -19,6 +19,7 @@ namespace Dokev
         int homeCapacity    = 0;
         int workplaceCount  = 0;
         int streetLightCount = 0;
+        parkCount            = 0;
 
         for (const auto& building : gameObjectManager->GetBuildings())
         {
@@ -38,11 +39,20 @@ namespace Dokev
             {
                 streetLightCount++;
             }
+
+            if (type == BuildingType::PARK && building->GetIsBuilt())
+            {
+                parkCount++;
+            }
         }
 
         // Update Happiness Manager
         happinessManager.UpdateFactors(humanCount, homeCapacity, workplaceCount, streetLightCount);
         averageHappiness = happinessManager.CalculateTotalHappiness();
+
+        constexpr float parkHappinessPerPark = 0.5f;
+        constexpr float parkHappinessCap     = 15.0f;
+        averageHappiness = std::min(100.0f, averageHappiness + std::min(parkHappinessCap, parkCount * parkHappinessPerPark));
 
         //  Update Immigration Manager
         int availableHomes = homeCapacity - humanCount;

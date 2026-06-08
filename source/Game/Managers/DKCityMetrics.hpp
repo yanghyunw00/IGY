@@ -29,6 +29,7 @@ namespace Dokev
 
         float averageHappiness    = 100.0f; // Average satisfaction level
         float happinessChangeRate = 0.0f;   // Rate of change per second (deprecated)
+        int   parkCount           = 0;      // Built parks, refreshed each UpdateSystems
 
         // Win condition
         int winConditionPopulation = 20;
@@ -42,6 +43,11 @@ namespace Dokev
         float GetHappiness() const
         {
             return averageHappiness;
+        }
+
+        int GetParkCount() const
+        {
+            return parkCount;
         }
 
         void SetHappinessChangeRate(float rate)

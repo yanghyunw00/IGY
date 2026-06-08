@@ -41,6 +41,8 @@ namespace
     constexpr float gambleMinSafety   = 70.0f; // only gamble if night safety >= this
 }
 
+float Human::parkHappinessDrainMult = 1.0f;
+
 
 Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false)
 {
@@ -311,7 +313,7 @@ void Human::UpdateWorking(float deltaTime, int currentHour)
     const float gameHoursPerSecond = 24.0f / DayCycleManager::kDayDuration;
 
     stats.energy    = std::max(0.0f, stats.energy    - 10.0f * deltaTime * gameHoursPerSecond);
-    stats.happiness = std::max(0.0f, stats.happiness -  5.0f * deltaTime * gameHoursPerSecond);
+    stats.happiness = std::max(0.0f, stats.happiness -  5.0f * parkHappinessDrainMult * deltaTime * gameHoursPerSecond);
 
     float multiplier = (stats.energy / 100.0f) * (stats.happiness / 100.0f);
     float earned = stats.hourlyWage * multiplier * deltaTime * gameHoursPerSecond;

@@ -219,6 +219,8 @@ public:
         resourceMgr = rm;
     }
 
+    static void SetParkHappinessDrainMult(float m) { parkHappinessDrainMult = m; }
+
     const std::string& GetName() const
     {
         return name;
@@ -298,4 +300,7 @@ private:
     // Homelessness / emigration
     float homelessTextTimer = 0.0f; // Accumulator for the periodic "Homeless" label
     bool  isEmigrating      = false; // Walking off the map to leave the city
+
+    // City-wide park buff set each frame from park count
+    static float parkHappinessDrainMult;
 };
