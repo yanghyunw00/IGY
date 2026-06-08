@@ -48,12 +48,11 @@ public:
         else
             factors.housingScore = 10.0f;
 
-        // workshop
         float jobRatio = static_cast<float>(workplaceCount) / std::max(1, humanCount);
 
-        if (jobRatio >= 0.8f && jobRatio <= 1.2f)
+        if (jobRatio >= 0.8f)
             factors.employmentScore = 100.0f;
-        else if (jobRatio >= 0.5f && jobRatio <= 1.5f)
+        else if (jobRatio >= 0.5f)
             factors.employmentScore = 70.0f;
         else if (jobRatio >= 0.3f)
             factors.employmentScore = 40.0f;

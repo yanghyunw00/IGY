@@ -83,8 +83,6 @@ void Building::UpdateConstruction(float dt)
     buildTime += dt;
     progress = buildTime / maxBuildTime;
 
-    assert(progress >= 0.0f && progress <= 1.1f && "Progress out of range");
-
     if (progress >= 1.0f)
     {
         progress = 1.0f;
@@ -92,6 +90,8 @@ void Building::UpdateConstruction(float dt)
         FloatingTextManager::Instance().Add("Complete!", gridPosition * TILE_WIDTH, 0x00FF00FF);
         OnConstructed(); // add job
     }
+
+    assert(progress >= 0.0f && progress <= 1.0f && "Progress out of range");
 }
 
 Math::ivec2 Building::CalculateScreenPosition(int viewIndex, const GridMap* map) const

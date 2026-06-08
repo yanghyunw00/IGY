@@ -10,6 +10,7 @@
 #pragma once
 #include "CS200/RGBA.hpp"
 #include "Dokev/GameObject/DKGameObject.hpp"
+#include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
 #include "Engine/Vec2.hpp"
 #include <string>
@@ -283,6 +284,7 @@ private:
     bool        debugMode = false;
     // bool isVisible = true;
     Dokev::Texture2D humanTexture;
+    Dokev::AnimatedSprite walkAnim; // played while Walking
 
     ResourceManager* resourceMgr = nullptr;
 

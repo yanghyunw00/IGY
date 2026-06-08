@@ -48,6 +48,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
     humanTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
+    walkAnim       = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/human_walking_final.spt"));
     name           = NPCNameManager::Instance().GenerateName();
 }
 
@@ -785,6 +786,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
 
         if (isMoving)
         {
+            walkAnim.Update(deltaTime);
             UpdateMovement(deltaTime, map, gameObjMgr);
 
             if (!isMoving)
@@ -941,12 +943,19 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF - humanTexture.GetWidth() / 2;
     int drawY = topY + TILE_HEIGHT_HALF;
 
+    int drawAnimX = screenX  - humanTexture.GetWidth() / 2;
+    int drawAnimY = topY - TILE_HEIGHT;
+
     if (state == HumanState::Firefighting)
     {
         humanTexture.Draw(drawX, drawY, CS200::WHITE, Dokev::RenderState::IMMEDIATE);
         int cx = drawX + humanTexture.GetWidth() / 2;
         int cy = drawY - 6;
         Dokev::DrawCircle(cx, cy, 5.0f, 0x0080FFFF);
+    }
+    else if (state == HumanState::Walking && isMoving)
+    {
+        walkAnim.DrawTopLeft(drawAnimX, drawAnimY);
     }
     else
     {
