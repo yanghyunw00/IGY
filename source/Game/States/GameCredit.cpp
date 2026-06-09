@@ -35,8 +35,9 @@ void GameCredit::Load()
         float imgWidth = static_cast<float>(creditTexture.GetWidth());
         imageScale     = static_cast<float>(winSize.x) / imgWidth;
         scaledHeight   = creditTexture.GetHeight() * static_cast<double>(imageScale);
-        scrollY        = -4300;
-        loaded         = true;
+        scrollStart = -scaledHeight + TOP_PADDING;
+        scrollY     = scrollStart;
+        loaded      = true;
     }
 }
 
@@ -58,9 +59,10 @@ void GameCredit::Update(double dt)
         scrollY += SCROLL_SPEED * dt * 3.0;
     }
 
-    if (scrollY > 0)
+    const double viewHeight = static_cast<double>(Engine::GetWindow().GetSize().y);
+    if (scrollY > viewHeight)
     {
-        scrollY = -4300;
+        scrollY = scrollStart;
     }
 }
 

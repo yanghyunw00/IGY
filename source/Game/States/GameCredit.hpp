@@ -35,6 +35,7 @@ private:
     Dokev::Texture2D             creditTexture;
     std::unique_ptr<CS230::Font> hintFont;
     double           scrollY      = 0.0;
+    double           scrollStart  = 0.0;
     float            imageScale   = 0.8f;
     double           scaledHeight = 0.0;
     bool             loaded       = false;
@@ -43,4 +44,5 @@ private:
     const std::string escapeText   = " ESC or ENTER for EXIT";
 
     static constexpr double SCROLL_SPEED = 140.0;
+    static constexpr double TOP_PADDING  = 800.0; 
 };
