@@ -18,7 +18,7 @@
 void GameCredit::Load()
 {
     CS200::RenderingAPI::SetClearColor(CS200::WHITE);
-    creditTexture = Dokev::LoadTexture("Assets/images/IGY_CREDIT.png");
+    creditTexture = Dokev::LoadTexture("Assets/images/igy_credit.png");
 
     try
     {
@@ -92,8 +92,8 @@ void GameCredit::Draw() const
     constexpr double bottomMargin = 20.0;
     double           leftEdge     = static_cast<double>(winSize.x) - rightMargin - 380.0;
 
-    DrawHintText(escapeText, { leftEdge, bottomMargin + lineHeight }, Dokev::ColorPalette::BLACK);
-    DrawHintText(spaceBarText, { leftEdge, bottomMargin + lineHeight * 2.0 }, Dokev::ColorPalette::BLACK);
+    DrawHintText(escapeText, { leftEdge, bottomMargin + lineHeight }, Dokev::ColorPalette::ORANGE);
+    DrawHintText(spaceBarText, { leftEdge, bottomMargin + lineHeight * 2.0 }, Dokev::ColorPalette::ORANGE);
     renderer2d.EndScene();
 }
 
