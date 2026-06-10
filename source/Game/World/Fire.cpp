@@ -1,3 +1,11 @@
+/**
+ * \file Fire.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "Fire.hpp"
 #include "CS200/RGBA.hpp"
 #include "Dokev/Core/DKUtility.hpp"

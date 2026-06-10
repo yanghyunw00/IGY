@@ -1,3 +1,11 @@
+/**
+ * \file AudioManager.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "AudioManager.hpp"
 
 #include "Engine/Engine.hpp"

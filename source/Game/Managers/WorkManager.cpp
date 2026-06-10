@@ -1,3 +1,11 @@
+/**
+ * \file WorkManager.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "WorkManager.hpp"
 #include "Game/Entities/Human.hpp"
 

@@ -1,3 +1,11 @@
+/**
+ * \file DKMouseSelection.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "DKMouseSelection.hpp"
 #include "../World/GridCell.hpp"
 #include "../World/GridMap.hpp"
