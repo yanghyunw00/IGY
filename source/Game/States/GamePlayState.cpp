@@ -1408,6 +1408,21 @@ void GamePlayState::Update(double dt)
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+
+                                if (cityMetrics)
+                                {
+                                    bool firstPenthouse = (cityMetrics->GetPentHouseHappyBonus() == 0.0f);
+                                    cityMetrics->AddPentHouseHappyBonus(5.0f);
+
+                                    if (firstPenthouse)
+                                    {
+                                        auto  winSz = Engine::GetWindow().GetSize();
+                                        float cx    = static_cast<float>(winSz.x) * 0.5f;
+                                        float cy    = static_cast<float>(winSz.y) * 0.5f;
+                                        FloatingTextManager::Instance().Add("Congratulation! YOUR CITY IS BEST!", { cx, cy }, 0xFFD700FF, 8.0f, true);
+                                    }
+                                }
+
                                 placed = true;
                                 break;
                             }

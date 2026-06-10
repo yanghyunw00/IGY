@@ -62,7 +62,8 @@ void GameCredit::Update(double dt)
     const double viewHeight = static_cast<double>(Engine::GetWindow().GetSize().y);
     if (scrollY > viewHeight)
     {
-        scrollY = scrollStart;
+        Engine::GetGameStateManager().PopState();
+        Engine::GetGameStateManager().PushState<MainMenu>();
     }
 }
 

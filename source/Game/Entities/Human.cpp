@@ -266,7 +266,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManag
                 if (cafeIsOperating)
                 {
                     stats.energy    = std::min(100.0f, stats.energy + energyGain);
-                    stats.happiness = std::min(100.0f, stats.happiness + 10.0f);
+                    stats.happiness = std::min(100.0f, stats.happiness + 15.0f);
                 }
                 ChangeState(HumanState::Idle);
             }
@@ -382,7 +382,7 @@ void Human::UpdateGambling(float deltaTime, int currentHour, GridMap* map)
     if (roll == 0) // win
     {
         stats.money    += gambleWin;
-        stats.happiness = std::min(100.0f, stats.happiness + gambleHappiness);
+        stats.happiness = std::min(100.0f, stats.happiness + 4.0f);
         if (resourceMgr)
             resourceMgr->TrySpend(gambleWin); // city pays the winner
         SpawnFloatingStatus("+$" + std::to_string(gambleWin), 0x55FF55FF, map);
@@ -406,7 +406,7 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
     if (ai.isHomeless)
     {
         const float gameHoursPerSecond = 24.0f / DayCycleManager::kDayDuration;
-        stats.happiness = std::max(0.0f, stats.happiness - 4.0f * deltaTime * gameHoursPerSecond);
+        stats.happiness = std::max(0.0f, stats.happiness - 3.0f * deltaTime * gameHoursPerSecond);
 
         homelessTextTimer += deltaTime;
         if (homelessTextTimer >= 10.0f)

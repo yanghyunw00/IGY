@@ -119,14 +119,11 @@ namespace Dokev
             ImGui::Text("FPS: %d", env.FPS);
             ImGui::Text("Frame time: %.2f ms", static_cast<float>(env.DeltaTime * 1000.0));
 
-            // Memory usage
             auto memInfo = Dokev::SystemInfo::GetMemoryInfo();
             ImGui::Text("Memory: %.1f / %.1f MB (%.1f%%)", memInfo.GetUsedPhysicalMB(), memInfo.GetTotalPhysicalMB(), memInfo.GetUsagePercent());
             ImGui::Text("Process: %.1f MB", memInfo.GetProcessUsageMB());
 
             ImGui::Spacing();
-            ImGui::Spacing();
-
             ImGui::Text("DISPLAY SETTINGS");
             ImGui::Separator();
 
@@ -146,208 +143,73 @@ namespace Dokev
         }
 
         ImGui::Spacing();
-        ImGui::Spacing();
         ImGui::Separator();
 
-        // CAMERA CONTROLS Section
-        if (ImGui::TreeNode("CAMERA CONTROLS"))
+        // CITY TUNING Section
+        if (ImGui::TreeNode("CITY TUNING"))
         {
-            if (camera)
-            {
-                float zoom = camera->GetZoom();
-                if (ImGui::SliderFloat("Zoom", &zoom, 0.1f, 1.0f))
-                {
-                    camera->SetZoom(zoom);
-                }
+            ImGui::Separator();
 
-                ImGui::Spacing();
+            // Happiness
+            if (cityMetrics)
+            {
+                float dbgH = cityMetrics->GetDebugHappiness();
+                bool  active = dbgH >= 0.0f;
+                if (ImGui::Checkbox("Override Happiness", &active))
+                {
+                    cityMetrics->SetDebugHappiness(active ? cityMetrics->GetHappiness() : -1.0f);
+                    dbgH = cityMetrics->GetDebugHappiness();
+                }
+                if (active)
+                {
+                    if (ImGui::SliderFloat("Happiness", &dbgH, 0.0f, 100.0f))
+                        cityMetrics->SetDebugHappiness(dbgH);
+                }
+                else
+                {
+                    float display = cityMetrics->GetHappiness();
+                    ImGui::SliderFloat("Happiness (live)", &display, 0.0f, 100.0f);
+                }
             }
 
-            if (rotationIndex)
+            ImGui::Spacing();
+
+            // Money
+            if (resourceManager)
             {
-                if (ImGui::Button("Rotate to Map right"))
-                {
-                    *rotationIndex = (*rotationIndex - 1 + 4) % 4;
-                }
-
-                if (ImGui::Button("Rotate Map to Left"))
-                {
-                    *rotationIndex = (*rotationIndex + 1) % 4;
-                }
-
-                ImGui::Text("Rotate Index: %d", *rotationIndex);
-
-                ImGui::Spacing();
-                ImGui::Spacing();
+                int money = resourceManager->totalMoney;
+                if (ImGui::SliderInt("Money", &money, 0, 10000))
+                    resourceManager->totalMoney = money;
             }
+
+            ImGui::Spacing();
+
+            // Night Safety
+            if (cityMetrics)
+            {
+                auto* hm = cityMetrics->GetHappinessManager();
+                if (hm)
+                {
+                    float ns = hm->factors.nightSafetyScore;
+                    if (ImGui::SliderFloat("Night Safety", &ns, 0.0f, 100.0f))
+                        hm->factors.nightSafetyScore = ns;
+                }
+            }
+
+            ImGui::Spacing();
             ImGui::TreePop();
         }
+
         ImGui::Separator();
 
-        if (resourceManager)
-        {
-            if (ImGui::TreeNode("PLAYER MONEY"))
-            {
-                ImGui::Separator();
-
-                int money = resourceManager->totalMoney;
-                if (ImGui::SliderInt("Money", &money, 0, 1000))
-                {
-                    resourceManager->totalMoney = money;
-                }
-
-                ImGui::Spacing();
-
-                if (ImGui::Button("Set Money to 100"))
-                {
-                    resourceManager->totalMoney = 999999;
-                }
-
-                ImGui::SameLine();
-
-                if (ImGui::Button("Set Money to 0"))
-                {
-                    resourceManager->totalMoney = 0;
-                }
-
-                ImGui::Spacing();
-                ImGui::Spacing();
-                ImGui::TreePop();
-            }
-        }
-        ImGui::Separator();
-
-        ImGui::Spacing();
-
-        // BUILDING CONTROLS=============================================================
-        ImGui::Separator();
-
+        // BUILDING CONTROLS
         if (ImGui::TreeNode("BUILDING CONTROLS"))
         {
-            if (goManager && mapManager)
+            if (goManager)
             {
                 auto& buildings = goManager->GetBuildings();
                 ImGui::Text("Total Buildings : %zu", buildings.size());
 
-                ImGui::Spacing();
-
-                ImGui::Text("Resident building: ");
-                if (ImGui::Button("Add Small House"))
-                {
-                    auto map = mapManager->GetMap();
-
-                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
-
-                    const int maxAttemps = 100;
-                    bool      isfound    = false;
-
-                    for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
-                    {
-                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
-                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
-
-                        GridCell** viewArray = map->GetViewArray(1);
-                        GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
-                        double     height    = cell->getHeight();
-
-                        if (height >= 75.0f)
-                        {
-                            pos     = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
-                            isfound = true;
-                        }
-                    }
-                    goManager->AddBuilding(new ResidentBuilding(pos, 1, 1,10, BuildingType::HOME));
-                }
-
-                ImGui::Spacing();
-
-                ImGui::Text("Work Buildings: ");
-                if (ImGui::Button("Add Wood Workshop"))
-                {
-                    auto map = mapManager->GetMap();
-
-                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
-
-                    const int maxAttemps = 100;
-                    bool      isfound    = false;
-
-                    for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
-                    {
-                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
-                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
-
-                        GridCell** viewArray = map->GetViewArray(1);
-                        GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
-                        double     height    = cell->getHeight();
-
-                        if (height >= 75.0f)
-                        {
-                            pos     = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
-                            isfound = true;
-                        }
-                    }
-                    auto* workshop = new WorkBuilding(pos, 1, 1,10, BuildingType::WOOD_WORKSHOP);
-                    workshop->SetResourceManager(resourceManager);
-                    goManager->AddBuilding(workshop);
-                }
-
-                if (ImGui::Button("Add Rock Workshop"))
-                {
-                    auto map = mapManager->GetMap();
-
-                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
-
-                    const int maxAttemps = 100;
-                    bool      isfound    = false;
-
-                    for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
-                    {
-                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
-                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
-
-                        GridCell** viewArray = map->GetViewArray(1);
-                        GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
-                        double     height    = cell->getHeight();
-
-                        if (height >= 75.0f)
-                        {
-                            pos     = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
-                            isfound = true;
-                        }
-                    }
-                    auto* workshop = new WorkBuilding(pos, 1, 1,10, BuildingType::ROCK_WORKSHOP);
-                    workshop->SetResourceManager(resourceManager);
-                    goManager->AddBuilding(workshop);
-                }
-
-                if (ImGui::Button("Add Steel Workshop"))
-                {
-                    auto map = mapManager->GetMap();
-
-                    vec2 pos = vec2(static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_X - 2)), static_cast<float>(Dokev::GetRandomInt(0, GRID_SIZE_Y - 2)));
-
-                    const int maxAttemps = 100;
-                    bool      isfound    = false;
-
-                    for (int attempt = 0; attempt < maxAttemps && !isfound; ++attempt)
-                    {
-                        int gridX = Dokev::GetRandomInt(0, GRID_SIZE_X - 1);
-                        int gridY = Dokev::GetRandomInt(0, GRID_SIZE_Y - 1);
-
-                        GridCell** viewArray = map->GetViewArray(1);
-                        GridCell*  cell      = viewArray[gridY * GRID_SIZE_X + gridX];
-                        double     height    = cell->getHeight();
-
-                        if (height >= 75.0f)
-                        {
-                            pos     = vec2(static_cast<float>(gridX), static_cast<float>(gridY));
-                            isfound = true;
-                        }
-                    }
-                    auto* workshop = new WorkBuilding(pos, 1, 1, 10, BuildingType::STEEL_WORKSHOP);
-                    workshop->SetResourceManager(resourceManager);
-                    goManager->AddBuilding(workshop);
-                }
                 ImGui::Spacing();
                 ImGui::Separator();
                 ImGui::Text("Building Status:");
@@ -715,53 +577,7 @@ namespace Dokev
             ImGui::Separator();
         }
 
-        ImGui::Text("SAVE / LOAD");
-        ImGui::Separator();
-        if (ImGui::Button("Save Game"))
-        {
-            saveGameRequested = true;
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Load Game"))
-        {
-            loadGameRequested = true;
-        }
-        ImGui::Separator();
 
-        // WIN CONDITION CONTROLS
-        if (cityMetrics)
-        {
-            ImGui::Spacing();
-            ImGui::Text("WIN CONDITION SETTINGS");
-            ImGui::Separator();
-
-            int winPopulation = cityMetrics->GetWinConditionPopulation();
-            if (ImGui::SliderInt("Win Population", &winPopulation, 5, 100))
-            {
-                cityMetrics->SetWinConditionPopulation(winPopulation);
-            }
-
-            if (goManager)
-            {
-                int  currentPopulation = static_cast<int>(goManager->GetHumans().size());
-                bool isWinning         = cityMetrics->IsWinConditionMet(currentPopulation);
-
-                ImGui::Text("Current: %d / %d", currentPopulation, winPopulation);
-
-                if (isWinning)
-                {
-                    ImGui::TextColored(ImVec4(0, 1, 0, 1), "WINNER!");
-                }
-                else
-                {
-                    float progress = static_cast<float>(currentPopulation) / static_cast<float>(winPopulation);
-                    ImGui::ProgressBar(progress, ImVec2(-1, 0));
-                }
-            }
-
-            ImGui::Spacing();
-            ImGui::Separator();
-        }
 
         ImGui::End();
     }

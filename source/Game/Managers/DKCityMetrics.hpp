@@ -27,9 +27,11 @@ namespace Dokev
         HappinessManager   happinessManager;
         ImmigrationManager immigrationManager;
 
-        float averageHappiness    = 100.0f; // Average satisfaction level
-        float happinessChangeRate = 0.0f;   // Rate of change per second (deprecated)
-        int   parkCount           = 0;      // Built parks, refreshed each UpdateSystems
+        float averageHappiness      = 100.0f; // Average satisfaction level
+        float happinessChangeRate   = 0.0f;   // Rate of change per second (deprecated)
+        int   parkCount             = 0;      // Built parks, refreshed each UpdateSystems
+        float pentHouseHappyBonus   = 0.0f;   // Permanent happiness bonus from built penthouses
+        float debugHappinessOverride = -1.0f; // -1 = disabled; 0-100 = force this value (editor only)
 
         // Win condition
         int winConditionPopulation = 20;
@@ -48,6 +50,26 @@ namespace Dokev
         int GetParkCount() const
         {
             return parkCount;
+        }
+
+        void AddPentHouseHappyBonus(float amount)
+        {
+            pentHouseHappyBonus += amount;
+        }
+
+        float GetPentHouseHappyBonus() const
+        {
+            return pentHouseHappyBonus;
+        }
+
+        void SetDebugHappiness(float v)
+        {
+            debugHappinessOverride = v;
+        }
+
+        float GetDebugHappiness() const
+        {
+            return debugHappinessOverride;
         }
 
         void SetHappinessChangeRate(float rate)

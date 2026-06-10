@@ -61,10 +61,14 @@ namespace Dokev
         constexpr float parkHappinessPerPark = 0.5f;
         constexpr float parkHappinessCap     = 15.0f;
         averageHappiness = std::min(100.0f, averageHappiness + std::min(parkHappinessCap, parkCount * parkHappinessPerPark));
+        averageHappiness = std::min(100.0f, averageHappiness + pentHouseHappyBonus);
 
         //  Update Immigration Manager
         int availableHomes = homeCapacity - humanCount;
         int totalResources = resourceManager->GetTotalResources();
+
+        if (debugHappinessOverride >= 0.0f)
+            averageHappiness = debugHappinessOverride;
 
         bool shouldSpawnImmigrant = immigrationManager.Update(static_cast<float>(dt), availableHomes, averageHappiness, humanCount, totalResources);
 
