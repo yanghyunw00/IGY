@@ -53,7 +53,7 @@ namespace
     constexpr int woodWorkshopMoneyMultiplier  = 2;
     constexpr int rockWorkshopMoneyMultiplier  = 6;
     constexpr int steelWorkshopMoneyMultiplier = 12;
-    constexpr float farmFoodMultiplier         = 1.5f;
+    constexpr float farmFoodMultiplier         = 2.0f;
 
     CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
     {

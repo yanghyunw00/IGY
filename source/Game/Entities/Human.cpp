@@ -33,7 +33,7 @@
 namespace
 {
     // night gambling tuning (city is the house, with an edge)
-    constexpr int   gamblePercent     = 40;   // % who gamble each night
+    constexpr int   gamblePercent     = 55;   // % who gamble each night
     constexpr int   gambleLoss        = 15;   // citizen loses, city gains
     constexpr int   gambleWin         = 10;   // citizen wins, city pays
     constexpr float gambleHappiness   = 3.0f; // happiness swing per bet
@@ -676,9 +676,32 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     }
     else if (stats.energy <= 15.0f)
     {
-        ai.isSeekingCafe = true;
-        ChangeState(HumanState::Idle);
-        return;
+        bool cafeAvailable = false;
+        if (gameObjMgr)
+        {
+            for (const auto& building : gameObjMgr->GetBuildings())
+            {
+                BuildingType bt = building->GetBuildingType();
+                if ((bt == BuildingType::CAFE || bt == BuildingType::RESTAURANT2) && building->GetIsBuilt())
+                {
+                    if (auto* wb = dynamic_cast<WorkBuilding*>(building.get()))
+                    {
+                        if (wb->IsServiceOperating())
+                        {
+                            cafeAvailable = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (cafeAvailable)
+        {
+            ai.isSeekingCafe = true;
+            ChangeState(HumanState::Idle);
+            return;
+        }
+        // No food available — fall through to work assignment even at low energy
     }
     else
     {

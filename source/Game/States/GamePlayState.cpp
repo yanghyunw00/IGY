@@ -1727,8 +1727,6 @@ void GamePlayState::Draw() const
     if (weatherOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, weatherOverlay);
 
-    // Screen-space floating texts (disaster warnings, etc.) drawn in the UI pass
-    // so they stay fixed on screen like UI regardless of camera zoom/pan.
     FloatingTextManager::Instance().Draw(true);
 
     renderer2d.EndScene();
@@ -1845,10 +1843,10 @@ void GamePlayState::Draw() const
     }
     else
     {
-        uiManager.DrawEscMenuOverlay(); // ESC 메뉴는 UI 숨김 상태에서도 항상 표시
+        uiManager.DrawEscMenuOverlay();
     }
 
-    // Disaster banner: while any disaster is active, announce it in red at top-center
+    // Disaster banner
     if (eventManager.GetEventCount() > 0)
     {
         std::string banner       = "DISASTER: ";
@@ -1884,15 +1882,6 @@ void GamePlayState::Draw() const
     }
 
     renderer2d.EndScene();
-    // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
-
-    // Draw smoke animation at position (200, 200)
-    // Math::TransformationMatrix smokeTransform;
-    // smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
-    // smokeSprite.Draw(smokeTransform);
-
-    // Draw particles
-    // smokeEmitter.Draw(cameraTransform * ndcMatrix);
 }
 
 void GamePlayState::DrawImGui()
@@ -2023,7 +2012,7 @@ void GamePlayState::SaveGame(const std::string& filename)
     {
         auto map = mapMgr->GetMap();
 
-        //  Save Map Grid (terrain heights + flatten state)
+        //  Save Map Grid
         if (map)
         {
             const auto&          profile    = map->GetGenerationProfile();
@@ -2192,7 +2181,6 @@ void GamePlayState::LoadGame(const std::string& filename)
         {
             resourceMgr->SetResources(playerResources.value("Wood", 0), playerResources.value("Stone", 0), playerResources.value("Steel", 0));
         }
-        // Food is restored after buildings (so foodCapacity is set first)
     }
 
     //  Load Road Info
