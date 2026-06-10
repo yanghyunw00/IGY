@@ -62,6 +62,9 @@ namespace CS230
 
         int GetScrollDelta() const noexcept { return mouse.GetScrollDelta(); }
 
+        bool        MouseDown(Dokev::Mouse::Button button) const noexcept { return mouse.MouseDown(button); }
+        Math::ivec2 GetMouseDelta() const noexcept { return mouse.GetDelta(); }
+
     private:
 
         void setupSDLWindow(std::string_view title);

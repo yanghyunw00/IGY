@@ -29,7 +29,9 @@
       "Bash(npx playwright *)",
       "Bash(python3 -m http.server 8765)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8765/cs200_fun.html)",
-      "Bash(cmake --build build/windows-debug)"
+      "Bash(cmake --build build/windows-debug)",
+      "Bash(cmake --build build --config Debug)",
+      "Bash(cmake --build \"C:/cs200_dongyun/IGY/build/windows-debug\" --config Debug)"
     ],
     "additionalDirectories": [
       "/tmp"

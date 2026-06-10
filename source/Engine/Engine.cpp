@@ -186,7 +186,7 @@ static void TakeScreenshot()
     localtime_r(&t, &tm);
 #endif
     char buf[64];
-    std::strftime(buf, sizeof(buf), "screenshots/screenshot_%Y%m%d_%H%M%S.png", &tm);
+    std::strftime(buf, sizeof(buf), "screenshots/I_G_Y_%Y%m%d_%H%M%S.png", &tm);
 
     stbi_write_png(buf, w, h, 4, pixels.data(), w * 4);
     Engine::GetLogger().LogEvent(std::string("Screenshot saved: ") + buf);

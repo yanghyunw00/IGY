@@ -560,11 +560,9 @@ void GamePlayState::UpdateTimeControls()
     int scroll = Engine::GetWindow().GetScrollDelta();
     if (scroll != 0)
     {
-        constexpr float kWheelFactor = 1.05f;
+        constexpr float kWheelFactor = 1.03f;
         float           factor       = (scroll > 0) ? kWheelFactor : (1.0f / kWheelFactor);
-        int             steps        = std::abs(scroll);
-        for (int i = 0; i < steps; ++i)
-            camera.AdjustTargetZoom(factor, 0.05f, 2.5f);
+        camera.AdjustTargetZoom(factor, 0.05f, 2.5f);
     }
 }
 
