@@ -27,93 +27,14 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
 
+    (void)cityMetrics;
+    (void)hour;
+    (void)minute;
+    (void)currentDay;
+    (void)eventManager;
+    (void)simControls;
+
     DrawNPCInfoPanel();
-
-    int humanCount     = static_cast<int>(gameObjectManager->GetHumans().size());
-    int homeCapacity   = 0;
-    int totalHouses    = 0;
-    int workplaceCount = 0;
-
-    for (const auto& building : gameObjectManager->GetBuildings())
-    {
-        BuildingType type = building->GetBuildingType();
-
-        if (Dokev::Meta::is_residential_type(type))
-        {
-            totalHouses++;
-            homeCapacity += building->GetMaxCapacity();
-        }
-
-        if (Dokev::Meta::is_workshop_type(type))
-        {
-            workplaceCount++;
-        }
-    }
-
-    int availableHomes = homeCapacity - humanCount;
-    int totalResources = 0;
-
-    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(300, 600), ImGuiCond_FirstUseEver);
-
-    if (!ImGui::Begin("City Status"))
-    {
-        ImGui::End();
-        return;
-    }
-
-    if (simControls)
-    {
-        DrawGameControlsSection(simControls);
-        ImGui::Separator();
-    }
-
-    DrawTimeSection(hour, minute, currentDay);
-    ImGui::Separator();
-
-    if (ImGui::TreeNode("CITY HAPPINESS"))
-    {
-        DrawHappinessSection(happinessManager);
-        ImGui::TreePop();
-    }
-
-    ImGui::Separator();
-
-    if (ImGui::TreeNode("IMMIGRATION"))
-    {
-        DrawImmigrationSection(immigrationManager, happinessManager, availableHomes, totalResources, humanCount);
-        ImGui::TreePop();
-    }
-
-    ImGui::Separator();
-
-    if (ImGui::TreeNode("POPULATION"))
-    {
-        DrawPopulationSection(gameObjectManager, homeCapacity, totalHouses, workplaceCount, humanCount);
-        ImGui::TreePop();
-    }
-
-    if (cityMetrics)
-    {
-        ImGui::Separator();
-        if (ImGui::TreeNode("WIN CONDITION"))
-        {
-            DrawWinConditionSection(cityMetrics, humanCount);
-            ImGui::TreePop();
-        }
-    }
-
-    if (eventManager)
-    {
-        ImGui::Separator();
-        if (ImGui::TreeNode("DISASTERS"))
-        {
-            DrawDisasterSection(eventManager);
-            ImGui::TreePop();
-        }
-    }
-
-    ImGui::End();
 }
 
 void UserInterfaceEditor::DrawTimeSection(int hour, int minute, int currentDay)

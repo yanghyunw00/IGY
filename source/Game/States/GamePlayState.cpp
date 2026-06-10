@@ -89,7 +89,7 @@ namespace
 
     Math::ivec2 GetBuildingFootprint(BuildingType type)
     {
-        if (type == BuildingType::GRANARY || type == BuildingType::FARM || type == BuildingType::PARK)
+        if (type == BuildingType::GRANARY || type == BuildingType::FARM || type == BuildingType::PARK || type == BuildingType::WORKPLACE3)
         {
             return { 2, 2 };
         }
@@ -1353,10 +1353,13 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::WORKPLACE3))
                                     break;
 
-                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 999, BuildingType::WORKPLACE3);
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 999, BuildingType::WORKPLACE3);
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
-                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
                                 placed = true;
                                 break;
                             }
@@ -1897,22 +1900,22 @@ void GamePlayState::DrawImGui()
     // Developer UI
     worldEditor.DrawImGui();
 
-    if (ImGui::Begin("BGM Debug"))
-    {
-        const auto tracks = CS230::AudioManager::Instance().GetLayeredMusicDebugText();
-        if (tracks.empty())
-        {
-            ImGui::TextDisabled("Layered BGM is not active");
-        }
-        else
-        {
-            for (const auto& track : tracks)
-            {
-                ImGui::TextUnformatted(track.c_str());
-            }
-        }
-    }
-    ImGui::End();
+    // if (ImGui::Begin("BGM Debug"))
+    // {
+    //     const auto tracks = CS230::AudioManager::Instance().GetLayeredMusicDebugText();
+    //     if (tracks.empty())
+    //     {
+    //         ImGui::TextDisabled("Layered BGM is not active");
+    //     }
+    //     else
+    //     {
+    //         for (const auto& track : tracks)
+    //         {
+    //             ImGui::TextUnformatted(track.c_str());
+    //         }
+    //     }
+    // }
+    // ImGui::End();
 
     // Player UI
     auto cityMetrics = GetGSComponent<CityMetrics>();
