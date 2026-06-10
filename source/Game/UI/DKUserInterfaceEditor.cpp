@@ -27,6 +27,8 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     if (!happinessManager || !immigrationManager || !gameObjectManager)
         return;
 
+    DrawNPCInfoPanel();
+
     int humanCount     = static_cast<int>(gameObjectManager->GetHumans().size());
     int homeCapacity   = 0;
     int totalHouses    = 0;
@@ -112,8 +114,6 @@ void UserInterfaceEditor::DrawUI(HappinessManager* happinessManager, Dokev::Immi
     }
 
     ImGui::End();
-
-    DrawNPCInfoPanel();
 }
 
 void UserInterfaceEditor::DrawTimeSection(int hour, int minute, int currentDay)

@@ -2124,6 +2124,7 @@ void GamePlayState::LoadGame(const std::string& filename)
 
     // --- Reset State ---
     GetGSComponent<Dokev::GameObjectManager>()->Unload();
+    WorkManager::GetInstance().ClearAllJobs();
 
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)

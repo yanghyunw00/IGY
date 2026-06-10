@@ -455,7 +455,7 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int 
     Dokev::AnimatedSprite* workerAnim = GetWorkerAnimation();
     if (isBuilt && HasWorker() && workerAnim != nullptr && workerAnim->GetSpriteSheet().IsValid())
     {
-        workerAnim->DrawAtPosition(drawPos.x, drawPos.y);
+        workerAnim->DrawAtTexturePosition(drawPos.x, drawPos.y);
     }
     else
     {
