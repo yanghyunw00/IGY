@@ -21,10 +21,6 @@
 
 namespace
 {
-    constexpr float kConfettiGravity        = 180.0f;
-    constexpr float kConfettiHorizontalDrag = 0.58f;
-    constexpr float kConfettiSpinDrag       = 0.42f;
-
     constexpr CS200::RGBA confettiColors[] = {
         Dokev::ColorPalette::RED,
         Dokev::ColorPalette::GOLD,
@@ -85,10 +81,10 @@ void AchievementManager::Update(float dt, int population, int buildingCount, flo
 
             c.pos.x += c.vel.x * dt;
             c.pos.y += c.vel.y * dt;
-            c.vel.y += kConfettiGravity * dt;
-            c.vel.x *= std::max(0.0f, 1.0f - kConfettiHorizontalDrag * dt);
+            c.vel.y -= 780.f * dt;
+            c.vel.x *= std::max(0.0f, 1.0f - 0.45f * dt);
             c.rotation += c.angularVelocity * dt;
-            c.angularVelocity *= std::max(0.0f, 1.0f - kConfettiSpinDrag * dt);
+            c.angularVelocity *= std::max(0.0f, 1.0f - 0.35f * dt);
 
             float halfW = 10.0f * c.scale;
             float halfH = 12.0f * c.scale;
@@ -192,10 +188,10 @@ void AchievementManager::SpawnConfetti()
         ConfettiPiece piece;
 
         piece.pos.x = static_cast<float>(Dokev::GetRandomInt(0, windowSize.x - 1));
-        piece.pos.y = -static_cast<float>(Dokev::GetRandomInt(0, 160));
+        piece.pos.y = static_cast<float>(windowSize.y) + static_cast<float>(Dokev::GetRandomInt(0, 80));
 
-        piece.vel.x = static_cast<float>(Dokev::GetRandomInt(0, 440) - 220);
-        piece.vel.y = static_cast<float>(35 + Dokev::GetRandomInt(0, 115));
+        piece.vel.x = static_cast<float>(Dokev::GetRandomInt(0, 720) - 360);
+        piece.vel.y = -(static_cast<float>(120 + Dokev::GetRandomInt(0, 560)));
 
         piece.color = confettiColors[Dokev::GetRandomInt(0, colorCount - 1)];
         if (!confettiAssets.empty())
@@ -203,8 +199,8 @@ void AchievementManager::SpawnConfetti()
             piece.assetIndex = static_cast<std::size_t>(Dokev::GetRandomInt(0, static_cast<int>(confettiAssets.size()) - 1));
         }
         piece.rotation        = static_cast<float>(Dokev::GetRandomInt(0, 359));
-        piece.angularVelocity = static_cast<float>(Dokev::GetRandomInt(0, 840) - 420);
-        piece.baseScale       = static_cast<float>(Dokev::GetRandomInt(32, 64)) / 100.0f;
+        piece.angularVelocity = static_cast<float>(Dokev::GetRandomInt(0, 1320) - 660);
+        piece.baseScale       = static_cast<float>(Dokev::GetRandomInt(22, 48)) / 100.0f;
         piece.scale           = piece.baseScale;
         piece.lifetime        = static_cast<float>(Dokev::GetRandomInt(45, 72)) / 10.0f;
         piece.bounce          = static_cast<float>(Dokev::GetRandomInt(52, 78)) / 100.0f;
