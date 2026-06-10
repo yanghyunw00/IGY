@@ -835,8 +835,9 @@ void GamePlayState::Update(double dt)
         Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
         mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
         bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+        bool mouseDown             = mouse.MouseDown(Dokev::Mouse::Button::Left);
 
-        uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt));
+        uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt), mouseDown);
 
         if (uiManager.IsTimeClicked())
         {
@@ -2017,9 +2018,27 @@ void GamePlayState::SaveGame(const std::string& filename)
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)
     {
+        auto map = mapMgr->GetMap();
+
+        //  Save Map Grid (terrain heights + flatten state)
+        if (map)
+        {
+            const auto&          profile    = map->GetGenerationProfile();
+            const auto&          thresholds = profile.thresholds;
+            json&                j_map       = j["Map"];
+            j_map["Variant"]                 = static_cast<int>(map->GetMapVariant());
+            j_map["Thresholds"]              = { thresholds.waterMax, thresholds.plainsMax, thresholds.mountainMax };
+
+            json& j_cells = j_map["Cells"];
+            for (const auto& c : map->ExportCells())
+            {
+                j_cells.push_back({ c.height, c.flattenStage, c.flattenBaseHeight });
+            }
+        }
+
         //  Save Road Info (based on TileManager)
         json& j_roads = j["Roads"];
-        auto  tileMgr = mapMgr->GetMap()->GetTileManager();
+        auto  tileMgr = map ? map->GetTileManager() : nullptr;
         if (tileMgr)
         {
             auto roadTiles = tileMgr->GetTilesOfType(Dokev::TileType::ROAD);
@@ -2111,6 +2130,44 @@ void GamePlayState::LoadGame(const std::string& filename)
     {
         // Clear existing map-bound entities
         mapMgr->GetRoad()->removeAllRoad(*mapMgr->GetMap());
+
+        // Restore the terrain grid before roads/buildings re-allocate tiles
+        auto map = mapMgr->GetMap();
+        if (map && j.contains("Map"))
+        {
+            const auto& j_map = j["Map"];
+
+            if (j_map.contains("Variant"))
+                map->SetMapVariant(static_cast<MapVariant>(j_map.value("Variant", 0)));
+
+            if (j_map.contains("Thresholds") && j_map["Thresholds"].size() == 3)
+            {
+                TerrainThresholds t;
+                t.waterMax    = j_map["Thresholds"][0].get<double>();
+                t.plainsMax   = j_map["Thresholds"][1].get<double>();
+                t.mountainMax = j_map["Thresholds"][2].get<double>();
+                map->SetThresholds(t);
+            }
+
+            if (j_map.contains("Cells"))
+            {
+                std::vector<GridMap::CellData> cells;
+                cells.reserve(j_map["Cells"].size());
+                for (const auto& c : j_map["Cells"])
+                {
+                    GridMap::CellData d;
+                    d.height            = c[0].get<double>();
+                    d.flattenStage      = c[1].get<int>();
+                    d.flattenBaseHeight = c[2].get<double>();
+                    cells.push_back(d);
+                }
+                map->ImportCells(cells);
+            }
+        }
+
+        // Reset tile occupancy so it matches the freshly restored grid
+        if (map && map->GetTileManager())
+            map->GetTileManager()->Clear();
     }
     else
     {
