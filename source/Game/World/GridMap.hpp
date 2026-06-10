@@ -142,6 +142,22 @@ public:
 
     Math::fvec2 TransformPathPointForView(Math::fvec2 point, int viewIndex) const;
 
+    // Save/Load: per-cell snapshot of the terrain grid
+    struct CellData
+    {
+        double height            = 0.0;
+        int    flattenStage      = 0;
+        double flattenBaseHeight = 0.0;
+    };
+
+    std::vector<CellData> ExportCells() const;
+    void                  ImportCells(const std::vector<CellData>& cells);
+
+    void SetThresholds(const TerrainThresholds& thresholds)
+    {
+        mapProfile.thresholds = thresholds;
+    }
+
     // TileManager access
     Dokev::TileManager* GetTileManager()
     {

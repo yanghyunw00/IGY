@@ -711,6 +711,50 @@ void GridMap::SetMapVariant(MapVariant variant)
     mapProfile = GetMapProfile(variant);
 }
 
+std::vector<GridMap::CellData> GridMap::ExportCells() const
+{
+    std::vector<CellData> cells;
+    cells.reserve(GRID_SIZE_X * GRID_SIZE_Y);
+    for (int y = 0; y < GRID_SIZE_Y; ++y)
+        for (int x = 0; x < GRID_SIZE_X; ++x)
+        {
+            const GridCell& c = m_gridCells[y][x];
+            cells.push_back({ c.getHeight(), c.getFlattenStage(), c.getFlattenBaseHeight() });
+        }
+    return cells;
+}
+
+void GridMap::ImportCells(const std::vector<CellData>& cells)
+{
+    if (cells.size() != static_cast<size_t>(GRID_SIZE_X * GRID_SIZE_Y))
+    {
+        Engine::GetLogger().LogError("ImportCells: cell count mismatch, skipping map restore.");
+        return;
+    }
+
+    m_gridCells.assign(GRID_SIZE_Y, std::vector<GridCell>(GRID_SIZE_X));
+
+    const TerrainThresholds& thresholds = mapProfile.thresholds;
+    size_t                   idx        = 0;
+    for (int y = 0; y < GRID_SIZE_Y; ++y)
+        for (int x = 0; x < GRID_SIZE_X; ++x)
+        {
+            const CellData& d    = cells[idx++];
+            GridCell&       cell = m_gridCells[y][x];
+            cell.x = x;
+            cell.y = y;
+            cell.ApplyTerrain(d.height, thresholds);
+            cell.setFlattenStage(d.flattenStage);
+            cell.setFlattenBaseHeight(d.flattenBaseHeight);
+        }
+
+    UpdateIsoOrigin();
+    InitializeIsoView();
+
+    if (pathFinder)
+        pathFinder->UpdateMapFromGrid(m_gridCells);
+}
+
 GridCell** GridMap::GetViewArray(int viewIndex) const
 {
     assert(viewIndex >= 0 && viewIndex < 4 && "View index out of range");

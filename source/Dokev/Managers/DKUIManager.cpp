@@ -396,7 +396,7 @@ namespace Dokev
         categoryButtons.push_back(decorationButton);
     }
 
-    void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked, float dt)
+    void UIManager::Update(Math::fvec2 mousePos, bool mouseClicked, float dt, bool mouseDown)
     {
         totalTime += dt;
 
@@ -422,6 +422,20 @@ namespace Dokev
                     break;
                 }
             }
+
+            escPressedButton = (mouseDown && escHoveredButton >= 0) ? escHoveredButton : -1;
+
+            // Ease hover/press factors toward their targets so the buttons feel springy
+            float hoverSpeed = std::min(1.0f, dt * 16.0f);
+            float pressSpeed = std::min(1.0f, dt * 28.0f);
+            for (int i = 0; i < kEscButtonCount; ++i)
+            {
+                float hoverTarget = (escHoveredButton == i) ? 1.0f : 0.0f;
+                float pressTarget = (escPressedButton == i) ? 1.0f : 0.0f;
+                escHoverAnim[i] += (hoverTarget - escHoverAnim[i]) * hoverSpeed;
+                escPressAnim[i] += (pressTarget - escPressAnim[i]) * pressSpeed;
+            }
+
             if (mouseClicked && escHoveredButton >= 0)
             {
                 switch (escHoveredButton)
@@ -435,6 +449,16 @@ namespace Dokev
                 }
             }
             return; // block all other UI input while ESC menu is open
+        }
+        else
+        {
+            // Decay animations back to rest while the menu is closed
+            for (int i = 0; i < kEscButtonCount; ++i)
+            {
+                escHoverAnim[i] = 0.0f;
+                escPressAnim[i] = 0.0f;
+            }
+            escPressedButton = -1;
         }
 
         // Keyboard shortcuts
@@ -1379,22 +1403,60 @@ namespace Dokev
         // Buttons
         static const char* labels[kEscButtonCount] = { "Resume", "Save", "Load", "Settings", "Main Menu", "Quit" };
 
+        auto lerpColor = [](CS200::RGBA a, CS200::RGBA b, float t) -> CS200::RGBA
+        {
+            t = std::clamp(t, 0.0f, 1.0f);
+            auto ch = [&](int shift) -> unsigned
+            {
+                float av = static_cast<float>((a >> shift) & 0xFF);
+                float bv = static_cast<float>((b >> shift) & 0xFF);
+                return static_cast<unsigned>(av + (bv - av) * t) & 0xFFu;
+            };
+            return (ch(24) << 24) | (ch(16) << 16) | (ch(8) << 8) | ch(0);
+        };
+
         for (int i = 0; i < kEscButtonCount; ++i)
         {
-            bool        hov = (escHoveredButton == i);
-            CS200::RGBA bg  = hov ? 0x3A3A5AFF : 0x22223ACC;
-            Dokev::DrawRectangle(static_cast<int>(l.btnX), static_cast<int>(l.btnY[i]),
-                                 static_cast<int>(l.btnW), static_cast<int>(l.btnH), bg);
-            Dokev::DrawRectangleLinesEx(static_cast<int>(l.btnX), static_cast<int>(l.btnY[i]),
-                                        static_cast<int>(l.btnW), static_cast<int>(l.btnH), 1.5f,
-                                        hov ? 0xFFFFFFFF : 0xFFFFFF66);
+            float hov   = escHoverAnim[i]; // 0..1 eased
+            float press = escPressAnim[i]; // 0..1 eased
+
+            // Grow a touch on hover, then push/shrink in on press
+            float scale = 1.0f + 0.05f * hov - 0.06f * press;
+            float pushY = 3.0f * press; // sink down when pressed
+
+            float bw = l.btnW * scale;
+            float bh = l.btnH * scale;
+            float bx = l.btnX + (l.btnW - bw) * 0.5f;
+            float by = l.btnY[i] + (l.btnH - bh) * 0.5f + pushY;
+
+            // Background: idle -> hover -> pressed (accent)
+            CS200::RGBA bg = lerpColor(0x22223ACC, 0x3E3E66FF, hov);
+            bg             = lerpColor(bg, 0x5A5AA0FF, press);
+            Dokev::DrawRectangle(static_cast<int>(bx), static_cast<int>(by),
+                                 static_cast<int>(bw), static_cast<int>(bh), bg);
+
+            // Brighter left accent bar that widens on press for extra punch
+            if (hov > 0.01f || press > 0.01f)
+            {
+                int         accentW = static_cast<int>(3.0f + 3.0f * press);
+                CS200::RGBA accent  = lerpColor(0x6E8BFFCC, 0xBFD0FFFF, press);
+                Dokev::DrawRectangle(static_cast<int>(bx), static_cast<int>(by),
+                                     accentW, static_cast<int>(bh), accent);
+            }
+
+            // Border brightens with hover, full white + thicker on press
+            CS200::RGBA border      = lerpColor(0xFFFFFF66, 0xFFFFFFFF, std::max(hov, press));
+            float       borderThick = 1.5f + 1.0f * hov + 0.5f * press;
+            Dokev::DrawRectangleLinesEx(static_cast<int>(bx), static_cast<int>(by),
+                                        static_cast<int>(bw), static_cast<int>(bh), borderThick, border);
 
             if (auto t = outlined->PrintToTexture(labels[i], 0xFFFFFFFF))
             {
-                float tx = cx - static_cast<float>(t->GetSize().x) * static_cast<float>(ts) * 0.5f;
-                float ty = l.btnY[i] + (l.btnH - static_cast<float>(t->GetSize().y) * static_cast<float>(ts)) * 0.5f;
+                float lblScale = static_cast<float>(ts) * scale;
+                float tx       = cx - static_cast<float>(t->GetSize().x) * lblScale * 0.5f;
+                float ty       = by + (bh - static_cast<float>(t->GetSize().y) * lblScale) * 0.5f;
                 t->Draw(Math::TranslationMatrix(Math::vec2{ tx, ty })
-                      * Math::ScaleMatrix(Math::vec2{ ts, ts }), 0xFFFFFFFF);
+                      * Math::ScaleMatrix(Math::vec2{ lblScale, lblScale }), 0xFFFFFFFF);
             }
         }
     }
