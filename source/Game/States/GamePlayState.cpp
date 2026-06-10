@@ -2218,11 +2218,12 @@ void GamePlayState::LoadGame(const std::string& filename)
         };
 
         auto getTileType = [](BuildingType bt)
-        {
+        { 
             if (bt == BuildingType::HOME || bt == BuildingType::MISSING_TEXTURE || bt == BuildingType::STREET_LIGHT || bt == BuildingType::PARK)
                 return Dokev::TileType::RESIDENTIAL;
             return Dokev::TileType::INDUSTRIAL;
         };
+
 
         for (const auto& bData : j["Buildings"])
         {
