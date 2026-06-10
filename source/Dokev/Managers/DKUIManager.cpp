@@ -112,7 +112,7 @@ namespace Dokev
 
                     BuildingButton casinoButton;
                     casinoButton.type     = BuildingType::CASINO;
-                    casinoButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
+                    casinoButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
                     casinoButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 2);
                     casinoButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
                     casinoButton.name     = "Casino";
@@ -121,7 +121,7 @@ namespace Dokev
 
                     BuildingButton eduButton;
                     eduButton.type     = BuildingType::PENTHOUSE;
-                    eduButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/edu_building.png").string());
+                    eduButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/casino2.png").string());
                     eduButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING) * 3);
                     eduButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
                     eduButton.name     = "Penthouse";
@@ -1523,7 +1523,8 @@ namespace Dokev
             int textureWidth  = button.texture.GetWidth();
             int textureHeight = button.texture.GetHeight();
 
-            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY || button.type == BuildingType::PARK) ? 0.75f : 1.0f;
+            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY || button.type == BuildingType::PARK ||
+                                   button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY) ? 0.75f : 1.0f;
             float iconScale    = static_cast<float>(ICON_SCALE) * scale * iconScaleMult;
             float scaledWidth  = textureWidth * iconScale;
             float scaledHeight = textureHeight * iconScale;

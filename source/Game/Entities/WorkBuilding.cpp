@@ -236,14 +236,14 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             break;
 
         case BuildingType::CASINO:
-            texture         = casinoTexture;
+            texture         = eduBuildingTexture;
             max_capacity    = 3;
             cost            = 0;
             maintenanceCost = 18;
             break;
 
         case BuildingType::PENTHOUSE:
-            texture         = eduBuildingTexture;
+            texture         = casinoTexture;
             max_capacity    = 3;
             cost            = 0;
             maintenanceCost = 15;
@@ -451,6 +451,9 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int 
     }
 
     Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
+
+    if (buildingType == BuildingType::DISASTER_OBSERVATORY)
+        drawPos.y += texture.GetHeight() - TILE_HEIGHT * 4;
 
     Dokev::AnimatedSprite* workerAnim = GetWorkerAnimation();
     if (isBuilt && HasWorker() && workerAnim != nullptr && workerAnim->GetSpriteSheet().IsValid())

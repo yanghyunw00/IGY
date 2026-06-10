@@ -89,7 +89,7 @@ namespace
 
     Math::ivec2 GetBuildingFootprint(BuildingType type)
     {
-        if (type == BuildingType::GRANARY || type == BuildingType::FARM || type == BuildingType::PARK || type == BuildingType::WORKPLACE3)
+        if (type == BuildingType::GRANARY || type == BuildingType::FARM || type == BuildingType::PARK || type == BuildingType::WORKPLACE3 || type == BuildingType::DISASTER_OBSERVATORY)
         {
             return { 2, 2 };
         }
@@ -1368,10 +1368,13 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::DISASTER_OBSERVATORY))
                                     break;
 
-                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::DISASTER_OBSERVATORY);
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 10, BuildingType::DISASTER_OBSERVATORY);
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
-                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
                                 placed = true;
                                 break;
                             }
