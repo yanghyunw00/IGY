@@ -1,3 +1,11 @@
+/**
+ * \file DKParticles.hpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #pragma once
 
 #include "DKParticleEmitter.hpp"

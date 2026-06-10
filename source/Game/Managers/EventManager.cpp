@@ -1,3 +1,11 @@
+/**
+ * \file EventManager.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "EventManager.hpp"
 #include "Dokev/Core/DKUtility.hpp"
 #include "Game/Entities/Building.hpp"

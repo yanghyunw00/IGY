@@ -1,3 +1,11 @@
+/**
+ * \file main.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 /*
            _____                    _____                _____
          /\    \                  /\    \              |\    \

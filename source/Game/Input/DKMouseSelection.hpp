@@ -1,3 +1,11 @@
+/**
+ * \file DKMouseSelection.hpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #pragma once
 #include "Dokev/Graphics/DKTexture.hpp"
 #include "Engine/Vec2.hpp"

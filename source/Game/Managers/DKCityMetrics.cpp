@@ -1,3 +1,11 @@
+/**
+ * \file DKCityMetrics.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "DKCityMetrics.hpp"
 #include "../Common/BuildingType.hpp"
 #include "../Entities/Building.hpp"

@@ -1,3 +1,11 @@
+/**
+ * \file Setting.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "Setting.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
 #include "Engine/AudioManager.hpp"

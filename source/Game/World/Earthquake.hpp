@@ -1,3 +1,11 @@
+/**
+ * \file Earthquake.hpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #pragma once
 #include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Graphics/DKShapes.hpp"
