@@ -32,7 +32,7 @@
 
 namespace
 {
-    constexpr double kWaterSurfaceInset = 1.0;
+    constexpr double waterSurfaceInset = 1.0;
 
     MapGenerationProfile MakeProfile(MapVariant variant)
     {
@@ -268,7 +268,7 @@ void GridMap::ResetIsoGridMapArray()
             double heightVal = static_cast<double>(heights[idx++]);
             if (heightVal < thresholds.waterMax)
             {
-                heightVal = thresholds.waterMax - kWaterSurfaceInset;
+                heightVal = thresholds.waterMax - waterSurfaceInset;
             }
 
             m_gridCells[y][x] = GridCell{ heightVal, x, y, thresholds };
@@ -361,12 +361,12 @@ static int maskToTileIndex(int mask)
 
 namespace
 {
-    constexpr double kClickRippleLifetime  = 1.05;
-    constexpr double kClickRippleSpeed     = 24.0;
-    constexpr double kClickRippleWidth     = 6.0;
-    constexpr double kClickRippleDecay     = 0.34;
-    constexpr double kClickRippleFrequency = 1.65;
-    constexpr double kWaterWaveAmplitude   = 2.8;
+    constexpr double clickRippleLifetime  = 1.05;
+    constexpr double clickRippleSpeed     = 24.0;
+    constexpr double clickRippleWidth     = 6.0;
+    constexpr double clickRippleDecay     = 0.34;
+    constexpr double clickRippleFrequency = 1.65;
+    constexpr double waterWaveAmplitude   = 10.0;
 
     struct BuildingDrawTrigger
     {
@@ -417,7 +417,7 @@ void GridMap::TriggerTileRipple(int gridX, int gridY)
 
     const double now = Engine::GetWindowEnvironment().ElapsedTime;
     tileRipples.erase(
-        std::remove_if(tileRipples.begin(), tileRipples.end(), [now](const TileRipple& ripple) { return now - ripple.startTime > kClickRippleLifetime; }),
+        std::remove_if(tileRipples.begin(), tileRipples.end(), [now](const TileRipple& ripple) { return now - ripple.startTime > clickRippleLifetime; }),
         tileRipples.end());
     tileRipples.push_back({ gridX, gridY, now });
 }
@@ -447,7 +447,7 @@ double GridMap::CalculateTileAnimationOffset(int gridX, int gridY, bool isWater)
         const double smallChop  = std::sin(time * 2.35 + x * 0.51 - y * 0.36);
         const double shimmer    = std::sin(time * 3.10 - x * 0.17 - y * 0.41);
 
-        offset = (longSwell * 0.48 + crossSwell * 0.30 + smallChop * 0.16 + shimmer * 0.06) * kWaterWaveAmplitude;
+        offset = (longSwell * 0.48 + crossSwell * 0.30 + smallChop * 0.16 + shimmer * 0.06) * waterWaveAmplitude;
     }
     else
     {
@@ -464,22 +464,22 @@ double GridMap::CalculateTileAnimationOffset(int gridX, int gridY, bool isWater)
     for (const auto& ripple : tileRipples)
     {
         const double age = time - ripple.startTime;
-        if (age < 0.0 || age > kClickRippleLifetime)
+        if (age < 0.0 || age > clickRippleLifetime)
         {
             continue;
         }
 
         const double dist      = std::hypot(static_cast<double>(gridX - ripple.gridX), static_cast<double>(gridY - ripple.gridY));
-        const double waveFront = age * kClickRippleSpeed - dist;
-        if (waveFront < 0.0 || waveFront > kClickRippleWidth)
+        const double waveFront = age * clickRippleSpeed - dist;
+        if (waveFront < 0.0 || waveFront > clickRippleWidth)
         {
             continue;
         }
 
-        const double fade      = std::pow(std::max(0.0, 1.0 - age / kClickRippleLifetime), 2.2);
-        const double envelope  = std::exp(-waveFront * kClickRippleDecay) * fade;
+        const double fade      = std::pow(std::max(0.0, 1.0 - age / clickRippleLifetime), 2.2);
+        const double envelope  = std::exp(-waveFront * clickRippleDecay) * fade;
         const double amplitude = isWater ? 24.0 : 16.0;
-        offset += std::sin(waveFront * kClickRippleFrequency) * envelope * amplitude;
+        offset += std::sin(waveFront * clickRippleFrequency) * envelope * amplitude;
     }
 
     return offset;
@@ -702,7 +702,7 @@ double GridMap::GetWaterWaveOffset(int gridX, int gridY) const
     const double smallChop  = std::sin(time * 2.35 + x * 0.51 - y * 0.36);
     const double shimmer    = std::sin(time * 3.10 - x * 0.17 - y * 0.41);
 
-    return (longSwell * 0.48 + crossSwell * 0.30 + smallChop * 0.16 + shimmer * 0.06) * kWaterWaveAmplitude;
+    return (longSwell * 0.48 + crossSwell * 0.30 + smallChop * 0.16 + shimmer * 0.06) * waterWaveAmplitude;
 }
 
 void GridMap::SetMapVariant(MapVariant variant)
