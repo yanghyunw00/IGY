@@ -560,11 +560,9 @@ void GamePlayState::UpdateTimeControls()
     int scroll = Engine::GetWindow().GetScrollDelta();
     if (scroll != 0)
     {
-        constexpr float kWheelFactor = 1.05f;
+        constexpr float kWheelFactor = 1.03f;
         float           factor       = (scroll > 0) ? kWheelFactor : (1.0f / kWheelFactor);
-        int             steps        = std::abs(scroll);
-        for (int i = 0; i < steps; ++i)
-            camera.AdjustTargetZoom(factor, 0.05f, 2.5f);
+        camera.AdjustTargetZoom(factor, 0.05f, 2.5f);
     }
 }
 
@@ -1123,6 +1121,7 @@ void GamePlayState::Update(double dt)
             auto selectedBuild = uiManager.GetSelectedBuilding();
 
             mouseSelection.Update(gridCoord.x, gridCoord.y);
+            mouseSelection.SetActive(selectedBuild != BuildingType::NONE);
             mouseSelection.SetHasValidPosition(selectedBuild != BuildingType::NONE);
 
             if (selectedBuild != BuildingType::NONE && previousUISelection == selectedBuild && mapMgr)
@@ -1443,11 +1442,11 @@ void GamePlayState::Update(double dt)
                                 placed = true;
                                 break;
                             }
-                        case BuildingType::MISSING_TEXTURE:
+                        case BuildingType::FOREST:
                             {
-                                if (!consumeResources(BuildingType::MISSING_TEXTURE))
+                                if (!consumeResources(BuildingType::FOREST))
                                     break;
-                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::MISSING_TEXTURE);
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::FOREST);
                                 gameObjMgr->AddBuilding(building);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
                                 placed = true;

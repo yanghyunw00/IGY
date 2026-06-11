@@ -269,14 +269,14 @@ namespace Dokev
                     cancelButton.tint     = Dokev::ColorPalette::RED;
                     buildingButtons.push_back(cancelButton);
 
-                    BuildingButton missingButton;
-                    missingButton.type     = BuildingType::MISSING_TEXTURE;
-                    missingButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
-                    missingButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
-                    missingButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
-                    missingButton.name     = "Missing Texture";
-                    missingButton.tint     = Dokev::ColorPalette::WHITE;
-                    buildingButtons.push_back(missingButton);
+                    BuildingButton forestButton;
+                    forestButton.type     = BuildingType::FOREST;
+                    forestButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/forest.png").string());
+                    forestButton.position = Math::fvec2(offsetX, startY + (BUTTON_HEIGHT + BUTTON_SPACING));
+                    forestButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
+                    forestButton.name     = "Forest";
+                    forestButton.tint     = Dokev::ColorPalette::WHITE;
+                    buildingButtons.push_back(forestButton);
 
                     BuildingButton streetLightButton;
                     streetLightButton.type     = BuildingType::STREET_LIGHT;
@@ -332,7 +332,7 @@ namespace Dokev
 
         BuildingButton deleteButton;
         deleteButton.type     = BuildingType::DELETE;
-        deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/delete.png").string());
+        deleteButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/destroy_icon.png").string());
         deleteButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 2, startY);
         deleteButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         deleteButton.name     = "Destroy";
@@ -388,7 +388,7 @@ namespace Dokev
 
         BuildingButton decorationButton;
         decorationButton.type     = BuildingType::NONE;
-        decorationButton.texture  = LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
+        decorationButton.texture  = LoadTexture(assets::locate_asset("Assets/images/building/forest.png").string());
         decorationButton.position = Math::fvec2(startX + (BUTTON_WIDTH + BUTTON_SPACING) * 3, startY);
         decorationButton.size     = Math::fvec2(BUTTON_WIDTH, BUTTON_HEIGHT);
         decorationButton.name     = "Decoration";
@@ -584,9 +584,9 @@ namespace Dokev
             }
             else if (currentCategory == CategoryType::DECORATION_CATEGORY)
             {
-                if (input.KeyJustPressed(CS230::Input::Keys::M))
+                if (input.KeyJustPressed(CS230::Input::Keys::F))
                 {
-                    selectedBuilding = BuildingType::MISSING_TEXTURE;
+                    selectedBuilding = BuildingType::FOREST;
                     CloseButtonMenus();
                     hotkeyHandled = true;
                 }
@@ -1523,8 +1523,9 @@ namespace Dokev
             int textureWidth  = button.texture.GetWidth();
             int textureHeight = button.texture.GetHeight();
 
+            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY || button.type == BuildingType::PARK |
             float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY || button.type == BuildingType::PARK ||
-                                   button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY) ? 0.75f : 1.0f;
+                                   button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY) ? 0.75f : (button.type ==BuildingType::DELETE) ? 4.0f :1.0f;
             float iconScale    = static_cast<float>(ICON_SCALE) * scale * iconScaleMult;
             float scaledWidth  = textureWidth * iconScale;
             float scaledHeight = textureHeight * iconScale;
@@ -1540,7 +1541,7 @@ namespace Dokev
         if (button.isHovered && (button.type == BuildingType::ROAD || button.type == BuildingType::WOOD_WORKSHOP || button.type == BuildingType::ROCK_WORKSHOP ||
                                  button.type == BuildingType::STEEL_WORKSHOP || button.type == BuildingType::GRANARY || button.type == BuildingType::FARM ||
                                  button.type == BuildingType::HOME || button.type == BuildingType::CAFE || button.type == BuildingType::RESTAURANT2 ||
-                                 button.type == BuildingType::MISSING_TEXTURE || button.type == BuildingType::STREET_LIGHT ||
+                                 button.type == BuildingType::FOREST || button.type == BuildingType::STREET_LIGHT ||
                                  button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY ||
                                  button.type == BuildingType::CASINO || button.type == BuildingType::PENTHOUSE ||
                                  button.type == BuildingType::PARK))
@@ -1740,8 +1741,8 @@ namespace Dokev
             }
             else if (currentCategory == CategoryType::DECORATION_CATEGORY)
             {
-                if (button.type == BuildingType::MISSING_TEXTURE)
-                    return "M";
+                if (button.type == BuildingType::FOREST)
+                    return "F";
                 if (button.type == BuildingType::STREET_LIGHT)
                     return "S";
             }

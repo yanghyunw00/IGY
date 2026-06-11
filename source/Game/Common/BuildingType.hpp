@@ -32,6 +32,7 @@ enum class BuildingType
 
     // DECORATIONS
     MISSING_TEXTURE,
+    FOREST,
     STREET_LIGHT,
     PARK,
 

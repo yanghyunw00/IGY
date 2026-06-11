@@ -92,6 +92,24 @@ namespace Dokev
             }
         }
 
+        // Middle mouse button drag to pan
+        {
+            auto& win = Engine::GetWindow();
+            if (win.MouseDown(Dokev::Mouse::Button::Middle) && camera)
+            {
+                const auto delta = win.GetMouseDelta();
+                if (delta.x != 0 || delta.y != 0)
+                {
+                    const auto  winSize = win.GetSize();
+                    const float zoom    = camera->GetZoom();
+                    camera->Move({
+                        static_cast<float>(delta.x) * 2.0f / (static_cast<float>(winSize.x) * zoom),
+                        static_cast<float>(delta.y) * 2.0f / (static_cast<float>(winSize.y) * zoom),
+                    });
+                }
+            }
+        }
+
         // Rotation
         if (rotationIndex)
         {

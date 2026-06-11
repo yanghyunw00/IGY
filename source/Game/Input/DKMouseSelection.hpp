@@ -21,7 +21,7 @@ namespace Dokev
     class MouseSelection
     {
     public:
-        MouseSelection() : position{ -1.0f, -1.0f }, map(nullptr), currentViewIndex(0), hasValidPosition(false)
+        MouseSelection() : position{ -1.0f, -1.0f }, map(nullptr), currentViewIndex(0), hasValidPosition(false), isActive(false)
         {
         }
 
@@ -41,6 +41,11 @@ namespace Dokev
         void SetHasValidPosition(bool isValid)
         {
             hasValidPosition = isValid;
+        }
+
+        void SetActive(bool active)
+        {
+            isActive = active;
         }
 
         void Draw() const;
@@ -65,5 +70,6 @@ namespace Dokev
         Texture2D   selectionTexture;
         Texture2D   invalidSelectionTexture;
         bool        hasValidPosition;
+        bool        isActive;
     };
 }

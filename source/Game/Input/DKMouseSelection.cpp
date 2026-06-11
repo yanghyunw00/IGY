@@ -72,6 +72,9 @@ namespace Dokev
 
     bool MouseSelection::ShouldDrawAtTile(int tileX, int tileY) const
     {
+        if (!isActive)
+            return false;
+
         int x = static_cast<int>(std::round(position.x));
         int y = static_cast<int>(std::round(position.y));
 
