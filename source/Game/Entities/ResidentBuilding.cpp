@@ -159,10 +159,9 @@ void ResidentBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
         texture.Draw(drawPos.x, drawPos.y, tint);
     }
-    else if(buildingType == BuildingType::FOREST)
+    else if (buildingType == BuildingType::FOREST)
     {
-        drawY = y - TILE_HEIGHT;
-        texture.Draw(drawPos.x, drawPos.y, tint);
+        texture.Draw(x, y - TILE_HEIGHT, tint);
     }
     else
     {

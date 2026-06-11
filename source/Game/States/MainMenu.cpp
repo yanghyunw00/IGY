@@ -251,6 +251,7 @@ void MainMenu::Update(double dt)
 
     if (confirmed)
     {
+        CS230::AudioManager::Instance().PlaySFX("Assets/sounds/button_click.mp3");
         switch (current)
         {
             case Main_Keys::GamePlayKey:

@@ -10,6 +10,7 @@
 #include "DKUIManager.hpp"
 #include "../Graphics/DKShapes.hpp"
 #include "../World/DKCollision.hpp"
+#include "Engine/AudioManager.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Input.hpp"
 #include "Engine/Matrix.hpp"
@@ -438,6 +439,7 @@ namespace Dokev
 
             if (mouseClicked && escHoveredButton >= 0)
             {
+                CS230::AudioManager::Instance().PlaySFX("Assets/sounds/button_click.mp3");
                 switch (escHoveredButton)
                 {
                     case 0: escResumeClicked   = true; escMenuOpen = false; break;
@@ -1523,9 +1525,8 @@ namespace Dokev
             int textureWidth  = button.texture.GetWidth();
             int textureHeight = button.texture.GetHeight();
 
-            float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY || button.type == BuildingType::PARK |
             float iconScaleMult = (button.type == BuildingType::FARM || button.type == BuildingType::GRANARY || button.type == BuildingType::PARK ||
-                                   button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY) ? 0.75f : (button.type ==BuildingType::DELETE) ? 4.0f :1.0f;
+                                   button.type == BuildingType::WORKPLACE3 || button.type == BuildingType::DISASTER_OBSERVATORY) ? 0.75f : (button.type == BuildingType::DELETE) ? 4.0f : 1.0f;
             float iconScale    = static_cast<float>(ICON_SCALE) * scale * iconScaleMult;
             float scaledWidth  = textureWidth * iconScale;
             float scaledHeight = textureHeight * iconScale;
