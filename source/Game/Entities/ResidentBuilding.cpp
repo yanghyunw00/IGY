@@ -14,6 +14,7 @@ Dokev::Texture2D ResidentBuilding::house2InteractionTexture;
 Dokev::Texture2D ResidentBuilding::missingTexture;
 Dokev::Texture2D ResidentBuilding::streetLightTexture;
 Dokev::Texture2D ResidentBuilding::parkTexture;
+Dokev::Texture2D ResidentBuilding::forestTexture;
 bool             ResidentBuilding::texturesLoaded = false;
 
 namespace
@@ -33,6 +34,7 @@ void ResidentBuilding::LoadTextures()
         missingTexture           = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/MissingTexture.png").string());
         streetLightTexture       = Dokev::LoadTexture(assets::locate_asset("Assets/resources/street_light.png").string());
         parkTexture              = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/park.png").string());
+        forestTexture            = Dokev::LoadTexture(assets::locate_asset("Assets/images/building/forest.png").string());
         texturesLoaded           = true;
     }
 }
@@ -44,6 +46,7 @@ void ResidentBuilding::UnloadTextures()
     house2InteractionTexture = Dokev::Texture2D{};
     streetLightTexture       = Dokev::Texture2D{};
     parkTexture              = Dokev::Texture2D{};
+    forestTexture            = Dokev::Texture2D{};
     texturesLoaded           = false;
 }
 
@@ -76,6 +79,13 @@ ResidentBuilding::ResidentBuilding(Math::fvec2 pos, int w, int h, int hp_, Build
             max_capacity    = 0;
             cost            = 0;
             maintenanceCost = 3;
+            break;
+
+        case BuildingType::FOREST:
+            texture         = forestTexture;
+            max_capacity    = 0;
+            cost            = 0;
+            maintenanceCost = 2;
             break;
 
         default:
@@ -144,8 +154,17 @@ void ResidentBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    int drawX = (buildingType == BuildingType::STREET_LIGHT) ? x + TILE_WIDTH_HALF / 2 : x;
-    int drawY = (buildingType == BuildingType::STREET_LIGHT) ? y - TILE_HEIGHT_HALF : y;
+    int drawX = x;
+    int drawY = y;
+    if (buildingType == BuildingType::STREET_LIGHT)
+    {
+        drawX = x + TILE_WIDTH_HALF / 2;
+        drawY = y - TILE_HEIGHT_HALF;
+    }
+    else if (buildingType == BuildingType::FOREST)
+    {
+        drawY = y - TILE_HEIGHT;
+    }
     texture.Draw(drawX, drawY, tint);
 
     if (!isBuilt)

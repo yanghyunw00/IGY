@@ -21,6 +21,7 @@ protected:
     static Dokev::Texture2D house2InteractionTexture;
     static Dokev::Texture2D streetLightTexture;
     static Dokev::Texture2D parkTexture;
+    static Dokev::Texture2D forestTexture;
     static bool             texturesLoaded;
 
     static void LoadTextures();

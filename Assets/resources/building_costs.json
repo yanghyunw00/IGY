@@ -45,6 +45,9 @@
     "PARK": {
       "Money": 15
     },
+    "FOREST": {
+      "Money": 10
+    },
     "STREET_LIGHT": {
       "Money": 5
     }
