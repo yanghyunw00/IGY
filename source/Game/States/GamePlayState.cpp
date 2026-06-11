@@ -2219,12 +2219,12 @@ void GamePlayState::LoadGame(const std::string& filename)
 
         auto isWorkBuilding = [](BuildingType bt)
         {
-            return bt != BuildingType::HOME && bt != BuildingType::MISSING_TEXTURE && bt != BuildingType::STREET_LIGHT && bt != BuildingType::PARK;
+            return bt != BuildingType::HOME && bt != BuildingType::MISSING_TEXTURE && bt != BuildingType::STREET_LIGHT && bt != BuildingType::PARK && bt != BuildingType::FOREST;
         };
 
         auto getTileType = [](BuildingType bt)
-        { 
-            if (bt == BuildingType::HOME || bt == BuildingType::MISSING_TEXTURE || bt == BuildingType::STREET_LIGHT || bt == BuildingType::PARK)
+        {
+            if (bt == BuildingType::HOME || bt == BuildingType::MISSING_TEXTURE || bt == BuildingType::STREET_LIGHT || bt == BuildingType::PARK || bt == BuildingType::FOREST)
                 return Dokev::TileType::RESIDENTIAL;
             return Dokev::TileType::INDUSTRIAL;
         };
