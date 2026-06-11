@@ -1,3 +1,11 @@
+/**
+ * \file DisasterEvent.hpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 // Pure virtual class and functions
 #pragma once
 

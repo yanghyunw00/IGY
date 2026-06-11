@@ -77,6 +77,7 @@ public:
     void ResetIsoGridMapArray();
     void InitializeIsoView();
     void UpdateWaterAnimation(double dt);
+    void TriggerTileRipple(int gridX, int gridY);
     void IsometricDrawMap(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED, const Dokev::MouseSelection* mouseSelection = nullptr, Dokev::GameObjectManager* gameObjMgr = nullptr) const;
 
     void IsometricDrawMouseAtlas(int index, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
@@ -104,6 +105,7 @@ public:
     }
 
     double GetWaterWaveOffset(int gridX, int gridY) const;
+    double GetTileVisualOffset(int gridX, int gridY) const;
 
     // Path Finding
     void InitializePathFinding();
@@ -140,6 +142,22 @@ public:
 
     Math::fvec2 TransformPathPointForView(Math::fvec2 point, int viewIndex) const;
 
+    // Save/Load: per-cell snapshot of the terrain grid
+    struct CellData
+    {
+        double height            = 0.0;
+        int    flattenStage      = 0;
+        double flattenBaseHeight = 0.0;
+    };
+
+    std::vector<CellData> ExportCells() const;
+    void                  ImportCells(const std::vector<CellData>& cells);
+
+    void SetThresholds(const TerrainThresholds& thresholds)
+    {
+        mapProfile.thresholds = thresholds;
+    }
+
     // TileManager access
     Dokev::TileManager* GetTileManager()
     {
@@ -153,8 +171,16 @@ public:
 
 
 private:
+    struct TileRipple
+    {
+        int    gridX     = 0;
+        int    gridY     = 0;
+        double startTime = 0.0;
+    };
+
     void UpdateIsoOrigin();
     void rotatePoint90(float x, float y, float tx, float ty, int angleDeg, float& outX, float& outY) const;
+    double CalculateTileAnimationOffset(int gridX, int gridY, bool isWater) const;
 
     std::vector<GridCell> IsoGridMapArray;
 
@@ -199,6 +225,7 @@ private:
 
     Dokev::Texture2D roadTileTextures[15];
     int roadConnectionMask[GRID_SIZE_Y][GRID_SIZE_X];
+    std::vector<TileRipple> tileRipples;
 
 public:
 

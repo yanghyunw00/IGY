@@ -48,6 +48,8 @@ namespace Dokev
 
         void Draw(int posX, int posY, CS200::RGBA tint = CS200::WHITE, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 
+        void DrawScaled(int posX, int posY, Math::vec2 scale, CS200::RGBA tint = CS200::WHITE, Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
+
         void Draw(Math::vec2 position, CS200::RGBA tint = CS200::WHITE) const;
 
         void DrawEx(int posX, int posY, float rotation, float scale, CS200::RGBA tint = CS200::WHITE) const;
@@ -55,6 +57,10 @@ namespace Dokev
         void DrawEx(Math::vec2 position, float rotation, Math::vec2 scale, CS200::RGBA tint = CS200::WHITE) const;
 
         void DrawPro(int sourceX, int sourceY, int sourceWidth, int sourceHeight, int destX, int destY, CS200::RGBA tint = CS200::WHITE) const;
+
+        void DrawProScaled(
+            int sourceX, int sourceY, int sourceWidth, int sourceHeight, int destX, int destY, Math::vec2 scale, CS200::RGBA tint = CS200::WHITE,
+            Dokev::RenderState selected_renderer = Dokev::RenderState::INSTANCED) const;
 
         void DrawPro(Math::vec2 position, float rotation, Math::vec2 scale, Math::vec2 origin, CS200::RGBA tint = CS200::WHITE) const;
 

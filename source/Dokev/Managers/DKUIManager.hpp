@@ -78,7 +78,7 @@ namespace Dokev
         UIManager();
 
         void Initialize();
-        void Update(Math::fvec2 mousePos, bool mouseClicked, float dt = 0.016f);
+        void Update(Math::fvec2 mousePos, bool mouseClicked, float dt = 0.016f, bool mouseDown = false);
 
         void Draw(ResourceManager* resourceMgr, CityMetrics* cm, int humanCount, const PopulationStats& popStats, BuildingCostManager* costMgr = nullptr, int hour = 0, int minute = 0, int currentDay = 1, int speedIndex = 0, bool simPaused = false) const;
 
@@ -112,6 +112,8 @@ namespace Dokev
 
         bool IsAnyButtonHovered() const
         {
+            if (timeHoveredThisFrame || moneyHoveredThisFrame || foodHoveredThisFrame || popHoveredThisFrame || happHoveredThisFrame)
+                return true;
             for (const auto& b : mainButtons)
                 if (b.isHovered) return true;
             for (const auto& b : categoryButtons)
@@ -177,6 +179,9 @@ namespace Dokev
         // ESC pause menu
         bool         escMenuOpen           = false;
         int          escHoveredButton      = -1; // 0=Resume 1=Save 2=Load 3=Settings 4=MainMenu 5=Quit
+        int          escPressedButton      = -1; 
+        float        escHoverAnim[6]       = { 0, 0, 0, 0, 0, 0 }; 
+        float        escPressAnim[6]       = { 0, 0, 0, 0, 0, 0 };
         bool         escResumeClicked      = false;
         bool         escSaveClicked        = false;
         bool         escLoadClicked        = false;

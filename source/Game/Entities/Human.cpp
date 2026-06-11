@@ -33,13 +33,15 @@
 namespace
 {
     // night gambling tuning (city is the house, with an edge)
-    constexpr int   gamblePercent     = 40;   // % who gamble each night
+    constexpr int   gamblePercent     = 55;   // % who gamble each night
     constexpr int   gambleLoss        = 15;   // citizen loses, city gains
     constexpr int   gambleWin         = 10;   // citizen wins, city pays
     constexpr float gambleHappiness   = 3.0f; // happiness swing per bet
     constexpr float gambleBetInterval = 4.0f; // seconds between bets
     constexpr float gambleMinSafety   = 70.0f; // only gamble if night safety >= this
 }
+
+float Human::parkHappinessDrainMult = 1.0f;
 
 
 Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGridPos(startGridPos), currentPathIndex(0), isMoving(false)
@@ -48,6 +50,7 @@ Human::Human(Math::fvec2 startGridPos) : currentGridPos(startGridPos), targetGri
     actualPosition = currentGridPos;
     moveTimer      = 0.0f;
     humanTexture   = Dokev::LoadTexture(assets::locate_asset("Assets/images/textures/Human.png").string());
+    walkAnim       = Dokev::AnimatedSprite(assets::locate_asset("Assets/images/human_walking_final.spt"));
     name           = NPCNameManager::Instance().GenerateName();
 }
 
@@ -263,7 +266,7 @@ void Human::UpdateMovement(float deltaTime, GridMap* map, Dokev::GameObjectManag
                 if (cafeIsOperating)
                 {
                     stats.energy    = std::min(100.0f, stats.energy + energyGain);
-                    stats.happiness = std::min(100.0f, stats.happiness + 10.0f);
+                    stats.happiness = std::min(100.0f, stats.happiness + 15.0f);
                 }
                 ChangeState(HumanState::Idle);
             }
@@ -310,7 +313,7 @@ void Human::UpdateWorking(float deltaTime, int currentHour)
     const float gameHoursPerSecond = 24.0f / DayCycleManager::kDayDuration;
 
     stats.energy    = std::max(0.0f, stats.energy    - 10.0f * deltaTime * gameHoursPerSecond);
-    stats.happiness = std::max(0.0f, stats.happiness -  5.0f * deltaTime * gameHoursPerSecond);
+    stats.happiness = std::max(0.0f, stats.happiness -  5.0f * parkHappinessDrainMult * deltaTime * gameHoursPerSecond);
 
     float multiplier = (stats.energy / 100.0f) * (stats.happiness / 100.0f);
     float earned = stats.hourlyWage * multiplier * deltaTime * gameHoursPerSecond;
@@ -379,7 +382,7 @@ void Human::UpdateGambling(float deltaTime, int currentHour, GridMap* map)
     if (roll == 0) // win
     {
         stats.money    += gambleWin;
-        stats.happiness = std::min(100.0f, stats.happiness + gambleHappiness);
+        stats.happiness = std::min(100.0f, stats.happiness + 4.0f);
         if (resourceMgr)
             resourceMgr->TrySpend(gambleWin); // city pays the winner
         SpawnFloatingStatus("+$" + std::to_string(gambleWin), 0x55FF55FF, map);
@@ -403,7 +406,7 @@ void Human::UpdateIdle(float deltaTime, GridMap* map, Dokev::GameObjectManager* 
     if (ai.isHomeless)
     {
         const float gameHoursPerSecond = 24.0f / DayCycleManager::kDayDuration;
-        stats.happiness = std::max(0.0f, stats.happiness - 4.0f * deltaTime * gameHoursPerSecond);
+        stats.happiness = std::max(0.0f, stats.happiness - 3.0f * deltaTime * gameHoursPerSecond);
 
         homelessTextTimer += deltaTime;
         if (homelessTextTimer >= 10.0f)
@@ -673,9 +676,32 @@ void Human::UpdateFindingDestination(float deltaTime, GridMap* map, const Road* 
     }
     else if (stats.energy <= 15.0f)
     {
-        ai.isSeekingCafe = true;
-        ChangeState(HumanState::Idle);
-        return;
+        bool cafeAvailable = false;
+        if (gameObjMgr)
+        {
+            for (const auto& building : gameObjMgr->GetBuildings())
+            {
+                BuildingType bt = building->GetBuildingType();
+                if ((bt == BuildingType::CAFE || bt == BuildingType::RESTAURANT2) && building->GetIsBuilt())
+                {
+                    if (auto* wb = dynamic_cast<WorkBuilding*>(building.get()))
+                    {
+                        if (wb->IsServiceOperating())
+                        {
+                            cafeAvailable = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (cafeAvailable)
+        {
+            ai.isSeekingCafe = true;
+            ChangeState(HumanState::Idle);
+            return;
+        }
+        // No food available — fall through to work assignment even at low energy
     }
     else
     {
@@ -785,6 +811,7 @@ void Human::Update(float deltaTime, GridMap* map, const Road* road, Dokev::GameO
 
         if (isMoving)
         {
+            walkAnim.Update(deltaTime);
             UpdateMovement(deltaTime, map, gameObjMgr);
 
             if (!isMoving)
@@ -941,12 +968,19 @@ void Human::Draw(int viewIndex, const GridMap* map) const
     int drawX = screenX + TILE_WIDTH_HALF - humanTexture.GetWidth() / 2;
     int drawY = topY + TILE_HEIGHT_HALF;
 
+    int drawAnimX = screenX  - humanTexture.GetWidth() / 2;
+    int drawAnimY = topY - TILE_HEIGHT;
+
     if (state == HumanState::Firefighting)
     {
         humanTexture.Draw(drawX, drawY, CS200::WHITE, Dokev::RenderState::IMMEDIATE);
         int cx = drawX + humanTexture.GetWidth() / 2;
         int cy = drawY - 6;
         Dokev::DrawCircle(cx, cy, 5.0f, 0x0080FFFF);
+    }
+    else if (state == HumanState::Walking && isMoving)
+    {
+        walkAnim.DrawTopLeft(drawAnimX, drawAnimY);
     }
     else
     {

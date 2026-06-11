@@ -10,6 +10,7 @@
 #pragma once
 #include "CS200/RGBA.hpp"
 #include "Dokev/GameObject/DKGameObject.hpp"
+#include "Dokev/Graphics/DKAnimationSprite.hpp"
 #include "Dokev/Graphics/DKTexture.hpp"
 #include "Engine/Vec2.hpp"
 #include <string>
@@ -218,6 +219,8 @@ public:
         resourceMgr = rm;
     }
 
+    static void SetParkHappinessDrainMult(float m) { parkHappinessDrainMult = m; }
+
     const std::string& GetName() const
     {
         return name;
@@ -283,6 +286,7 @@ private:
     bool        debugMode = false;
     // bool isVisible = true;
     Dokev::Texture2D humanTexture;
+    Dokev::AnimatedSprite walkAnim; // played while Walking
 
     ResourceManager* resourceMgr = nullptr;
 
@@ -296,4 +300,7 @@ private:
     // Homelessness / emigration
     float homelessTextTimer = 0.0f; // Accumulator for the periodic "Homeless" label
     bool  isEmigrating      = false; // Walking off the map to leave the city
+
+    // City-wide park buff set each frame from park count
+    static float parkHappinessDrainMult;
 };

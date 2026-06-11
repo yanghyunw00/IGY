@@ -1,3 +1,11 @@
+/**
+ * \file DKCityMetrics.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "DKCityMetrics.hpp"
 #include "../Common/BuildingType.hpp"
 #include "../Entities/Building.hpp"
@@ -19,6 +27,7 @@ namespace Dokev
         int homeCapacity    = 0;
         int workplaceCount  = 0;
         int streetLightCount = 0;
+        parkCount            = 0;
 
         for (const auto& building : gameObjectManager->GetBuildings())
         {
@@ -38,15 +47,28 @@ namespace Dokev
             {
                 streetLightCount++;
             }
+
+            if (type == BuildingType::PARK && building->GetIsBuilt())
+            {
+                parkCount++;
+            }
         }
 
         // Update Happiness Manager
         happinessManager.UpdateFactors(humanCount, homeCapacity, workplaceCount, streetLightCount);
         averageHappiness = happinessManager.CalculateTotalHappiness();
 
+        constexpr float parkHappinessPerPark = 0.5f;
+        constexpr float parkHappinessCap     = 15.0f;
+        averageHappiness = std::min(100.0f, averageHappiness + std::min(parkHappinessCap, parkCount * parkHappinessPerPark));
+        averageHappiness = std::min(100.0f, averageHappiness + pentHouseHappyBonus);
+
         //  Update Immigration Manager
         int availableHomes = homeCapacity - humanCount;
         int totalResources = resourceManager->GetTotalResources();
+
+        if (debugHappinessOverride >= 0.0f)
+            averageHappiness = debugHappinessOverride;
 
         bool shouldSpawnImmigrant = immigrationManager.Update(static_cast<float>(dt), availableHomes, averageHappiness, humanCount, totalResources);
 

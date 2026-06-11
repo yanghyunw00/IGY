@@ -89,7 +89,7 @@ namespace
 
     Math::ivec2 GetBuildingFootprint(BuildingType type)
     {
-        if (type == BuildingType::GRANARY || type == BuildingType::FARM)
+        if (type == BuildingType::GRANARY || type == BuildingType::FARM || type == BuildingType::PARK || type == BuildingType::WORKPLACE3 || type == BuildingType::DISASTER_OBSERVATORY)
         {
             return { 2, 2 };
         }
@@ -187,7 +187,7 @@ void GamePlayState::Load()
     noiseTexture2 = Dokev::LoadTextureFromImage(perlin2);
 
     CS230::FontManager::Instance().Load("MainFont", assets::locate_asset("Assets/fonts/DungGeunMo.ttf"), 40);
-    CS230::AudioManager::Instance().PlayMusic("Assets/sounds/BGM.mp3", true);
+    CS230::AudioManager::Instance().PlayLayeredMusic({ "Assets/red", "Assets/yellow", "Assets/blue" });
     roadBuildSoundCount = 0;
 
     // Initialize MapManager component
@@ -647,6 +647,7 @@ void GamePlayState::Update(double dt)
 
     console.Update(); 
     UpdateTimeControls();
+    CS230::AudioManager::Instance().UpdateLayeredMusic();
 
     const double simulationDt = GetSimulationDeltaTime(dt);
 
@@ -834,8 +835,9 @@ void GamePlayState::Update(double dt)
         Math::fvec2 mouseScreenPos = mouse.GetPositionFloat();
         mouseScreenPos.y           = static_cast<float>(windowSize.y) - mouseScreenPos.y;
         bool mouseClicked          = mouse.MouseJustPressed(Dokev::Mouse::Button::Left);
+        bool mouseDown             = mouse.MouseDown(Dokev::Mouse::Button::Left);
 
-        uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt));
+        uiManager.Update(mouseScreenPos, mouseClicked, static_cast<float>(dt), mouseDown);
 
         if (uiManager.IsTimeClicked())
         {
@@ -937,12 +939,27 @@ void GamePlayState::Update(double dt)
     if (!humans.empty())
     {
         auto* resMgr = GetGSComponent<ResourceManager>().get();
+
+        const float parkDrainMult = std::max(0.5f, 1.0f - 0.015f * static_cast<float>(cityMetrics->GetParkCount()));
+        Human::SetParkHappinessDrainMult(parkDrainMult);
+
+        GridCell** humanView = mapMgr->GetMap()->GetViewArray(0);
+
         for (size_t i = 0; i < humans.size(); ++i)
         {
             humans[i]->SetResourceManager(resMgr);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " begin");
             humans[i]->Update(static_cast<float>(simulationDt), mapMgr->GetMap(), mapMgr->GetRoad(), gameObjMgr.get(), dayCycle.GetHour(), cityMetrics->GetHappinessManager()->factors.nightSafetyScore);
             // Engine::GetLogger().LogEvent("GamePlayState::Update human " + std::to_string(i) + " end");
+
+            // Edge case: a human that ended up on a water tile is invalid
+            Math::fvec2 gp = humans[i]->GetGridPosition();
+            int         gx = static_cast<int>(gp.x);
+            int         gy = static_cast<int>(gp.y);
+            if (humanView && gx >= 0 && gx < GRID_SIZE_X && gy >= 0 && gy < GRID_SIZE_Y && humanView[gy * GRID_SIZE_X + gx]->getHeight() < 75.0)
+            {
+                humans[i]->Destroy();
+            }
         }
     }
     // Engine::GetLogger().LogEvent("GamePlayState::Update after humans");
@@ -1068,7 +1085,7 @@ void GamePlayState::Update(double dt)
     ///////////////////////////////////////////////////////////
 
     auto selectBuildingType = uiManager.GetSelectedBuilding();
-    bool uiConsumedClick    = uiManager.IsAnyButtonHovered();
+    bool uiConsumedClick    = uiManager.IsAnyButtonHovered() || ImGui::GetIO().WantCaptureMouse;
     bool shouldplace =
         (!uiConsumedClick && mouseClicked) || (ismouseheld && (selectBuildingType == BuildingType::ROAD || selectBuildingType == BuildingType::FLATTEN) && !blockRoadPlacementUntilRelease);
 
@@ -1136,6 +1153,32 @@ void GamePlayState::Update(double dt)
 
                     GridCell*         clickedCell = viewArray[gridY * GRID_SIZE_X + gridX];
                     const Math::ivec2 footprint   = GetBuildingFootprint(selectedBuild);
+
+                    // Multi-tile buildings: let the player click any covered tile, not just the
+                    // top-left anchor. Pick the first anchor whose footprint contains the clicked
+                    // tile and is fully valid (clicked-as-top-left is preferred to keep old feel).
+                    if ((footprint.x > 1 || footprint.y > 1) && selectedBuild != BuildingType::FLATTEN && selectedBuild != BuildingType::DELETE)
+                    {
+                        auto* road     = mapMgr->GetRoad();
+                        bool  resolved = false;
+                        for (int dy = 0; dy < footprint.y && !resolved; ++dy)
+                        {
+                            for (int dx = 0; dx < footprint.x && !resolved; ++dx)
+                            {
+                                int ax = gridX - dx;
+                                int ay = gridY - dy;
+                                if (ax < 0 || ay < 0 || ax + footprint.x > GRID_SIZE_X || ay + footprint.y > GRID_SIZE_Y)
+                                    continue;
+                                if (!AreaHasOnlyBuildableCells(map, ax, ay, footprint.x, footprint.y) || !tileMgr->CanPlaceArea(ax, ay, footprint.x, footprint.y))
+                                    continue;
+                                if (selectedBuild != BuildingType::ROAD && !AreaIsAdjacentToRoad(road, ax, ay, footprint.x, footprint.y))
+                                    continue;
+                                gridX    = ax;
+                                gridY    = ay;
+                                resolved = true;
+                            }
+                        }
+                    }
 
                     if (selectedBuild == BuildingType::FLATTEN)
                     {
@@ -1310,10 +1353,13 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::WORKPLACE3))
                                     break;
 
-                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 999, BuildingType::WORKPLACE3);
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 999, BuildingType::WORKPLACE3);
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
-                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
                                 placed = true;
                                 break;
                             }
@@ -1322,10 +1368,13 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::DISASTER_OBSERVATORY))
                                     break;
 
-                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 10, BuildingType::DISASTER_OBSERVATORY);
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* building = new WorkBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 10, BuildingType::DISASTER_OBSERVATORY);
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
-                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::INDUSTRIAL);
                                 placed = true;
                                 break;
                             }
@@ -1362,6 +1411,21 @@ void GamePlayState::Update(double dt)
                                 building->SetResourceManager(resourceMgr.get());
                                 gameObjMgr->AddBuilding(building);
                                 tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::INDUSTRIAL);
+
+                                if (cityMetrics)
+                                {
+                                    bool firstPenthouse = (cityMetrics->GetPentHouseHappyBonus() == 0.0f);
+                                    cityMetrics->AddPentHouseHappyBonus(5.0f);
+
+                                    if (firstPenthouse)
+                                    {
+                                        auto  winSz = Engine::GetWindow().GetSize();
+                                        float cx    = static_cast<float>(winSz.x) * 0.5f;
+                                        float cy    = static_cast<float>(winSz.y) * 0.5f;
+                                        FloatingTextManager::Instance().Add("Congratulation! YOUR CITY IS BEST!", { cx, cy }, 0xFFD700FF, 8.0f, true);
+                                    }
+                                }
+
                                 placed = true;
                                 break;
                             }
@@ -1370,9 +1434,12 @@ void GamePlayState::Update(double dt)
                                 if (!consumeResources(BuildingType::PARK))
                                     break;
 
-                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 1, 1, 0, BuildingType::PARK);
+                                if (!map->LevelAreaToAverage(gridX, gridY, 2, 2))
+                                    break;
+
+                                auto* building = new ResidentBuilding(Math::fvec2(static_cast<float>(gridX), static_cast<float>(gridY)), 2, 2, 0, BuildingType::PARK);
                                 gameObjMgr->AddBuilding(building);
-                                tileMgr->AllocateTile(gridX, gridY, Dokev::TileType::RESIDENTIAL);
+                                tileMgr->AllocateArea(gridX, gridY, 2, 2, Dokev::TileType::RESIDENTIAL);
                                 placed = true;
                                 break;
                             }
@@ -1479,6 +1546,11 @@ void GamePlayState::Update(double dt)
 
                     if (placed)
                     {
+                        if (selectedBuild != BuildingType::ROAD && selectedBuild != BuildingType::DELETE && selectedBuild != BuildingType::FLATTEN)
+                        {
+                            map->TriggerTileRipple(gridX, gridY);
+                        }
+
                         mouseSelection.SetHasValidPosition(false);
 
                         {
@@ -1673,8 +1745,6 @@ void GamePlayState::Draw() const
     if (weatherOverlay != CS200::CLEAR)
         Dokev::DrawRectangle(0, 0, windowSize.x, windowSize.y, weatherOverlay);
 
-    // Screen-space floating texts (disaster warnings, etc.) drawn in the UI pass
-    // so they stay fixed on screen like UI regardless of camera zoom/pan.
     FloatingTextManager::Instance().Draw(true);
 
     renderer2d.EndScene();
@@ -1791,10 +1861,10 @@ void GamePlayState::Draw() const
     }
     else
     {
-        uiManager.DrawEscMenuOverlay(); // ESC 메뉴는 UI 숨김 상태에서도 항상 표시
+        uiManager.DrawEscMenuOverlay();
     }
 
-    // Disaster banner: while any disaster is active, announce it in red at top-center
+    // Disaster banner
     if (eventManager.GetEventCount() > 0)
     {
         std::string banner       = "DISASTER: ";
@@ -1830,21 +1900,29 @@ void GamePlayState::Draw() const
     }
 
     renderer2d.EndScene();
-    // Engine::GetLogger().LogEvent("GamePlayState::Draw end");
-
-    // Draw smoke animation at position (200, 200)
-    // Math::TransformationMatrix smokeTransform;
-    // smokeTransform = Math::TranslationMatrix(Math::vec2(200.0, 200.0));
-    // smokeSprite.Draw(smokeTransform);
-
-    // Draw particles
-    // smokeEmitter.Draw(cameraTransform * ndcMatrix);
 }
 
 void GamePlayState::DrawImGui()
 {
     // Developer UI
     worldEditor.DrawImGui();
+
+    // if (ImGui::Begin("BGM Debug"))
+    // {
+    //     const auto tracks = CS230::AudioManager::Instance().GetLayeredMusicDebugText();
+    //     if (tracks.empty())
+    //     {
+    //         ImGui::TextDisabled("Layered BGM is not active");
+    //     }
+    //     else
+    //     {
+    //         for (const auto& track : tracks)
+    //         {
+    //             ImGui::TextUnformatted(track.c_str());
+    //         }
+    //     }
+    // }
+    // ImGui::End();
 
     // Player UI
     auto cityMetrics = GetGSComponent<CityMetrics>();
@@ -1900,6 +1978,7 @@ void GamePlayState::DrawImGui()
 
 void GamePlayState::Unload()
 {
+    CS230::AudioManager::Instance().StopLayeredMusic();
     WorkManager::GetInstance().ClearAllJobs();
     selectedNPC = nullptr;
     if (auto gameObjMgr = GetGSComponent<Dokev::GameObjectManager>())
@@ -1949,9 +2028,27 @@ void GamePlayState::SaveGame(const std::string& filename)
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)
     {
+        auto map = mapMgr->GetMap();
+
+        //  Save Map Grid
+        if (map)
+        {
+            const auto&          profile    = map->GetGenerationProfile();
+            const auto&          thresholds = profile.thresholds;
+            json&                j_map       = j["Map"];
+            j_map["Variant"]                 = static_cast<int>(map->GetMapVariant());
+            j_map["Thresholds"]              = { thresholds.waterMax, thresholds.plainsMax, thresholds.mountainMax };
+
+            json& j_cells = j_map["Cells"];
+            for (const auto& c : map->ExportCells())
+            {
+                j_cells.push_back({ c.height, c.flattenStage, c.flattenBaseHeight });
+            }
+        }
+
         //  Save Road Info (based on TileManager)
         json& j_roads = j["Roads"];
-        auto  tileMgr = mapMgr->GetMap()->GetTileManager();
+        auto  tileMgr = map ? map->GetTileManager() : nullptr;
         if (tileMgr)
         {
             auto roadTiles = tileMgr->GetTilesOfType(Dokev::TileType::ROAD);
@@ -2037,12 +2134,51 @@ void GamePlayState::LoadGame(const std::string& filename)
 
     // --- Reset State ---
     GetGSComponent<Dokev::GameObjectManager>()->Unload();
+    WorkManager::GetInstance().ClearAllJobs();
 
     auto mapMgr = GetGSComponent<MapManager>();
     if (mapMgr)
     {
         // Clear existing map-bound entities
         mapMgr->GetRoad()->removeAllRoad(*mapMgr->GetMap());
+
+        // Restore the terrain grid before roads/buildings re-allocate tiles
+        auto map = mapMgr->GetMap();
+        if (map && j.contains("Map"))
+        {
+            const auto& j_map = j["Map"];
+
+            if (j_map.contains("Variant"))
+                map->SetMapVariant(static_cast<MapVariant>(j_map.value("Variant", 0)));
+
+            if (j_map.contains("Thresholds") && j_map["Thresholds"].size() == 3)
+            {
+                TerrainThresholds t;
+                t.waterMax    = j_map["Thresholds"][0].get<double>();
+                t.plainsMax   = j_map["Thresholds"][1].get<double>();
+                t.mountainMax = j_map["Thresholds"][2].get<double>();
+                map->SetThresholds(t);
+            }
+
+            if (j_map.contains("Cells"))
+            {
+                std::vector<GridMap::CellData> cells;
+                cells.reserve(j_map["Cells"].size());
+                for (const auto& c : j_map["Cells"])
+                {
+                    GridMap::CellData d;
+                    d.height            = c[0].get<double>();
+                    d.flattenStage      = c[1].get<int>();
+                    d.flattenBaseHeight = c[2].get<double>();
+                    cells.push_back(d);
+                }
+                map->ImportCells(cells);
+            }
+        }
+
+        // Reset tile occupancy so it matches the freshly restored grid
+        if (map && map->GetTileManager())
+            map->GetTileManager()->Clear();
     }
     else
     {
@@ -2063,7 +2199,6 @@ void GamePlayState::LoadGame(const std::string& filename)
         {
             resourceMgr->SetResources(playerResources.value("Wood", 0), playerResources.value("Stone", 0), playerResources.value("Steel", 0));
         }
-        // Food is restored after buildings (so foodCapacity is set first)
     }
 
     //  Load Road Info
@@ -2089,11 +2224,12 @@ void GamePlayState::LoadGame(const std::string& filename)
         };
 
         auto getTileType = [](BuildingType bt)
-        {
+        { 
             if (bt == BuildingType::HOME || bt == BuildingType::MISSING_TEXTURE || bt == BuildingType::STREET_LIGHT || bt == BuildingType::PARK)
                 return Dokev::TileType::RESIDENTIAL;
             return Dokev::TileType::INDUSTRIAL;
         };
+
 
         for (const auto& bData : j["Buildings"])
         {

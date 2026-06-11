@@ -1,3 +1,11 @@
+/**
+ * \file FontManager.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "FontManager.hpp"
 
 namespace CS230

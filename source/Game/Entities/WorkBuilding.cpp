@@ -53,7 +53,7 @@ namespace
     constexpr int woodWorkshopMoneyMultiplier  = 2;
     constexpr int rockWorkshopMoneyMultiplier  = 6;
     constexpr int steelWorkshopMoneyMultiplier = 12;
-    constexpr int farmFoodMultiplier           = 2;
+    constexpr float farmFoodMultiplier         = 2.0f;
 
     CS200::RGBA ApplyAlpha(CS200::RGBA color, uint8_t alpha)
     {
@@ -236,14 +236,14 @@ WorkBuilding::WorkBuilding(Math::fvec2 pos, int w, int h, int hp, BuildingType b
             break;
 
         case BuildingType::CASINO:
-            texture         = casinoTexture;
+            texture         = eduBuildingTexture;
             max_capacity    = 3;
             cost            = 0;
             maintenanceCost = 18;
             break;
 
         case BuildingType::PENTHOUSE:
-            texture         = eduBuildingTexture;
+            texture         = casinoTexture;
             max_capacity    = 3;
             cost            = 0;
             maintenanceCost = 15;
@@ -336,7 +336,7 @@ void WorkBuilding::Update(float dt)
             case BuildingType::GRANARY: break;
             case BuildingType::FARM:
                 if (resourceManager->GetFoodCapacity() > 0)
-                    resourceManager->AddFood(amountToProduce * farmFoodMultiplier);
+                    resourceManager->AddFood(static_cast<int>(amountToProduce * farmFoodMultiplier));
                 break;
             case BuildingType::CAFE:
                 if (resourceManager->TrySpendFood(kCafeFoodPerTick))
@@ -452,10 +452,13 @@ void WorkBuilding::Draw(int viewIndex, const GridMap* map, [[maybe_unused]] int 
 
     Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
 
+    if (buildingType == BuildingType::DISASTER_OBSERVATORY)
+        drawPos.y += texture.GetHeight() - TILE_HEIGHT * 4;
+
     Dokev::AnimatedSprite* workerAnim = GetWorkerAnimation();
     if (isBuilt && HasWorker() && workerAnim != nullptr && workerAnim->GetSpriteSheet().IsValid())
     {
-        workerAnim->DrawAtPosition(drawPos.x, drawPos.y);
+        workerAnim->DrawAtTexturePosition(drawPos.x, drawPos.y);
     }
     else
     {

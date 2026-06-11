@@ -19,13 +19,15 @@ namespace Dokev
             return 0.0f;
 
         if (happiness >= 80.0f)
-            chance = 0.80f; // 80%
+            chance = 0.90f; // 90%
         else if (happiness >= 60.0f)
-            chance = 0.50f; // 50%
+            chance = 0.75f; // 75%
+        else if (happiness >= 50.0f)
+            chance = 0.65f; // 65%
         else if (happiness >= 40.0f)
-            chance = 0.20f; // 20%
+            chance = 0.40f; // 40%
         else if (happiness >= 20.0f)
-            chance = 0.05f; // 5%
+            chance = 0.15f; // 15%
         else
             chance = 0.0f; // 0%
 

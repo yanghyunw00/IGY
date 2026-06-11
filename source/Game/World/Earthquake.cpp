@@ -1,3 +1,11 @@
+/**
+ * \file Earthquake.cpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 #include "Earthquake.hpp"
 #include "Dokev/Core/DKUtility.hpp"
 #include "Game/Entities/Building.hpp"

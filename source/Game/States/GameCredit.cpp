@@ -18,7 +18,7 @@
 void GameCredit::Load()
 {
     CS200::RenderingAPI::SetClearColor(CS200::WHITE);
-    creditTexture = Dokev::LoadTexture("Assets/images/IGY_CREDIT.png");
+    creditTexture = Dokev::LoadTexture("Assets/images/igy_credit.png");
 
     try
     {
@@ -35,8 +35,9 @@ void GameCredit::Load()
         float imgWidth = static_cast<float>(creditTexture.GetWidth());
         imageScale     = static_cast<float>(winSize.x) / imgWidth;
         scaledHeight   = creditTexture.GetHeight() * static_cast<double>(imageScale);
-        scrollY        = -4300;
-        loaded         = true;
+        scrollStart = -scaledHeight + TOP_PADDING;
+        scrollY     = scrollStart;
+        loaded      = true;
     }
 }
 
@@ -58,9 +59,11 @@ void GameCredit::Update(double dt)
         scrollY += SCROLL_SPEED * dt * 3.0;
     }
 
-    if (scrollY > 0)
+    const double viewHeight = static_cast<double>(Engine::GetWindow().GetSize().y);
+    if (scrollY > viewHeight)
     {
-        scrollY = -4300;
+        Engine::GetGameStateManager().PopState();
+        Engine::GetGameStateManager().PushState<MainMenu>();
     }
 }
 
@@ -92,8 +95,8 @@ void GameCredit::Draw() const
     constexpr double bottomMargin = 20.0;
     double           leftEdge     = static_cast<double>(winSize.x) - rightMargin - 380.0;
 
-    DrawHintText(escapeText, { leftEdge, bottomMargin + lineHeight }, Dokev::ColorPalette::BLACK);
-    DrawHintText(spaceBarText, { leftEdge, bottomMargin + lineHeight * 2.0 }, Dokev::ColorPalette::BLACK);
+    DrawHintText(escapeText, { leftEdge, bottomMargin + lineHeight }, Dokev::ColorPalette::ORANGE);
+    DrawHintText(spaceBarText, { leftEdge, bottomMargin + lineHeight * 2.0 }, Dokev::ColorPalette::ORANGE);
     renderer2d.EndScene();
 }
 

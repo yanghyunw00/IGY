@@ -6,6 +6,7 @@
  * \copyright DigiPen Institute of Technology
  */
 #include "DKAnimation.hpp"
+#include "Engine/Path.hpp"
 #include <algorithm>
 #include <fstream>
 #include <sstream>
@@ -21,7 +22,9 @@ namespace Dokev
 
     Animation::Animation(const std::filesystem::path& animation_file)
     {
-        std::ifstream file(animation_file);
+        // Resolve through locate_asset so the .anm is found regardless of the working
+        // directory (the .spt stores it as a relative path), matching the .spt loader.
+        std::ifstream file(assets::locate_asset(animation_file));
         if (!file.is_open())
         {
             throw std::runtime_error("Failed to load: " + animation_file.string());

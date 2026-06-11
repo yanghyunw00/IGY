@@ -1,3 +1,11 @@
+/**
+ * \file Setting.hpp
+ * \brief
+ * \author
+ * \date 2025 Fall
+ * \copyright DigiPen Institute of Technology
+ */
+
 
 #pragma once
 #include "CS200/IRenderer2D.hpp"

@@ -72,6 +72,22 @@ namespace Dokev
         texture->Draw(transform, tint, selected_renderer);
     }
 
+    void Texture2D::DrawScaled(int posX, int posY, Math::vec2 scale, CS200::RGBA tint, Dokev::RenderState selected_renderer) const
+    {
+        if (!texture)
+        {
+            return;
+        }
+
+        const auto size = texture->GetSize();
+        const Math::vec2 center{ static_cast<double>(posX) + static_cast<double>(size.x) * 0.5, static_cast<double>(posY) - static_cast<double>(size.y) * 0.5 };
+        const Math::vec2 adjustedPosition{ center.x - static_cast<double>(size.x) * scale.x * 0.5, center.y - static_cast<double>(size.y) * scale.y * 0.5 };
+
+        auto transform = Math::TranslationMatrix(adjustedPosition) * Math::ScaleMatrix(scale);
+
+        texture->Draw(transform, tint, selected_renderer);
+    }
+
     void Texture2D::Draw(Math::vec2 position, CS200::RGBA tint) const
     {
         Draw(static_cast<int>(position.x), static_cast<int>(position.y), tint);
@@ -125,6 +141,28 @@ namespace Dokev
         Math::ivec2 frameSize{ sourceWidth, sourceHeight };
 
         texture->Draw(transform, texelPos, frameSize, tint);
+    }
+
+    void Texture2D::DrawProScaled(
+        int sourceX, int sourceY, int sourceWidth, int sourceHeight, int destX, int destY, Math::vec2 scale, CS200::RGBA tint, Dokev::RenderState selected_renderer) const
+    {
+        if (!texture)
+        {
+            return;
+        }
+
+        const Math::vec2 center{
+            static_cast<double>(destX) + static_cast<double>(sourceWidth) * 0.5,
+            static_cast<double>(destY) + static_cast<double>(sourceHeight) * 0.5
+        };
+        const Math::vec2 adjustedPosition{ center.x - static_cast<double>(sourceWidth) * scale.x * 0.5, center.y - static_cast<double>(sourceHeight) * scale.y * 0.5 };
+
+        auto transform = Math::TranslationMatrix(adjustedPosition) * Math::ScaleMatrix(scale);
+
+        Math::ivec2 texelPos{ sourceX, sourceY };
+        Math::ivec2 frameSize{ sourceWidth, sourceHeight };
+
+        texture->Draw(transform, texelPos, frameSize, tint, selected_renderer);
     }
 
     void Texture2D::DrawPro(Math::vec2 position, float rotation, Math::vec2 scale, Math::vec2 origin, CS200::RGBA tint) const

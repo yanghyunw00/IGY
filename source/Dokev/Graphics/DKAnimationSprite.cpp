@@ -35,6 +35,55 @@ namespace Dokev
     {
     }
 
+    AnimatedSprite::AnimatedSprite(const AnimatedSprite& other)
+        : spriteSheet(other.spriteSheet), animations(other.animations), currentAnimationName(other.currentAnimationName)
+    {
+        RebindCurrentAnimation();
+    }
+
+    AnimatedSprite& AnimatedSprite::operator=(const AnimatedSprite& other)
+    {
+        if (this != &other)
+        {
+            spriteSheet          = other.spriteSheet;
+            animations           = other.animations;
+            currentAnimationName = other.currentAnimationName;
+            RebindCurrentAnimation();
+        }
+        return *this;
+    }
+
+    AnimatedSprite::AnimatedSprite(AnimatedSprite&& other) noexcept
+        : spriteSheet(std::move(other.spriteSheet)), animations(std::move(other.animations)), currentAnimationName(std::move(other.currentAnimationName))
+    {
+        RebindCurrentAnimation();
+        other.currentAnimation = nullptr;
+    }
+
+    AnimatedSprite& AnimatedSprite::operator=(AnimatedSprite&& other) noexcept
+    {
+        if (this != &other)
+        {
+            spriteSheet          = std::move(other.spriteSheet);
+            animations           = std::move(other.animations);
+            currentAnimationName = std::move(other.currentAnimationName);
+            RebindCurrentAnimation();
+            other.currentAnimation = nullptr;
+        }
+        return *this;
+    }
+
+    void AnimatedSprite::RebindCurrentAnimation()
+    {
+        if (currentAnimationName.empty())
+        {
+            currentAnimation = nullptr;
+            return;
+        }
+        auto it          = animations.find(currentAnimationName);
+        currentAnimation = (it != animations.end()) ? &it->second : nullptr;
+    }
+
     void AnimatedSprite::AddAnimation(const std::string& name, Animation animation)
     {
         animations[name] = std::move(animation);
@@ -140,7 +189,7 @@ namespace Dokev
         return animations.at(name);
     }
 
-    void AnimatedSprite::DrawAtPosition(int posX, int posY) const
+    void AnimatedSprite::DrawAtPosition(int posX, int posY, CS200::RGBA tint, Math::vec2 scale, Dokev::RenderState selected_renderer) const
     {
         if (currentAnimation == nullptr || !spriteSheet.IsValid())
             return;
@@ -152,7 +201,33 @@ namespace Dokev
 
         int destX = posX - fs.x / 2;
         int destY = posY - fs.y * 3 / 2;
-        tex.DrawPro(fp.x, fp.y, fs.x, fs.y, destX, destY);
+        tex.DrawProScaled(fp.x, fp.y, fs.x, fs.y, destX, destY, scale, tint, selected_renderer);
+    }
+
+    void AnimatedSprite::DrawAtTexturePosition(int posX, int posY, CS200::RGBA tint, Math::vec2 scale, Dokev::RenderState selected_renderer) const
+    {
+        if (currentAnimation == nullptr || !spriteSheet.IsValid())
+            return;
+
+        int         frameIndex = currentAnimation->GetCurrentSpriteFrame();
+        Math::ivec2 fp         = spriteSheet.GetFramePosition(frameIndex);
+        Math::ivec2 fs         = spriteSheet.GetFrameSize();
+        Texture2D   tex        = spriteSheet.GetTexture();
+
+        tex.DrawProScaled(fp.x, fp.y, fs.x, fs.y, posX, posY - fs.y, scale, tint, selected_renderer);
+    }
+
+    void AnimatedSprite::DrawTopLeft(int posX, int posY) const
+    {
+        if (currentAnimation == nullptr || !spriteSheet.IsValid())
+            return;
+
+        int         frameIndex = currentAnimation->GetCurrentSpriteFrame();
+        Math::ivec2 fp         = spriteSheet.GetFramePosition(frameIndex);
+        Math::ivec2 fs         = spriteSheet.GetFrameSize();
+        Texture2D   tex        = spriteSheet.GetTexture();
+
+        tex.DrawPro(fp.x, fp.y, fs.x, fs.y, posX, posY);
     }
 
     Math::vec4 AnimatedSprite::GetCurrentFrameUV() const

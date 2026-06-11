@@ -144,9 +144,17 @@ void ResidentBuilding::Draw(int viewIndex, const GridMap* map, int x, int y)
         tint             = ApplyAlpha(tint, alpha);
     }
 
-    int drawX = (buildingType == BuildingType::STREET_LIGHT) ? x + TILE_WIDTH_HALF / 2 : x;
-    int drawY = (buildingType == BuildingType::STREET_LIGHT) ? y - TILE_HEIGHT_HALF : y;
-    texture.Draw(drawX, drawY, tint);
+    if (buildingType == BuildingType::PARK)
+    {
+        Math::ivec2 drawPos = CalculateScreenPosition(viewIndex, map);
+        texture.Draw(drawPos.x, drawPos.y, tint);
+    }
+    else
+    {
+        int drawX = (buildingType == BuildingType::STREET_LIGHT) ? x + TILE_WIDTH_HALF / 2 : x;
+        int drawY = (buildingType == BuildingType::STREET_LIGHT) ? y - TILE_HEIGHT_HALF : y;
+        texture.Draw(drawX, drawY, tint);
+    }
 
     if (!isBuilt)
     {
