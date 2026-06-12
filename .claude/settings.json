@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(Select-Object -First 20)",
-      "Bash(xargs grep -l \"UIManager\")",
-      "PowerShell(Add-Type -AssemblyName System.Drawing; $files = @\\('Assets/images/building/disaster_observatory.png', 'Assets/images/building/workplace3.png', 'Assets/resources/Farm.png'\\); foreach \\($f in $files\\) { if \\(Test-Path $f\\) { $img = [System.Drawing.Image]::FromFile\\(\\(Resolve-Path $f\\).Path\\); Write-Output \"$f : $\\($img.Width\\) x $\\($img.Height\\)\"; $img.Dispose\\(\\) } else { Write-Output \"NOT FOUND: $f\" } })"
-    ]
-  }
-}
