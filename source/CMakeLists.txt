@@ -161,28 +161,28 @@ set(SOURCE_CODE
     main.cpp
 )
 
-add_executable(cs200_fun ${SOURCE_CODE})
+add_executable(IGY ${SOURCE_CODE})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${SOURCE_CODE})
 
-target_link_libraries(cs200_fun PRIVATE project_options dependencies)
-target_include_directories(cs200_fun PRIVATE .)
+target_link_libraries(IGY PRIVATE project_options dependencies)
+target_include_directories(IGY PRIVATE .)
 
 # Precompiled header
-target_precompile_headers(cs200_fun PRIVATE pch.hpp)
+target_precompile_headers(IGY PRIVATE pch.hpp)
 
 # Copy Assets folder to build directory automatically
 add_custom_command(
-    TARGET cs200_fun POST_BUILD
+    TARGET IGY POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_SOURCE_DIR}/Assets
-    $<TARGET_FILE_DIR:cs200_fun>/Assets
+    $<TARGET_FILE_DIR:IGY>/Assets
     COMMENT "Copying Assets folder to build directory"
 )
 
 # Check the IS_DEVELOPER_VERSION cache variable
 # This is set by the cmake configure preset
 if (IS_DEVELOPER_VERSION)
-    target_compile_definitions(cs200_fun PRIVATE DEVELOPER_VERSION)
+    target_compile_definitions(IGY PRIVATE DEVELOPER_VERSION)
 endif()
 
 if(EMSCRIPTEN)
@@ -198,11 +198,11 @@ if(EMSCRIPTEN)
     # --use-preload-cache           - help with faster reloads : https://emscripten.org/docs/compiling/Deploying-Pages.html#providing-a-quick-second-time-load
     # -lembind                      - to call c++ from javascript https://emscripten.org/docs/porting/connecting_cpp_and_javascript/embind.html
     # --shell-file                  - to customize the webpage https://emscripten.org/docs/compiling/Deploying-Pages.html#build-files-and-custom-shell
-    target_link_options(cs200_fun PRIVATE 
+    target_link_options(IGY PRIVATE
     -sASSERTIONS=$<$<BOOL:${IS_DEVELOPER_VERSION}>:1>$<$<NOT:$<BOOL:${IS_DEVELOPER_VERSION}>>:0>
-    -sWASM=1 
-    -sDISABLE_EXCEPTION_CATCHING=0 
-    -sALLOW_MEMORY_GROWTH=1 
+    -sWASM=1
+    -sDISABLE_EXCEPTION_CATCHING=0
+    -sALLOW_MEMORY_GROWTH=1
     -sEXIT_RUNTIME=1
     # NOTE: -sSINGLE_FILE=1 disabled. Embedding the wasm as raw bytes inside a
     # UTF-8 html corrupts the binary in the browser ("illegal flag value").
@@ -214,10 +214,10 @@ if(EMSCRIPTEN)
     --shell-file ${CMAKE_SOURCE_DIR}/app_resources/web/index_shell.html
     )
 
-    set_target_properties(cs200_fun PROPERTIES SUFFIX ".html")
+    set_target_properties(IGY PROPERTIES SUFFIX ".html")
 elseif(WIN32)
 
-    target_link_options(cs200_fun PRIVATE 
+    target_link_options(IGY PRIVATE
         $<IF:$<BOOL:${IS_DEVELOPER_VERSION}>,/SUBSYSTEM:CONSOLE,/SUBSYSTEM:WINDOWS>
         /ENTRY:mainCRTStartup)
 
@@ -227,6 +227,6 @@ elseif(WIN32)
         file(WRITE ${ICON_RC} "IDR_MAINFRAME ICON \"${ICON_FILE}\"\nIDI_ICON1 ICON DISCARDABLE \"${ICON_FILE}\"")
     endif()
 
-    target_sources(cs200_fun PRIVATE ${ICON_RC})
+    target_sources(IGY PRIVATE ${ICON_RC})
 
 endif()
