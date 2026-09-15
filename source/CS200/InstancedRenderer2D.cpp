@@ -10,6 +10,7 @@
 #include "CS200/Renderer2DUtils.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Matrix.hpp"
+#include "Engine/PerfStats.hpp"
 #include "Engine/Path.hpp"
 #include "Engine/Vec2.hpp"
 #include "OpenGL/GL.hpp"
@@ -227,6 +228,13 @@ void CS200::InstancedRenderer2D::Flush()
         return;
 
     const auto size_bytes = static_cast<GLsizeiptr>(instance_count * sizeof(InstanceData));
+
+    auto& perf = Perf::Counters();
+    ++perf.instancedFlushes;
+    ++perf.instancedDrawCalls;
+    perf.textureBinds += static_cast<unsigned>(textureSlots.size());
+    perf.instanceBytesUploaded += static_cast<std::size_t>(size_bytes);
+
     GL::BindBuffer(GL_ARRAY_BUFFER, InstanceVB);
     GL::BufferSubData(GL_ARRAY_BUFFER, 0, size_bytes, instanceData.data());
 
@@ -267,6 +275,8 @@ void CS200::InstancedRenderer2D::EndScene()
 
 void CS200::InstancedRenderer2D::DrawQuad(const Math::TransformationMatrix& transform, OpenGL::TextureHandle texture, Math::vec2 texture_coord_bl, Math::vec2 texture_coord_tr, CS200::RGBA tintColor)
 {
+    ++Perf::Counters().quadsSubmitted;
+
     if (static_cast<size_t>(instanceDataEnd - instanceData.data()) >= MaxQuadCount)
     {
         Flush();
@@ -356,6 +366,8 @@ void CS200::InstancedRenderer2D::DrawLine(Math::vec2 start_point, Math::vec2 end
 
 void CS200::InstancedRenderer2D::DrawSDF(const Math::TransformationMatrix& transform, CS200::RGBA fill_color, CS200::RGBA line_color, double line_width, SDFShape sdf_shape)
 {
+    ++Perf::Counters().quadsSubmitted;
+
     if (static_cast<size_t>(instanceDataEnd - instanceData.data()) >= MaxQuadCount)
     {
         Flush();

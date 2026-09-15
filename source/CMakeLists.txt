@@ -30,6 +30,7 @@ set(SOURCE_CODE
     Engine/Logger.hpp Engine/Logger.cpp
     Engine/Matrix.hpp Engine/Matrix.cpp
     Engine/Path.hpp Engine/Path.cpp
+    Engine/PerfStats.hpp Engine/PerfStats.cpp
     Engine/Random.hpp Engine/Random.cpp
     Engine/Rect.hpp
     Engine/Texture.hpp Engine/Texture.cpp

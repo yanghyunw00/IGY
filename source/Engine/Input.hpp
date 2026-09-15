@@ -54,6 +54,7 @@ namespace CS230
             Down,
             Escape,
             Tab,
+            F1,
             F12,
             Count
         };
@@ -119,6 +120,7 @@ namespace CS230
             case Input::Keys::Down: return "Down";
             case Input::Keys::Escape: return "Escape";
             case Input::Keys::Tab: return "Tab";
+            case Input::Keys::F1: return "F1";
             case Input::Keys::F12: return "F12";
             case Input::Keys::Count: return "Count";
         }

@@ -21,6 +21,7 @@
 #include "GameStateManager.hpp"
 #include "Input.hpp"
 #include "Logger.hpp"
+#include "PerfStats.hpp"
 #include "TextureManager.hpp"
 #include "Timer.hpp"
 #include "Window.hpp"
@@ -111,6 +112,13 @@ float Engine::GetFlashAlpha()
 
 CS200::IRenderer2D& Engine::GetRenderer2D(Dokev::RenderState selection)
 {
+    // Profiler A/B switch: route every draw through the immediate renderer so the
+    // same scene can be measured with one draw call per quad.
+    if (Perf::Config().forceImmediateRenderer)
+    {
+        return Instance().impl->ImmediateRenderer2D;
+    }
+
     switch (selection)
     {
         case Dokev::RenderState::IMMEDIATE:
@@ -195,6 +203,7 @@ static void TakeScreenshot()
 void Engine::Update()
 {
     updateEnvironment();
+    Perf::NewFrame(impl->environment.DeltaTime);
     impl->window.Update();
     impl->input.Update();
     auto& state_manager = impl->gameStateManager;
@@ -206,12 +215,18 @@ void Engine::Update()
 
     impl->viewport = ImGuiHelper::Begin();
     state_manager.DrawImGui();
+    Perf::DrawImGui();
     ImGuiHelper::End();
 
     // Tick the flash timer; actual rendering is done inside GamePlayState::Draw()
     // via Engine::GetFlashAlpha() so it uses the same renderer pass as weather overlays.
     if (impl->flashTimer > 0.0f)
         impl->flashTimer -= static_cast<float>(impl->environment.DeltaTime);
+
+    if (impl->input.KeyJustPressed(CS230::Input::Keys::F1))
+    {
+        Perf::g_settings.showWindow = !Perf::g_settings.showWindow;
+    }
 
     if (impl->input.KeyJustPressed(CS230::Input::Keys::F12))
     {
