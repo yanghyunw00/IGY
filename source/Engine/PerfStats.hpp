@@ -92,4 +92,20 @@ namespace Perf
 
     /// Averages over the rolling window (last kHistory frames).
     FrameStats WindowAverage();
+
+    /**
+     * \brief Totals since launch. Unlike the rolling window these never reset,
+     *        so a counter that stays at zero means the code path never ran.
+     */
+    struct Lifetime
+    {
+        unsigned long long frames            = 0;
+        unsigned long long pathQueries       = 0;
+        double             pathMicroseconds  = 0.0;
+        unsigned long long pathNodesReset    = 0;
+        unsigned long long pathNodesExpanded = 0;
+        unsigned long long pathHeapAllocs    = 0;
+    };
+
+    const Lifetime& Totals();
 }

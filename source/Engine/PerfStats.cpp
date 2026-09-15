@@ -11,6 +11,7 @@
 #include "Engine.hpp"
 #include "Logger.hpp"
 
+#include <SDL.h>
 #include <algorithm>
 #include <array>
 #include <cfloat>
@@ -28,6 +29,8 @@ namespace Perf
     namespace
     {
         constexpr int kHistory = 300;
+
+        Lifetime totals;
 
         std::vector<FrameStats> history;
         int                     historyHead = 0;
@@ -142,6 +145,13 @@ namespace Perf
 
         g_frame.frameMilliseconds = delta_seconds * 1000.0;
 
+        ++totals.frames;
+        totals.pathQueries += g_frame.pathQueries;
+        totals.pathMicroseconds += g_frame.pathMicroseconds;
+        totals.pathNodesReset += g_frame.pathNodesReset;
+        totals.pathNodesExpanded += g_frame.pathNodesExpanded;
+        totals.pathHeapAllocs += g_frame.pathHeapAllocs;
+
         history[static_cast<std::size_t>(historyHead)] = g_frame;
         historyHead                                    = (historyHead + 1) % kHistory;
         if (historyHead == 0)
@@ -172,6 +182,11 @@ namespace Perf
     bool IsCapturing()
     {
         return capturing;
+    }
+
+    const Lifetime& Totals()
+    {
+        return totals;
     }
 
     FrameStats WindowAverage()
@@ -251,6 +266,19 @@ namespace Perf
 
         ImGui::Text("frame  %6.2f ms  (%5.1f fps)   window=%d", avg.frameMilliseconds, avg.frameMilliseconds > 0.0 ? 1000.0 / avg.frameMilliseconds : 0.0, count);
         ImGui::Text("worst  %6.2f ms   best %6.2f ms", worstMs, bestMs);
+
+        // VSync pins frame time to the refresh rate, which hides every rendering
+        // difference until one side misses the budget. It has to be off to compare.
+        static bool vsyncOn = true;
+        if (ImGui::Checkbox("VSync", &vsyncOn))
+        {
+            SDL_GL_SetSwapInterval(vsyncOn ? 1 : 0);
+        }
+        ImGui::SameLine();
+        if (vsyncOn)
+            ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.35f, 1.0f), "ON - frame time is capped, turn OFF before comparing");
+        else
+            ImGui::TextDisabled("off - frame time is free running");
         if (count > 1)
             ImGui::PlotLines("##frame_ms", plotFrameMs.data(), count, 0, "frame ms", 0.0f, FLT_MAX, ImVec2(0, 50));
 
@@ -302,6 +330,21 @@ namespace Perf
 
             if (count > 1)
                 ImGui::PlotLines("##path_us", plotPathUs.data(), count, 0, "pathfinding us / frame", 0.0f, FLT_MAX, ImVec2(0, 50));
+
+            ImGui::Separator();
+            ImGui::Text("since launch (%llu frames)", totals.frames);
+            ImGui::Text("  queries             %8llu", totals.pathQueries);
+            if (totals.pathQueries == 0)
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.35f, 1.0f), "  no NPC has requested a path yet.");
+                ImGui::TextDisabled("  grow the population until people walk, then capture.");
+            }
+            else
+            {
+                ImGui::Text("  avg per query       %8.1f us", totals.pathMicroseconds / static_cast<double>(totals.pathQueries));
+                ImGui::Text("  avg nodes reset     %8.1f", static_cast<double>(totals.pathNodesReset) / static_cast<double>(totals.pathQueries));
+                ImGui::Text("  avg heap allocs     %8.1f", static_cast<double>(totals.pathHeapAllocs) / static_cast<double>(totals.pathQueries));
+            }
         }
 
         ImGui::Separator();
