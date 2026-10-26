@@ -8,8 +8,10 @@
  */
 
 #include "pathFinding.hpp"
+#include "Engine/PerfStats.hpp"
 #include "GridCell.hpp"
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <limits>
 #include <queue>
@@ -19,6 +21,10 @@ PathFinding::PathFinding(int sizeX, int sizeY, float maxClimb) : gridSizeX(sizeX
     heightMap.resize(gridSizeY, std::vector<float>(gridSizeX, 0.0f));
     walkableMap.resize(gridSizeY, std::vector<bool>(gridSizeX, true));
     closedSet.resize(gridSizeY, std::vector<bool>(gridSizeX, false)); // Pre-allocate once
+
+    const auto cellCount = static_cast<std::size_t>(gridSizeX) * static_cast<std::size_t>(gridSizeY);
+    visitStamp.assign(cellCount, 0u);
+    closedFlat.assign(cellCount, 0u);
 
     allNodes.resize(gridSizeY);
     for (int y = 0; y < gridSizeY; y++)
@@ -169,9 +175,27 @@ std::vector<Math::fvec2> PathFinding::FindPath(Math::fvec2 start, Math::fvec2 en
 
 std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX, int endY)
 {
+    const auto begin = std::chrono::steady_clock::now();
+
+    std::vector<Math::fvec2> path = Perf::Config().pathfindingOptimized ? FindPathOptimized(startX, startY, endX, endY) : FindPathLegacy(startX, startY, endX, endY);
+
+    const auto end = std::chrono::steady_clock::now();
+
+    auto& perf = Perf::Counters();
+    ++perf.pathQueries;
+    perf.pathMicroseconds += std::chrono::duration<double, std::micro>(end - begin).count();
+    perf.pathSteps += static_cast<unsigned>(path.size());
+
+    return path;
+}
+
+std::vector<Math::fvec2> PathFinding::FindPathLegacy(int startX, int startY, int endX, int endY)
+{
     const float UPHILL_COST_MULTIPLIER   = 2.0f;
     const float DOWNHILL_COST_MULTIPLIER = 0.5f;
     const float INF                      = std::numeric_limits<float>::infinity();
+
+    auto& perf = Perf::Counters();
 
     for (int y = 0; y < gridSizeY; y++)
     {
@@ -184,6 +208,7 @@ std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX,
             closedSet[y][x] = false;
         }
     }
+    perf.pathNodesReset += static_cast<unsigned>(gridSizeX * gridSizeY);
 
     if (startX < 0 || startX >= gridSizeX || startY < 0 || startY >= gridSizeY || endX < 0 || endX >= gridSizeX || endY < 0 || endY >= gridSizeY || !IsPositionWalkable(startX, startY) ||
         !IsPositionWalkable(endX, endY))
@@ -200,6 +225,7 @@ std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX,
     startNode->hCost = GetManhattanDistance(startNode, targetNode);
     startNode->CalculateFCost();
     openSet.push(startNode);
+    ++perf.pathNodesPushed;
 
     while (!openSet.empty())
     {
@@ -211,11 +237,14 @@ std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX,
             continue;
         }
         closedSet[currentNode->y][currentNode->x] = true;
+        ++perf.pathNodesExpanded;
 
         if (currentNode == targetNode)
         {
             return RetracePath(startNode, targetNode);
         }
+
+        ++perf.pathHeapAllocs; // GetNeighbors returns a fresh std::vector every expansion
 
         for (Node* neighbor : GetNeighbors(currentNode))
         {
@@ -243,9 +272,154 @@ std::vector<Math::fvec2> PathFinding::FindPath(int startX, int startY, int endX,
                 neighbor->CalculateFCost();
 
                 openSet.push(neighbor);
+                ++perf.pathNodesPushed;
             }
         }
     }
 
+    return {};
+}
+
+int PathFinding::GetNeighborsFast(Node* node, std::array<Node*, 4>& out)
+{
+    static constexpr int dx[] = { 0, 0, 1, -1 };
+    static constexpr int dy[] = { 1, -1, 0, 0 };
+
+    int count = 0;
+    for (int i = 0; i < 4; i++)
+    {
+        const int checkX = node->x + dx[i];
+        const int checkY = node->y + dy[i];
+
+        if (checkX >= 0 && checkX < gridSizeX && checkY >= 0 && checkY < gridSizeY && CanClimb(node->x, node->y, checkX, checkY))
+        {
+            out[static_cast<std::size_t>(count++)] = &allNodes[checkY][checkX];
+        }
+    }
+
+    return count;
+}
+
+std::vector<Math::fvec2> PathFinding::FindPathOptimized(int startX, int startY, int endX, int endY)
+{
+    const float UPHILL_COST_MULTIPLIER   = 2.0f;
+    const float DOWNHILL_COST_MULTIPLIER = 0.5f;
+    const float INF                      = std::numeric_limits<float>::infinity();
+
+    auto& perf = Perf::Counters();
+
+    if (startX < 0 || startX >= gridSizeX || startY < 0 || startY >= gridSizeY || endX < 0 || endX >= gridSizeX || endY < 0 || endY >= gridSizeY || !IsPositionWalkable(startX, startY) ||
+        !IsPositionWalkable(endX, endY))
+    {
+        return {};
+    }
+
+    // New generation: every node still carrying an older stamp counts as untouched,
+    // so nothing has to be cleared up front.
+    ++currentStamp;
+    if (currentStamp == 0)
+    {
+        std::fill(visitStamp.begin(), visitStamp.end(), 0u);
+        currentStamp = 1;
+    }
+
+    unsigned nodesTouched = 0;
+
+    // Initializes a node the first time this search reaches it.
+    const auto touch = [&](int x, int y) -> Node&
+    {
+        const std::size_t idx  = static_cast<std::size_t>(y) * static_cast<std::size_t>(gridSizeX) + static_cast<std::size_t>(x);
+        Node&             node = allNodes[y][x];
+        if (visitStamp[idx] != currentStamp)
+        {
+            visitStamp[idx] = currentStamp;
+            closedFlat[idx] = 0;
+            node.gCost      = INF;
+            node.hCost      = 0;
+            node.fCost      = INF;
+            node.parent     = nullptr;
+            ++nodesTouched;
+        }
+        return node;
+    };
+
+    const auto isClosed = [&](int x, int y) -> bool
+    {
+        const std::size_t idx = static_cast<std::size_t>(y) * static_cast<std::size_t>(gridSizeX) + static_cast<std::size_t>(x);
+        return visitStamp[idx] == currentStamp && closedFlat[idx] != 0;
+    };
+
+    const auto close = [&](int x, int y)
+    {
+        closedFlat[static_cast<std::size_t>(y) * static_cast<std::size_t>(gridSizeX) + static_cast<std::size_t>(x)] = 1;
+    };
+
+    Node* startNode  = &touch(startX, startY);
+    Node* targetNode = &touch(endX, endY);
+
+    std::priority_queue<Node*, std::vector<Node*>, NodeComparator> openSet;
+
+    startNode->gCost = 0;
+    startNode->hCost = GetManhattanDistance(startNode, targetNode);
+    startNode->CalculateFCost();
+    openSet.push(startNode);
+    ++perf.pathNodesPushed;
+
+    std::array<Node*, 4> neighbors{};
+
+    while (!openSet.empty())
+    {
+        Node* currentNode = openSet.top();
+        openSet.pop();
+
+        if (isClosed(currentNode->x, currentNode->y))
+        {
+            continue;
+        }
+        close(currentNode->x, currentNode->y);
+        ++perf.pathNodesExpanded;
+
+        if (currentNode == targetNode)
+        {
+            perf.pathNodesReset += nodesTouched;
+            return RetracePath(startNode, targetNode);
+        }
+
+        const int neighborCount = GetNeighborsFast(currentNode, neighbors);
+
+        for (int i = 0; i < neighborCount; ++i)
+        {
+            Node* raw = neighbors[static_cast<std::size_t>(i)];
+            if (isClosed(raw->x, raw->y))
+                continue;
+
+            Node& neighbor = touch(raw->x, raw->y);
+
+            float distanceCost = GetManhattanDistance(currentNode, &neighbor);
+            float terrainCost  = costMap[neighbor.y][neighbor.x];
+            float heightDiff   = heightMap[neighbor.y][neighbor.x] - heightMap[currentNode->y][currentNode->x];
+            float slopeCost    = 0;
+
+            if (heightDiff > 0)
+                slopeCost = heightDiff * UPHILL_COST_MULTIPLIER;
+            else if (heightDiff < 0)
+                slopeCost = std::abs(heightDiff) * DOWNHILL_COST_MULTIPLIER;
+
+            float newMovementCostToNeighbor = currentNode->gCost + distanceCost + terrainCost + slopeCost;
+
+            if (newMovementCostToNeighbor < neighbor.gCost)
+            {
+                neighbor.gCost  = newMovementCostToNeighbor;
+                neighbor.hCost  = GetManhattanDistance(&neighbor, targetNode);
+                neighbor.parent = currentNode;
+                neighbor.CalculateFCost();
+
+                openSet.push(&neighbor);
+                ++perf.pathNodesPushed;
+            }
+        }
+    }
+
+    perf.pathNodesReset += nodesTouched;
     return {};
 }

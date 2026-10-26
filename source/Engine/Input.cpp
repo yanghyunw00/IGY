@@ -94,6 +94,7 @@ namespace CS230
             case Keys::Down: return SDL_SCANCODE_DOWN;
             case Keys::Escape: return SDL_SCANCODE_ESCAPE;
             case Keys::Tab: return SDL_SCANCODE_TAB;
+            case Keys::F1: return SDL_SCANCODE_F1;
             case Keys::F12: return SDL_SCANCODE_F12;
             default: return SDL_SCANCODE_UNKNOWN;
         }

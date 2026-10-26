@@ -10,6 +10,7 @@
 #include "CS200/Renderer2DUtils.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Matrix.hpp"
+#include "Engine/PerfStats.hpp"
 #include "Engine/Texture.hpp"
 #include "OpenGL/Buffer.hpp"
 #include "OpenGL/GL.hpp"
@@ -188,6 +189,14 @@ namespace CS200
 
         GL::ActiveTexture(GL_TEXTURE0);
         GL::BindTexture(GL_TEXTURE_2D, texture);
+        {
+            auto& perf = Perf::Counters();
+            ++perf.quadsSubmitted;
+            ++perf.immediateDrawCalls;
+            perf.uniformUploads += 5; // uModel, uTexCoordTransform, uTint, uDepth, uTexture
+            ++perf.textureBinds;
+        }
+
         GL::BindVertexArray(vao);
         GL::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         GL::DrawElements(GL_TRIANGLES, indicesCount, GL_UNSIGNED_INT, nullptr);
@@ -221,6 +230,13 @@ namespace CS200
         GL::Uniform2fv(sdfShader.UniformLocations.at("uWorldSize"), 1, sdf_transform.WorldSize.data());
         GL::Uniform1f(sdfShader.UniformLocations.at("uLineWidth"), static_cast<float>(line_width));
         GL::Uniform1i(sdfShader.UniformLocations.at("uShape"), static_cast<GLint>(sdf_shape));
+
+        {
+            auto& perf = Perf::Counters();
+            ++perf.quadsSubmitted;
+            ++perf.immediateDrawCalls;
+            perf.uniformUploads += 8; // uModel, uToNDC, uSDFScale, uFillColor, uLineColor, uWorldSize, uLineWidth, uShape
+        }
 
         GL::BindVertexArray(sdf_vao);
         GL::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);

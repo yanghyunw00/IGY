@@ -9,6 +9,8 @@
 #pragma once
 #include "Engine/Vec2.hpp"
 #include "GridCell.hpp"
+#include <array>
+#include <cstdint>
 #include <vector>
 
 
@@ -66,6 +68,22 @@ private:
     std::vector<Node*>       GetNeighbors(Node* node);
     std::vector<Math::fvec2> RetracePath(Node* startNode, Node* endNode);
 
+    /**
+     * \brief Original search: clears every node up front and heap-allocates a
+     *        neighbor vector per expansion. Kept so the HUD can A/B against it.
+     */
+    std::vector<Math::fvec2> FindPathLegacy(int startX, int startY, int endX, int endY);
+
+    /**
+     * \brief Same search, but nodes are lazily reset through a generation stamp
+     *        and neighbors land in a stack array, so cost scales with the part of
+     *        the grid the search actually touches.
+     */
+    std::vector<Math::fvec2> FindPathOptimized(int startX, int startY, int endX, int endY);
+
+    /// Neighbor lookup without the per-expansion heap allocation.
+    int GetNeighborsFast(Node* node, std::array<Node*, 4>& out);
+
     int   gridSizeX, gridSizeY;
     float maxClimbHeight;
 
@@ -77,4 +95,9 @@ private:
     std::vector<std::vector<Node>> allNodes;
 
     std::vector<std::vector<bool>> closedSet;
+
+    // ---- optimized search state (flat, cache friendly) ----
+    std::vector<std::uint32_t> visitStamp;   ///< last search generation that touched a node
+    std::vector<std::uint8_t>  closedFlat;   ///< closed flags for the current generation
+    std::uint32_t              currentStamp = 0;
 };
